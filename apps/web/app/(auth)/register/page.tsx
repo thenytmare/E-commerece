@@ -12,7 +12,7 @@ export default function RegisterPage() {
         <Heading as="h1" size="lg" className="mb-2">
           Create your account
         </Heading>
-        <Text variant="muted">Join TechVault for a premium shopping experience</Text>
+        <Text variant="muted">Join Prime Accessories Kenya for a premium shopping experience</Text>
       </div>
       <RegisterForm />
     </div>

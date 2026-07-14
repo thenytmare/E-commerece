@@ -8,6 +8,7 @@ import { OrderRepository } from './order.repository';
 import { PaymentRepository } from './payment.repository';
 import { ProductRepository } from './product.repository';
 import { UserRepository } from './user.repository';
+import { AuditLogRepository } from './audit-log.repository';
 
 /**
  * Factory that wires all repositories to a shared Prisma client.
@@ -24,6 +25,7 @@ export function createRepositories(db = prisma) {
     address: new AddressRepository(db),
     order: new OrderRepository(db),
     payment: new PaymentRepository(db),
+    auditLog: new AuditLogRepository(db),
   };
 }
 
@@ -49,3 +51,4 @@ export { CartRepository, type CartWithItems } from './cart.repository';
 export { AddressRepository } from './address.repository';
 export { OrderRepository, type OrderDetail } from './order.repository';
 export { PaymentRepository } from './payment.repository';
+export { AuditLogRepository } from './audit-log.repository';

@@ -3,6 +3,7 @@ import { logoutAction } from '@/lib/actions/auth';
 import { canAccessAdmin } from '@/lib/auth/rbac';
 import { resolveCart } from '@/lib/cart';
 import { Badge, Button, Container } from '@repo/ui';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export async function SiteHeader() {
@@ -13,8 +14,9 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-border bg-card">
       <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          TechVault
+        <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+          <Image src="/images/logo.png" alt="Prime Accessories Kenya" width={32} height={32} className="h-8 w-8 object-contain" />
+          <span>Prime Accessories Kenya</span>
         </Link>
 
         <nav className="flex items-center gap-3">

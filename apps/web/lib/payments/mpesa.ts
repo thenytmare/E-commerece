@@ -90,7 +90,7 @@ export async function initiateStkPush(params: {
       PhoneNumber: phone,
       CallBackURL: `${appUrl}/api/webhooks/mpesa`,
       AccountReference: params.orderNumber,
-      TransactionDesc: `TechVault ${params.orderNumber}`,
+      TransactionDesc: `Prime Accessories Kenya ${params.orderNumber}`,
     }),
   });
 

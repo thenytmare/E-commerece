@@ -5,7 +5,7 @@ import { mergeGuestCartForUser } from '@/lib/cart';
 import { registerSchema } from '@/lib/validations/auth';
 import { createRepositories } from '@repo/database';
 import bcrypt from 'bcryptjs';
-import { AuthError } from 'next-auth';
+import { CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 const repos = createRepositories();
@@ -42,7 +42,7 @@ export async function loginAction(
       redirectTo: callbackUrl,
     });
   } catch (error) {
-    if (error instanceof AuthError) {
+    if (error instanceof CredentialsSignin) {
       return { error: 'Invalid email or password' };
     }
     throw error;
@@ -94,7 +94,7 @@ export async function registerAction(
       redirectTo: '/account',
     });
   } catch (error) {
-    if (error instanceof AuthError) {
+    if (error instanceof CredentialsSignin) {
       return { error: 'Account created but sign-in failed. Please log in.' };
     }
     throw error;

@@ -56,7 +56,7 @@ apps/web/
 
 | Email | Password | Roles |
 |-------|----------|-------|
-| `admin@techvault.co.ke` | `Admin123!` | ADMIN |
+| `admin@primeaccessorieskenya.co.ke` | `Admin123!` | ADMIN |
 
 New registrations receive the `CUSTOMER` role automatically.
 

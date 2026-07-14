@@ -13,7 +13,7 @@ export default function LoginPage() {
         <Heading as="h1" size="lg" className="mb-2">
           Welcome back
         </Heading>
-        <Text variant="muted">Sign in to your TechVault account</Text>
+        <Text variant="muted">Sign in to your Prime Accessories Kenya account</Text>
       </div>
       <Suspense fallback={<div className="text-sm text-muted-foreground">Loading...</div>}>
         <LoginForm />

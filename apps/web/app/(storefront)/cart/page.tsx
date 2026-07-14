@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Cart',
-  description: 'Review items in your TechVault shopping cart.',
+  description: 'Review items in your Prime Accessories Kenya shopping cart.',
 };
 
 export default async function CartPage() {

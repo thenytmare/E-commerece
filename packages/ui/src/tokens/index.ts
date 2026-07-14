@@ -1,5 +1,5 @@
 /**
- * Design token definitions for the TechVault design system.
+ * Design token definitions for the Prime Accessories Kenya design system.
  * CSS custom properties in globals.css mirror these values.
  */
 

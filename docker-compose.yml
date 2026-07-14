@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: techvault-postgres
+    container_name: primeaccessorieskenya-postgres
     restart: unless-stopped
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: techvault
-      POSTGRES_PASSWORD: techvault
-      POSTGRES_DB: techvault
+      POSTGRES_USER: prime_accessories_kenya
+      POSTGRES_PASSWORD: prime_accessories_kenya
+      POSTGRES_DB: prime_accessories_kenya
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U techvault -d techvault']
+      test: ['CMD-SHELL', 'pg_isready -U prime_accessories_kenya -d prime_accessories_kenya']
       interval: 5s
       timeout: 5s
       retries: 5

@@ -1,5 +1,10 @@
 import type { Category, Prisma } from '@prisma/client';
 import { BaseRepository } from './base.repository';
+export interface CreateCategoryInput {
+  name: string;
+  slug: string;
+  parentId?: string | null;
+}
 
 const categoryWithChildren = {
   children: {
@@ -33,7 +38,17 @@ export class CategoryRepository extends BaseRepository {
   }
 
   /** Create a new category */
-  create(data: Prisma.CategoryCreateInput): Promise<Category> {
-    return this.db.category.create({ data });
+  create(data: CreateCategoryInput): Promise<Category> {
+    return this.db.category.create({
+      data: {
+        name: data.name,
+        slug: data.slug,
+        ...(data.parentId
+          ? {
+              parent: { connect: { id: data.parentId } },
+            }
+          : {}),
+      },
+    });
   }
 }

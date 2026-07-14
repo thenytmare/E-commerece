@@ -1,87 +1,41 @@
 import { requireAdmin } from '@/lib/actions/auth';
-import { createRepositories } from '@repo/database';
-import { Badge, Container, Heading, Section, Text } from '@repo/ui';
-import Link from 'next/link';
+import { getDashboardWidgets } from '@/config/dashboard-registry';
+import { AdminPage } from '@/components/admin/ui/AdminPage';
+import { Button } from '@repo/ui/src/primitives/button'; // Assuming button exists
 
 export const metadata = {
-  title: 'Admin',
+  title: 'Dashboard | Admin',
 };
 
-export default async function AdminPage() {
+export default async function AdminDashboardPage() {
   const session = await requireAdmin();
-  const repos = createRepositories();
-  const [recentOrders, lowStock] = await Promise.all([
-    repos.order.listAll(5),
-    repos.inventory.findLowStockDetailed(),
-  ]);
+  const widgets = getDashboardWidgets();
 
   return (
-    <Section>
-      <Container>
-        <Badge variant="secondary" className="mb-4">
-          Admin
-        </Badge>
-        <Heading as="h1" size="xl" className="mb-4">
-          Dashboard
-        </Heading>
-        <Text variant="muted" className="mb-6">
-          Signed in as {session.user.email} ({session.user.roles.join(', ')})
-        </Text>
-
-        <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-border bg-card p-6">
-            <Text variant="muted" className="mb-1 text-sm">
-              Recent Orders
-            </Text>
-            <Heading as="h2" size="sm">
-              {recentOrders.length}
-            </Heading>
+    <AdminPage 
+      title="Dashboard" 
+      description={`Welcome back, ${session.user.name || session.user.email}`}
+    >
+      {/* 12-column responsive grid */}
+      <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
+        {widgets.map(widget => {
+          const WidgetComponent = widget.component;
+          // Apply responsive spans: default to full width on mobile, specified spans on larger screens
+          const colSpanMd = widget.span?.tablet ? `md:col-span-${widget.span.tablet}` : 'md:col-span-6';
+          const colSpanLg = widget.span?.desktop ? `lg:col-span-${widget.span.desktop}` : 'lg:col-span-12';
+          
+          return (
+            <div key={widget.id} className={`col-span-1 ${colSpanMd} ${colSpanLg}`}>
+              <WidgetComponent />
+            </div>
+          );
+        })}
+        {widgets.length === 0 && (
+          <div className="col-span-1 md:col-span-6 lg:col-span-12 p-8 text-center text-muted-foreground bg-card border border-border rounded-lg border-dashed">
+            No widgets registered. Register them in DashboardRegistry.
           </div>
-          <div className="rounded-lg border border-border bg-card p-6">
-            <Text variant="muted" className="mb-1 text-sm">
-              Low Stock Alerts
-            </Text>
-            <Heading as="h2" size="sm">
-              {lowStock.length}
-            </Heading>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-6">
-            <Text variant="muted" className="mb-1 text-sm">
-              Paid Orders
-            </Text>
-            <Heading as="h2" size="sm">
-              {recentOrders.filter((order) =>
-                order.payments.some((payment) => payment.status === 'COMPLETED')
-              ).length}
-            </Heading>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Link
-            href="/admin/orders"
-            className="rounded-lg border border-border bg-card p-6 transition-shadow hover:shadow-md"
-          >
-            <Heading as="h2" size="xs" className="mb-2">
-              Manage Orders
-            </Heading>
-            <Text variant="muted">
-              Review payments, advance fulfillment statuses, and cancel pending orders.
-            </Text>
-          </Link>
-          <Link
-            href="/admin/inventory"
-            className="rounded-lg border border-border bg-card p-6 transition-shadow hover:shadow-md"
-          >
-            <Heading as="h2" size="xs" className="mb-2">
-              Inventory Alerts
-            </Heading>
-            <Text variant="muted">
-              Monitor low-stock variants before availability affects checkout.
-            </Text>
-          </Link>
-        </div>
-      </Container>
-    </Section>
+        )}
+      </div>
+    </AdminPage>
   );
 }

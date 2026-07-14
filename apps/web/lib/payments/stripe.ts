@@ -39,7 +39,7 @@ export async function createStripeCheckoutSession(
           currency: 'kes',
           unit_amount: toStripeAmount(total),
           product_data: {
-            name: `TechVault Order ${order.orderNumber}`,
+            name: `Prime Accessories Kenya Order ${order.orderNumber}`,
             description: `${order.items.length} item(s)`,
           },
         },

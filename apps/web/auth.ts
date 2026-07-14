@@ -12,7 +12,6 @@ const repos = createRepositories();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  secret: env().AUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({

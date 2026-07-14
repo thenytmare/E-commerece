@@ -233,10 +233,10 @@ async function main() {
     create: {
       key: 'store',
       value: {
-        name: 'TechVault',
+        name: 'Prime Accessories Kenya',
         currency: 'KES',
         phone: '+254 700 000 000',
-        email: 'hello@techvault.co.ke',
+        email: 'hello@primeaccessorieskenya.co.ke',
         address: 'Nairobi, Kenya',
       },
     },
@@ -245,7 +245,7 @@ async function main() {
   console.log('  ✓ Site settings');
 
   // Admin user
-  const adminEmail = 'admin@techvault.co.ke';
+  const adminEmail = 'admin@primeaccessorieskenya.co.ke';
   const bcrypt = await import('bcryptjs');
   const passwordHash = await bcrypt.default.hash('Admin123!', 12);
   
@@ -253,7 +253,7 @@ async function main() {
     where: { email: adminEmail },
     create: {
       email: adminEmail,
-      name: 'TechVault Admin',
+      name: 'Prime Accessories Kenya Admin',
       passwordHash,
       roles: {
         create: {
@@ -264,7 +264,7 @@ async function main() {
       }
     },
     update: {
-      name: 'TechVault Admin',
+      name: 'Prime Accessories Kenya Admin',
       passwordHash,
     }
   });

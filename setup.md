@@ -1,6 +1,6 @@
-# TechVault — Local Setup Guide
+# Prime Accessories Kenya — Local Setup Guide
 
-Step-by-step instructions to get the TechVault e-commerce monorepo running on your machine.
+Step-by-step instructions to get the Prime Accessories Kenya e-commerce monorepo running on your machine.
 
 ## Prerequisites
 
@@ -74,7 +74,7 @@ openssl rand -base64 32
 The default `DATABASE_URL` in `.env.example` matches the Docker Compose PostgreSQL service:
 
 ```
-postgresql://techvault:techvault@localhost:5432/techvault?schema=public
+postgresql://prime_accessories_kenya:prime_accessories_kenya@localhost:5432/prime_accessories_kenya?schema=public
 ```
 
 ---
@@ -89,9 +89,9 @@ pnpm docker:up
 
 This runs PostgreSQL 16 on port **5432** with:
 
-- **User:** `techvault`
-- **Password:** `techvault`
-- **Database:** `techvault`
+- **User:** `prime_accessories_kenya`
+- **Password:** `prime_accessories_kenya`
+- **Database:** `prime_accessories_kenya`
 
 Check that the container is healthy:
 
@@ -133,7 +133,7 @@ After seeding, sign in with:
 
 | Email | Password | Role |
 |-------|----------|------|
-| `admin@techvault.co.ke` | `Admin123!` | ADMIN |
+| `admin@primeaccessorieskenya.co.ke` | `Admin123!` | ADMIN |
 
 Use this account to access `/admin` and other protected admin routes.
 
@@ -240,8 +240,8 @@ pnpm --filter @repo/web build:standalone
 ### Docker
 
 ```bash
-docker build -t techvault .
-docker run --env-file .env -p 3000:3000 techvault
+docker build -t primeaccessorieskenya .
+docker run --env-file .env -p 3000:3000 primeaccessorieskenya
 ```
 
 **Required production env vars:**

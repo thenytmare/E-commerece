@@ -38,16 +38,16 @@ The root `Dockerfile` builds the standalone Next.js server from `apps/web` and r
 Build and run:
 
 ```bash
-docker build -t techvault .
-docker run --env-file .env -p 3000:3000 techvault
+docker build -t primeaccessorieskenya .
+docker run --env-file .env -p 3000:3000 primeaccessorieskenya
 ```
 
 With PostgreSQL from `docker-compose.yml`:
 
 ```bash
 pnpm docker:up
-docker build -t techvault .
-docker run --env-file .env --network host techvault
+docker build -t primeaccessorieskenya .
+docker run --env-file .env --network host primeaccessorieskenya
 ```
 
 ## Manual Testing Checklist
@@ -57,7 +57,7 @@ docker run --env-file .env --network host techvault
 - [ ] Admin can move orders through processing, shipped, delivered
 - [ ] Admin can cancel pending/confirmed orders
 - [ ] `/admin/inventory` shows low-stock seeded variants when thresholds are hit
-- [ ] `docker build -t techvault .` succeeds on Linux / CI
+- [ ] `docker build -t primeaccessorieskenya .` succeeds on Linux / CI
 
 ## Next Step
 

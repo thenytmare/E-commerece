@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
   return {
     title: category.name,
-    description: `Shop ${category.name} at TechVault — premium electronics delivered across Kenya.`,
+    description: `Shop ${category.name} at Prime Accessories Kenya — premium electronics delivered across Kenya.`,
   };
 }
 

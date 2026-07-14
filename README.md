@@ -1,4 +1,4 @@
-# TechVault E-Commerce
+# Prime Accessories Kenya E-Commerce
 
 Premium electronics e-commerce platform built with a modular monorepo architecture.
 
@@ -88,8 +88,8 @@ Private — All rights reserved.
 ### Docker build
 
 ```bash
-docker build -t techvault .
-docker run --env-file .env -p 3000:3000 techvault
+docker build -t primeaccessorieskenya .
+docker run --env-file .env -p 3000:3000 primeaccessorieskenya
 ```
 
 ### Required environment variables

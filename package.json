@@ -14,7 +14,9 @@
     "db:seed": "pnpm --filter @repo/database db:seed",
     "db:studio": "pnpm --filter @repo/database db:studio",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "clean": "turbo clean",
+    "rebuild": "turbo clean && turbo build"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
