@@ -1,0 +1,12 @@
+node_modules
+.next
+.turbo
+.git
+.github
+coverage
+dist
+*.log
+.env
+.env.local
+apps/web/node_modules
+packages/*/node_modules
