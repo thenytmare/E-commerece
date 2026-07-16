@@ -96,7 +96,7 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setSelectedOrder(item)}
-              className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted flex items-center gap-1 text-xs font-medium border border-transparent hover:bord[...]
+              className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted flex items-center gap-1 text-xs font-medium border border-transparent hover:border-border"
             >
               <Eye className="h-4 w-4" />
               Manage Status
