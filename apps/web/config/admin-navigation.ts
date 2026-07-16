@@ -6,7 +6,8 @@ import {
   Users, 
   Settings,
   Tags,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ShieldAlert
 } from 'lucide-react';
 
 // Register core Phase 1 modules here for now.
@@ -34,22 +35,42 @@ registerModule({
   id: 'catalog-module',
   name: 'Catalog',
   permissions: ['products.read', 'categories.read', 'brands.read'],
-  routes: ['/admin/products', '/admin/categories', '/admin/brands'],
+  routes: ['/admin/catalog/products', '/admin/catalog/categories', '/admin/catalog/brands'],
   navigation: [
     {
       group: 'Catalog',
       items: [
         {
           title: 'Products',
-          href: '/admin/products',
+          href: '/admin/catalog/products',
           icon: Package,
           requiredPermissions: ['products.read'],
         },
         {
           title: 'Categories',
-          href: '/admin/categories',
+          href: '/admin/catalog/categories',
           icon: Tags,
           requiredPermissions: ['categories.read'],
+        }
+      ]
+    }
+  ]
+});
+
+registerModule({
+  id: 'inventory-module',
+  name: 'Inventory',
+  permissions: ['inventory.read', 'inventory.write'],
+  routes: ['/admin/inventory'],
+  navigation: [
+    {
+      group: 'Catalog',
+      items: [
+        {
+          title: 'Inventory Alerts',
+          href: '/admin/inventory',
+          icon: ShieldAlert,
+          requiredPermissions: ['inventory.read'],
         }
       ]
     }

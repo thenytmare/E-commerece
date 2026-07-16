@@ -30,7 +30,17 @@ export const RolePermissions: Record<RoleName, Permission[]> = {
     'inventory.read', 'inventory.write',
     'analytics.read'
   ],
-  CUSTOMER: []
+  CUSTOMER: [],
+  SUPPORT: [
+    'products.read',
+    'categories.read',
+    'brands.read',
+    'orders.read',
+    'customers.read',
+    'inventory.read',
+    'analytics.read',
+    'settings.read'
+  ]
 };
 
 export function hasPermission(userRoles: RoleName[], permission: Permission): boolean {

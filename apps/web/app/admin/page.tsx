@@ -1,7 +1,7 @@
 import { requireAdmin } from '@/lib/actions/auth';
 import { getDashboardWidgets } from '@/config/dashboard-registry';
 import { AdminPage } from '@/components/admin/ui/AdminPage';
-import { Button } from '@repo/ui/src/primitives/button'; // Assuming button exists
+
 
 export const metadata = {
   title: 'Dashboard | Admin',

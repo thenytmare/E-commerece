@@ -34,12 +34,13 @@ export type Repositories = ReturnType<typeof createRepositories>;
 export { BaseRepository } from './base.repository';
 export { UserRepository, type UserWithRoles } from './user.repository';
 export { BrandRepository } from './brand.repository';
-export { CategoryRepository, type CategoryWithChildren } from './category.repository';
+export { CategoryRepository, type CategoryWithChildren, type AdminCategoryListItem } from './category.repository';
 export {
   ProductRepository,
   type ProductDetail,
   type ProductListItem,
   type ProductListFilters,
+  type AdminProductListFilters,
   type PaginatedProducts,
 } from './product.repository';
 export {

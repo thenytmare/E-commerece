@@ -38,7 +38,7 @@ export function getAdminNavigation(): NavigationGroup[] {
       if (!merged[group.group]) {
         merged[group.group] = { group: group.group, items: [] };
       }
-      merged[group.group].items.push(...group.items);
+      merged[group.group]!.items.push(...group.items);
     }
   }
   

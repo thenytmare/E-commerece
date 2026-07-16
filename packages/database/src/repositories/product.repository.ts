@@ -43,6 +43,10 @@ export interface ProductListFilters {
   limit?: number;
 }
 
+export interface AdminProductListFilters extends ProductListFilters {
+  isActive?: boolean;
+}
+
 export interface PaginatedProducts {
   items: ProductListItem[];
   total: number;
@@ -50,6 +54,23 @@ export interface PaginatedProducts {
   limit: number;
   totalPages: number;
 }
+
+export interface CreateProductInput {
+  name: string;
+  slug: string;
+  brandId: string;
+  categoryId: string;
+  basePrice: number | Prisma.Decimal;
+  compareAtPrice?: number | Prisma.Decimal | null;
+  description?: string | null;
+  shortDescription?: string | null;
+  isFeatured?: boolean;
+  isActive?: boolean;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+}
+
+export type UpdateProductInput = Partial<CreateProductInput>;
 
 /**
  * Data access for products and catalog listings.
@@ -64,21 +85,21 @@ export class ProductRepository extends BaseRepository {
   }
 
   /** Find a product by ID with full detail relations */
-  findById(id: string): Promise<ProductDetail | null> {
+  findById(id: string, includeInactive = false): Promise<ProductDetail | null> {
     return this.db.product.findFirst({
-      where: { id, isActive: true },
+      where: { id, ...(includeInactive ? {} : { isActive: true }) },
       include: productDetailInclude,
     });
   }
 
-  /** Paginated product listing with optional filters */
-  async findMany(filters: ProductListFilters = {}): Promise<PaginatedProducts> {
+  /** Paginated product listing (Admin allows fetching inactive) */
+  async adminFindMany(filters: AdminProductListFilters = {}): Promise<PaginatedProducts> {
     const page = Math.max(1, filters.page ?? 1);
     const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, filters.limit ?? DEFAULT_PAGE_SIZE));
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
-      isActive: true,
+      ...(filters.isActive !== undefined && { isActive: filters.isActive }),
       ...(filters.categoryId && { categoryId: filters.categoryId }),
       ...(filters.brandId && { brandId: filters.brandId }),
       ...(filters.isFeatured !== undefined && { isFeatured: filters.isFeatured }),
@@ -110,8 +131,56 @@ export class ProductRepository extends BaseRepository {
     };
   }
 
+  /** Paginated product listing (Storefront, only active) */
+  findMany(filters: ProductListFilters = {}): Promise<PaginatedProducts> {
+    return this.adminFindMany({ ...filters, isActive: true });
+  }
+
   /** Create a new product */
-  create(data: Prisma.ProductCreateInput): Promise<Product> {
-    return this.db.product.create({ data });
+  create(data: CreateProductInput): Promise<Product> {
+    return this.db.product.create({ 
+      data: {
+        name: data.name,
+        slug: data.slug,
+        basePrice: data.basePrice,
+        compareAtPrice: data.compareAtPrice,
+        description: data.description,
+        shortDescription: data.shortDescription,
+        isFeatured: data.isFeatured ?? false,
+        isActive: data.isActive ?? true,
+        seoTitle: data.seoTitle,
+        seoDescription: data.seoDescription,
+        brand: { connect: { id: data.brandId } },
+        category: { connect: { id: data.categoryId } },
+      }
+    });
+  }
+
+  /** Update a product */
+  update(id: string, data: UpdateProductInput): Promise<Product> {
+    return this.db.product.update({
+      where: { id },
+      data: {
+        name: data.name,
+        slug: data.slug,
+        basePrice: data.basePrice,
+        compareAtPrice: data.compareAtPrice,
+        description: data.description,
+        shortDescription: data.shortDescription,
+        isFeatured: data.isFeatured,
+        isActive: data.isActive,
+        seoTitle: data.seoTitle,
+        seoDescription: data.seoDescription,
+        ...(data.brandId ? { brand: { connect: { id: data.brandId } } } : {}),
+        ...(data.categoryId ? { category: { connect: { id: data.categoryId } } } : {}),
+      }
+    });
+  }
+
+  /** Delete a product */
+  delete(id: string): Promise<Product> {
+    return this.db.product.delete({
+      where: { id }
+    });
   }
 }
