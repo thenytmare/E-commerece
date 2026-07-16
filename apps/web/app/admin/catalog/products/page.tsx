@@ -1,5 +1,5 @@
 import { createRepositories } from '@repo/database';
-import { requireAdmin } from '@/lib/actions/auth';
+import { requirePermission } from '@/lib/actions/auth';
 import { AdminPage } from '@/components/admin/ui/AdminPage';
 import { ProductListClient } from './ProductListClient';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ export default async function ProductsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  await requireAdmin();
+  await requirePermission('products.read');
   const repos = createRepositories();
   const resolvedSearchParams = await searchParams;
   
@@ -24,6 +24,24 @@ export default async function ProductsPage({
     limit: 10,
     search
   });
+
+  // Prisma Decimal instances cannot cross the Server Component boundary. Keep
+  // this list DTO intentionally small and composed of plain serializable values.
+  const initialData = {
+    ...productsData,
+    items: productsData.items.map((product) => ({
+      id: product.id,
+      name: product.name,
+      basePrice: Number(product.basePrice),
+      isActive: product.isActive,
+      brand: product.brand,
+      category: product.category,
+      images: product.images.map((image) => ({
+        id: image.id,
+        url: image.url,
+      })),
+    })),
+  };
 
   return (
     <AdminPage 
@@ -39,7 +57,7 @@ export default async function ProductsPage({
         </Link>
       }
     >
-      <ProductListClient initialData={productsData} initialSearch={search || ''} />
+      <ProductListClient initialData={initialData} initialSearch={search || ''} />
     </AdminPage>
   );
 }

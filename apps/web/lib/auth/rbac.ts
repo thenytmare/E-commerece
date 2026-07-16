@@ -1,6 +1,8 @@
 import type { RoleName } from '@repo/database';
 
-const ADMIN_ROLES: RoleName[] = ['ADMIN', 'MANAGER'];
+// SUPPORT users have read-only admin capabilities. Individual routes and
+// actions still enforce the specific permission they require.
+const ADMIN_ROLES: RoleName[] = ['ADMIN', 'MANAGER', 'SUPPORT'];
 
 /** Check whether a user has any of the given roles */
 export function hasRole(roles: RoleName[], allowed: RoleName[]): boolean {

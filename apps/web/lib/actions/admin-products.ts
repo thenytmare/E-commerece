@@ -1,7 +1,7 @@
 'use server';
 
 import { createRepositories } from '@repo/database';
-import { requireAdmin } from './auth';
+import { requirePermission } from './auth';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 
@@ -17,7 +17,7 @@ export async function createProductAction(
   _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  await requireAdmin();
+  await requirePermission('products.write');
   
   try {
     const basePrice = Number(formData.get('basePrice'));
@@ -52,7 +52,7 @@ export async function updateProductAction(
   _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  await requireAdmin();
+  await requirePermission('products.write');
   
   try {
     const basePrice = Number(formData.get('basePrice'));
@@ -84,7 +84,7 @@ export async function updateProductAction(
 }
 
 export async function deleteProductAction(id: string): Promise<{ success: boolean; error?: string }> {
-  await requireAdmin();
+  await requirePermission('products.delete');
   try {
     await repos.product.delete(id);
     revalidatePath('/admin/catalog/products');
@@ -96,7 +96,7 @@ export async function deleteProductAction(id: string): Promise<{ success: boolea
 }
 
 export async function toggleProductStatusAction(id: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
-  await requireAdmin();
+  await requirePermission('products.write');
   try {
     await repos.product.update(id, { isActive });
     revalidatePath('/admin/catalog/products');

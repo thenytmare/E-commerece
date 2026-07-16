@@ -1,7 +1,7 @@
 'use server';
 
 import { createRepositories } from '@repo/database';
-import { requireAdmin } from './auth';
+import { requirePermission } from './auth';
 import { revalidatePath } from 'next/cache';
 
 const repos = createRepositories();
@@ -16,7 +16,7 @@ export async function createCategoryAction(
   _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  await requireAdmin();
+  await requirePermission('categories.write');
   
   try {
     const parentIdRaw = formData.get('parentId');
@@ -47,7 +47,7 @@ export async function updateCategoryAction(
   _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
-  await requireAdmin();
+  await requirePermission('categories.write');
   
   try {
     const parentIdRaw = formData.get('parentId');
@@ -75,7 +75,7 @@ export async function updateCategoryAction(
 }
 
 export async function deleteCategoryAction(id: string): Promise<{ success: boolean; error?: string }> {
-  await requireAdmin();
+  await requirePermission('categories.delete');
   try {
     await repos.category.delete(id);
     revalidatePath('/admin/catalog/categories');

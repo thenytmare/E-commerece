@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
 import { StatusBadge } from '@/components/admin/ui/StatusBadge';
-import { LowStockInventory } from '@repo/database';
+import type { InventoryAlertData } from '@/lib/admin/catalog-dtos';
 
-export function InventoryListClient({ initialLowStock }: { initialLowStock: LowStockInventory[] }) {
-  const [data] = useState<LowStockInventory[]>(initialLowStock);
+export function InventoryListClient({ initialLowStock }: { initialLowStock: InventoryAlertData[] }) {
+  const [data] = useState<InventoryAlertData[]>(initialLowStock);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredData = data.filter((item) =>
@@ -14,7 +14,7 @@ export function InventoryListClient({ initialLowStock }: { initialLowStock: LowS
     item.variant.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const columns: ColumnDef<LowStockInventory>[] = [
+  const columns: ColumnDef<InventoryAlertData>[] = [
     {
       key: 'product',
       header: 'Product Details',

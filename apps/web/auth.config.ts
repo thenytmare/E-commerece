@@ -21,7 +21,7 @@ export const authConfig = {
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? '';
-        session.user.roles = (token.roles as ('ADMIN' | 'MANAGER' | 'CUSTOMER')[] | undefined) ?? [];
+        session.user.roles = (token.roles as ('ADMIN' | 'MANAGER' | 'SUPPORT' | 'CUSTOMER')[] | undefined) ?? [];
       }
       return session;
     },
@@ -31,7 +31,7 @@ export const authConfig = {
       const roles = auth?.user?.roles ?? [];
 
       if (pathname.startsWith('/admin')) {
-        return roles.some((role) => role === 'ADMIN' || role === 'MANAGER');
+        return roles.some((role) => role === 'ADMIN' || role === 'MANAGER' || role === 'SUPPORT');
       }
 
       if (pathname.startsWith('/account')) {

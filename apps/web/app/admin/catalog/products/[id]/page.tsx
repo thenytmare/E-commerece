@@ -1,16 +1,17 @@
 import { createRepositories } from '@repo/database';
-import { requireAdmin } from '@/lib/actions/auth';
+import { requirePermission } from '@/lib/actions/auth';
 import { AdminPage } from '@/components/admin/ui/AdminPage';
 import { ProductFormClient } from './ProductFormClient';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { toProductFormData } from '@/lib/admin/catalog-dtos';
 
 export default async function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdmin();
   const repos = createRepositories();
   const resolvedParams = await params;
   const isNew = resolvedParams.id === 'new';
+  await requirePermission(isNew ? 'products.write' : 'products.read');
   
   const product = isNew ? null : await repos.product.findById(resolvedParams.id, true);
   
@@ -39,7 +40,7 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
     >
       <div className="max-w-4xl">
         <ProductFormClient 
-          initialData={product} 
+          initialData={toProductFormData(product)} 
           categories={categories}
           brands={brands}
         />

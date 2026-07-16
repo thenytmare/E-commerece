@@ -1,5 +1,5 @@
 import { createRepositories } from '@repo/database';
-import { requireAdmin } from '@/lib/actions/auth';
+import { requirePermission } from '@/lib/actions/auth';
 import { AdminPage } from '@/components/admin/ui/AdminPage';
 import { CategoryListClient } from './CategoryListClient';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react';
 export const metadata = { title: 'Categories | Admin' };
 
 export default async function CategoriesPage() {
-  await requireAdmin();
+  await requirePermission('categories.read');
   const repos = createRepositories();
   
   try {

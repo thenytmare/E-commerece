@@ -8,6 +8,8 @@ import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { hasPermission, type Permission } from '@/lib/auth/permissions';
+import type { RoleName } from '@repo/database';
 
 const repos = createRepositories();
 
@@ -161,6 +163,16 @@ export async function requireAdmin() {
   const session = await auth();
   if (!session?.user || !canAccessAdmin(session.user.roles)) {
     redirect('/login?error=unauthorized');
+  }
+  return session;
+}
+
+/** Enforce a capability at the server-action boundary. */
+export async function requirePermission(permission: Permission) {
+  const session = await requireAdmin();
+  const roles = (session.user.roles as RoleName[] | undefined) ?? [];
+  if (!hasPermission(roles, permission)) {
+    redirect('/admin?error=forbidden');
   }
   return session;
 }

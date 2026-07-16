@@ -8,14 +8,14 @@ import { ValidationSummary } from '@/components/admin/forms/ValidationSummary';
 import { RichTextField } from '@/components/admin/forms/RichTextField';
 import { createProductAction, updateProductAction } from '@/lib/actions/admin-products';
 import { useRouter } from 'next/navigation';
-import type { ProductDetail } from '@repo/database';
+import type { ProductFormData } from '@/lib/admin/catalog-dtos';
 
 export function ProductFormClient({ 
   initialData, 
   categories,
   brands
 }: { 
-  initialData: ProductDetail | null,
+  initialData: ProductFormData | null,
   categories: { id: string, name: string }[],
   brands: { id: string, name: string }[]
 }) {
@@ -118,7 +118,7 @@ export function ProductFormClient({
               step="0.01"
               id="basePrice" 
               name="basePrice" 
-              defaultValue={initialData ? Number(initialData.basePrice) : ''} 
+              defaultValue={initialData?.basePrice ?? ''} 
               required
               className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors" 
             />
@@ -130,7 +130,7 @@ export function ProductFormClient({
               step="0.01"
               id="compareAtPrice" 
               name="compareAtPrice" 
-              defaultValue={initialData?.compareAtPrice ? Number(initialData.compareAtPrice) : ''} 
+              defaultValue={initialData?.compareAtPrice ?? ''} 
               className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors" 
             />
           </FormField>

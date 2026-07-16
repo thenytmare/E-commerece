@@ -3,12 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
 import { StatusBadge } from '@/components/admin/ui/StatusBadge';
-import { PaginatedProducts, ProductListItem } from '@repo/database';
 import Link from 'next/link';
 import { Edit, Trash } from 'lucide-react';
 import { deleteProductAction, toggleProductStatusAction } from '@/lib/actions/admin-products';
 import { ConfirmationDialog } from '@/components/admin/ui/ConfirmationDialog';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+
+type ProductListItem = {
+  id: string;
+  name: string;
+  basePrice: number;
+  isActive: boolean;
+  brand: { name: string; slug: string } | null;
+  category: { name: string; slug: string } | null;
+  images: { id: string; url: string }[];
+};
+
+type PaginatedProducts = {
+  items: ProductListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 
 export function ProductListClient({ initialData, initialSearch }: { initialData: PaginatedProducts, initialSearch: string }) {
   const router = useRouter();
