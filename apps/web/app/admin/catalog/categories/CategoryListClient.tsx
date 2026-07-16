@@ -9,8 +9,8 @@ import { Edit, Trash } from 'lucide-react';
 import { deleteCategoryAction } from '@/lib/actions/admin-categories';
 import { ConfirmationDialog } from '@/components/admin/ui/ConfirmationDialog';
 
-export function CategoryListClient({ initialData }: { initialData: AdminCategoryListItem[] }) {
-  const [data, setData] = useState(initialData);
+export function CategoryListClient({ initialData = [] }: { initialData?: AdminCategoryListItem[] }) {
+  const [data, setData] = useState<AdminCategoryListItem[]>(initialData || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -48,7 +48,7 @@ export function CategoryListClient({ initialData }: { initialData: AdminCategory
     {
       key: '_count',
       header: 'Products',
-      cell: (item) => <span className="text-muted-foreground">{item._count.products} products</span>,
+      cell: (item) => <span className="text-muted-foreground">{item._count?.products || 0} products</span>,
     }
   ];
 
