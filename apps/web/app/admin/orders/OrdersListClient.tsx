@@ -5,7 +5,7 @@ import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
 import { StatusBadge, StatusType } from '@/components/admin/ui/StatusBadge';
 import { OrderDetail } from '@repo/database';
 import { formatPrice } from '@/lib/format';
-import { Eye, Edit, HelpCircle, XCircle } from 'lucide-react';
+import { Eye, XCircle } from 'lucide-react';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
 
 const orderStatusBadgeMap: Record<string, StatusType> = {
@@ -96,7 +96,7 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setSelectedOrder(item)}
-              className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted flex items-center gap-1 text-xs font-medium border border-transparent hover:border-border"
+              className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted flex items-center gap-1 text-xs font-medium border border-transparent hover:bord[...]
             >
               <Eye className="h-4 w-4" />
               Manage Status
