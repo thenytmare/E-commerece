@@ -6,7 +6,6 @@ import {
   ChevronUp, 
   Search, 
   Filter, 
-  MoreHorizontal,
   Download,
   Printer
 } from 'lucide-react';
@@ -197,7 +196,7 @@ export function DataTable<T extends { id: string | number }>({
                   )}
                   {visibleColumns.map((col) => (
                     <td key={String(col.key)} className="px-4 py-3 whitespace-nowrap">
-                      {col.cell ? col.cell(item) : (item as any)[col.key]}
+                      {col.cell ? col.cell(item) : String(item[col.key as keyof T])}
                     </td>
                   ))}
                   {rowActions && (
