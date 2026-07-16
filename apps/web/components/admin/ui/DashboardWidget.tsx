@@ -41,7 +41,7 @@ export function DashboardWidget({
           <AlertTriangle className="h-5 w-5 text-destructive" />
         </div>
         <p className="font-medium text-foreground">Permission Denied</p>
-        <p className="text-sm text-muted-foreground mt-1">You don't have access to this widget.</p>
+        <p className="text-sm text-muted-foreground mt-1">You don&apos;t have access to this widget.</p>
       </div>
     );
   }
