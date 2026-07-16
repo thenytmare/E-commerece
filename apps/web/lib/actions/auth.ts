@@ -4,6 +4,7 @@ import { signIn, signOut } from '@/auth';
 import { mergeGuestCartForUser } from '@/lib/cart';
 import { registerSchema } from '@/lib/validations/auth';
 import { createRepositories } from '@repo/database';
+import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CredentialsSignin } from 'next-auth';
 import { redirect } from 'next/navigation';
@@ -15,6 +16,20 @@ export type AuthFormState = {
   fieldErrors?: Record<string, string>;
 };
 
+function databaseUnavailableMessage(error: unknown): string | null {
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return 'Database is unavailable. Start Docker Desktop, then run pnpm docker:up and try again.';
+  }
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P1001') {
+    return 'Database is unavailable. Start Docker Desktop, then run pnpm docker:up and try again.';
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("Can't reach database server")) {
+    return 'Database is unavailable. Start Docker Desktop, then run pnpm docker:up and try again.';
+  }
+  return null;
+}
+
 export async function loginAction(
   _prevState: AuthFormState | null,
   formData: FormData
@@ -23,7 +38,15 @@ export async function loginAction(
   const password = String(formData.get('password') ?? '');
   const callbackUrl = String(formData.get('callbackUrl') ?? '/');
 
-  const existingUser = await repos.user.findByEmail(email);
+  let existingUser;
+  try {
+    existingUser = await repos.user.findByEmail(email);
+  } catch (error) {
+    const dbError = databaseUnavailableMessage(error);
+    if (dbError) return { error: dbError };
+    throw error;
+  }
+
   if (!existingUser?.passwordHash) {
     return { error: 'Invalid email or password' };
   }
@@ -33,7 +56,13 @@ export async function loginAction(
     return { error: 'Invalid email or password' };
   }
 
-  await mergeGuestCartForUser(existingUser.id);
+  try {
+    await mergeGuestCartForUser(existingUser.id);
+  } catch (error) {
+    const dbError = databaseUnavailableMessage(error);
+    if (dbError) return { error: dbError };
+    throw error;
+  }
 
   try {
     await signIn('credentials', {
@@ -45,6 +74,8 @@ export async function loginAction(
     if (error instanceof CredentialsSignin) {
       return { error: 'Invalid email or password' };
     }
+    const dbError = databaseUnavailableMessage(error);
+    if (dbError) return { error: dbError };
     throw error;
   }
 
@@ -73,19 +104,25 @@ export async function registerAction(
     return { fieldErrors };
   }
 
-  const existing = await repos.user.findByEmail(parsed.data.email);
-  if (existing) {
-    return { error: 'An account with this email already exists' };
+  try {
+    const existing = await repos.user.findByEmail(parsed.data.email);
+    if (existing) {
+      return { error: 'An account with this email already exists' };
+    }
+
+    const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+    const newUser = await repos.user.createWithPassword({
+      email: parsed.data.email,
+      passwordHash,
+      name: parsed.data.name,
+    });
+
+    await mergeGuestCartForUser(newUser.id);
+  } catch (error) {
+    const dbError = databaseUnavailableMessage(error);
+    if (dbError) return { error: dbError };
+    throw error;
   }
-
-  const passwordHash = await bcrypt.hash(parsed.data.password, 12);
-  const newUser = await repos.user.createWithPassword({
-    email: parsed.data.email,
-    passwordHash,
-    name: parsed.data.name,
-  });
-
-  await mergeGuestCartForUser(newUser.id);
 
   try {
     await signIn('credentials', {
@@ -97,6 +134,8 @@ export async function registerAction(
     if (error instanceof CredentialsSignin) {
       return { error: 'Account created but sign-in failed. Please log in.' };
     }
+    const dbError = databaseUnavailableMessage(error);
+    if (dbError) return { error: dbError };
     throw error;
   }
 

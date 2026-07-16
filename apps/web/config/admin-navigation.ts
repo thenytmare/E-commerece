@@ -99,3 +99,4 @@ registerModule({
 });
 
 export { getAdminNavigation } from './admin-modules';
+export type { NavigationGroup, NavigationItem, AdminModule } from './admin-modules';

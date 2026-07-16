@@ -38,7 +38,7 @@ const PLACEHOLDER_NOTIFICATIONS: Notification[] = [
     priority: 'normal',
     read: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    link: '/admin/products'
+    link: '/admin/inventory'
   }
 ];
 

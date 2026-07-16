@@ -60,22 +60,19 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     setSidebarCollapsed(!state.sidebarCollapsed);
   };
 
-  // Avoid hydration mismatch by not rendering until client loads stored state
-  if (!isClient) {
-    return <div style={{ visibility: 'hidden' }}>{children}</div>;
-  }
+  const value = {
+    ...state,
+    setSidebarCollapsed,
+    setSidebarExpandedGroup,
+    setSearchOpen,
+    toggleSidebar,
+  };
 
+  // Keep default state on SSR/first paint; hydrate from localStorage after mount.
+  // Always wrap with Provider so useAdmin works during SSR and first client render.
   return (
-    <AdminContext.Provider
-      value={{
-        ...state,
-        setSidebarCollapsed,
-        setSidebarExpandedGroup,
-        setSearchOpen,
-        toggleSidebar,
-      }}
-    >
-      {children}
+    <AdminContext.Provider value={value}>
+      <div style={{ visibility: isClient ? 'visible' : 'hidden' }}>{children}</div>
     </AdminContext.Provider>
   );
 }

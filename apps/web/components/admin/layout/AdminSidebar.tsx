@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getAdminNavigation, NavigationGroup, NavigationItem } from '@/config/admin-modules';
+import { getAdminNavigation, type NavigationItem } from '@/config/admin-navigation';
 import { useAdmin } from '@/components/admin/providers/AdminProvider';
 import { useSession } from 'next-auth/react';
 import { hasPermission } from '@/lib/auth/permissions';
@@ -14,7 +14,7 @@ export function AdminSidebar() {
   const { data: session } = useSession();
   const userRoles = (session?.user?.roles as RoleName[]) || [];
   const pathname = usePathname();
-  const { sidebarCollapsed, sidebarExpandedGroup, setSidebarExpandedGroup, toggleSidebar, setSearchOpen } = useAdmin();
+  const { sidebarCollapsed, sidebarExpandedGroup, setSidebarExpandedGroup, toggleSidebar } = useAdmin();
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
