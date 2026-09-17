@@ -27,8 +27,14 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=node:node /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=node:node /app/apps/web/public ./apps/web/public
+USER node
 EXPOSE 3000
+# Alpine's busybox provides wget out of the box (no curl in this image, and
+# nothing extra is installed above) — use it to poll the app's own health
+# endpoint, which checks DB connectivity and returns 503 on failure.
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=15s \
+  CMD wget --quiet --tries=1 --spider "http://localhost:${PORT}/api/health" || exit 1
 CMD ["node", "apps/web/server.js"]

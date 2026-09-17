@@ -27,3 +27,21 @@ describe('getEnv', () => {
     process.env.AUTH_SECRET = originalAuth;
   });
 });
+
+describe('canTransitionOrderStatus', () => {
+  it('enforces legal forward transitions', async () => {
+    const { canTransitionOrderStatus } = await import('./order-status');
+    expect(canTransitionOrderStatus('PENDING', 'CONFIRMED')).toBe(true);
+    expect(canTransitionOrderStatus('CONFIRMED', 'PROCESSING')).toBe(true);
+    expect(canTransitionOrderStatus('PROCESSING', 'SHIPPED')).toBe(true);
+    expect(canTransitionOrderStatus('SHIPPED', 'DELIVERED')).toBe(true);
+    expect(canTransitionOrderStatus('DELIVERED', 'REFUNDED')).toBe(true);
+  });
+
+  it('rejects illegal status jumps', async () => {
+    const { canTransitionOrderStatus } = await import('./order-status');
+    expect(canTransitionOrderStatus('DELIVERED', 'CANCELLED')).toBe(false);
+    expect(canTransitionOrderStatus('CANCELLED', 'CONFIRMED')).toBe(false);
+    expect(canTransitionOrderStatus('REFUNDED', 'PENDING')).toBe(false);
+  });
+});

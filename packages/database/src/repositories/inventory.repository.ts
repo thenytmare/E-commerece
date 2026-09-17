@@ -20,6 +20,18 @@ const lowStockInclude = {
 export type LowStockInventory = Prisma.InventoryGetPayload<{ include: typeof lowStockInclude }>;
 
 /**
+ * Cap on how many low-stock rows a single call returns.
+ *
+ * `findLowStock`/`findLowStockDetailed` used to fetch and join the *entire*
+ * inventory table (every variant, regardless of stock level) and filter down
+ * to the low-stock ones in JS. That got re-run on every admin dashboard poll,
+ * for every open admin session, against the whole table. The threshold
+ * comparison now happens in SQL, so this is just a sane ceiling on the
+ * (already-filtered) result set rather than the thing keeping the query fast.
+ */
+const MAX_LOW_STOCK_RESULTS = 100;
+
+/**
  * Data access for stock levels and inventory adjustments.
  */
 export class InventoryRepository extends BaseRepository {
@@ -91,22 +103,56 @@ export class InventoryRepository extends BaseRepository {
     });
   }
 
-  /** List variants at or below their low-stock threshold */
+  /**
+   * List variants at or below their low-stock threshold.
+   *
+   * `quantity - reserved <= lowStockThreshold` compares two columns of the
+   * same row, which Prisma's query builder can't express in a `where` — so
+   * this pushes the comparison into raw SQL instead of fetching every row
+   * and filtering in JS (see `order.repository.ts`'s stock reservation for
+   * the same constraint).
+   */
   async findLowStock(): Promise<Inventory[]> {
-    const records = await this.db.inventory.findMany({
-      orderBy: { quantity: 'asc' },
-    });
-
-    return records.filter((inv) => inv.quantity - inv.reserved <= inv.lowStockThreshold);
+    return this.db.$queryRaw<Inventory[]>`
+      SELECT
+        "id",
+        "variant_id" AS "variantId",
+        "quantity",
+        "reserved",
+        "low_stock_threshold" AS "lowStockThreshold"
+      FROM "inventory"
+      WHERE "quantity" - "reserved" <= "low_stock_threshold"
+      ORDER BY "quantity" ASC
+      LIMIT ${MAX_LOW_STOCK_RESULTS}
+    `;
   }
 
-  /** List low-stock variants with product details for admin dashboards */
+  /**
+   * List low-stock variants with product details for admin dashboards.
+   *
+   * The threshold comparison can't be expressed through Prisma's `include`
+   * (same column-to-column limitation as `findLowStock`), so this first
+   * finds the (bounded) set of matching ids with raw SQL, then fetches just
+   * those rows through the normal, type-safe `findMany` + `include` — never
+   * joining the whole table just to filter it back down in JS.
+   */
   async findLowStockDetailed(): Promise<LowStockInventory[]> {
+    const matches = await this.db.$queryRaw<{ id: string }[]>`
+      SELECT "id"
+      FROM "inventory"
+      WHERE "quantity" - "reserved" <= "low_stock_threshold"
+      ORDER BY "quantity" ASC
+      LIMIT ${MAX_LOW_STOCK_RESULTS}
+    `;
+
+    if (matches.length === 0) return [];
+
     const records = await this.db.inventory.findMany({
+      where: { id: { in: matches.map((row) => row.id) } },
       include: lowStockInclude,
-      orderBy: { quantity: 'asc' },
     });
 
-    return records.filter((inv) => inv.quantity - inv.reserved <= inv.lowStockThreshold);
+    const order = new Map(matches.map((row, index) => [row.id, index]));
+    return records.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
   }
 }

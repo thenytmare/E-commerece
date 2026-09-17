@@ -8,8 +8,8 @@ interface CartSummaryProps {
   cart: CartWithItems;
 }
 
-export function CartSummary({ cart }: CartSummaryProps) {
-  const { subtotal, shipping, total } = calculateOrderTotals(cart);
+export async function CartSummary({ cart }: CartSummaryProps) {
+  const { subtotal, shipping, total } = await calculateOrderTotals(cart);
   const itemCount = cart.items.reduce((count, item) => count + item.quantity, 0);
 
   return (

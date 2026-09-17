@@ -6,7 +6,15 @@ export {
   MAX_PAGE_SIZE,
   FLAT_SHIPPING_KES,
   FREE_SHIPPING_THRESHOLD_KES,
+  DEFAULT_TAX_RATE,
 } from './constants';
+export {
+  ORDER_STATUS_TRANSITIONS,
+  PRE_FULFILMENT_ORDER_STATUSES,
+  canTransitionOrderStatus,
+  allowedNextStatuses,
+  type OrderStatusName,
+} from './order-status';
 export {
   getPaymentConfig,
   isStripeConfigured,

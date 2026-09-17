@@ -51,15 +51,20 @@ enum CouponType {
 // ─── Auth & Users ────────────────────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String?   @map("password_hash")
-  name          String?
-  phone         String?
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String?   @map("password_hash")
+  name                  String?
+  phone                 String?
+  emailVerified         DateTime? @map("email_verified")
+  image                 String?
+  isActive              Boolean   @default(true) @map("is_active")
+  deletedAt             DateTime? @map("deleted_at")
+  marketingConsent      Boolean   @default(false) @map("marketing_consent")
+  newsletterSubscribed  Boolean   @default(false) @map("newsletter_subscribed")
+  lastLoginAt           DateTime? @map("last_login_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   roles    UserRole[]
   accounts Account[]
@@ -70,6 +75,8 @@ model User {
   carts     Cart[]
   wishlists WishlistItem[]
   auditLogs AuditLog[]
+  mediaUploads MediaLibrary[]
+  backInStockNotifications BackInStockNotification[]
 
   @@map("users")
 }
@@ -150,22 +157,27 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([actorId])
+  @@index([createdAt])
   @@map("audit_logs")
 }
 
 // ─── Catalog ─────────────────────────────────────────────────────────────────
 
 model Brand {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  logoUrl     String?  @map("logo_url")
-  description String?  @db.Text
-  isActive    Boolean  @default(true) @map("is_active")
-  seoTitle    String?  @map("seo_title")
-  seoDescription String? @map("seo_description") @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique
+  logoUrl        String?   @map("logo_url")
+  description    String?   @db.Text
+  website        String?   @db.Text
+  country        String?
+  isFeatured     Boolean   @default(false) @map("is_featured")
+  isActive       Boolean   @default(true) @map("is_active")
+  deletedAt      DateTime? @map("deleted_at")
+  seoTitle       String?   @map("seo_title")
+  seoDescription String?   @map("seo_description") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   products Product[]
 
@@ -173,17 +185,20 @@ model Brand {
 }
 
 model Category {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   name           String
-  slug           String   @unique
-  parentId       String?  @map("parent_id")
-  imageUrl       String?  @map("image_url")
-  sortOrder      Int      @default(0) @map("sort_order")
-  isActive       Boolean  @default(true) @map("is_active")
-  seoTitle       String?  @map("seo_title")
-  seoDescription String?  @map("seo_description") @db.Text
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  slug           String    @unique
+  parentId       String?   @map("parent_id")
+  description    String?   @db.Text
+  imageUrl       String?   @map("image_url")
+  isFeatured     Boolean   @default(false) @map("is_featured")
+  sortOrder      Int       @default(0) @map("sort_order")
+  isActive       Boolean   @default(true) @map("is_active")
+  deletedAt      DateTime? @map("deleted_at")
+  seoTitle       String?   @map("seo_title")
+  seoDescription String?   @map("seo_description") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryHierarchy")
@@ -195,21 +210,24 @@ model Category {
 }
 
 model Product {
-  id               String   @id @default(cuid())
-  brandId          String   @map("brand_id")
-  categoryId       String   @map("category_id")
+  id               String    @id @default(cuid())
+  brandId          String    @map("brand_id")
+  categoryId       String    @map("category_id")
   name             String
-  slug             String   @unique
-  description      String?  @db.Text
-  shortDescription String?  @map("short_description") @db.Text
-  basePrice        Decimal  @map("base_price") @db.Decimal(12, 2)
-  compareAtPrice   Decimal? @map("compare_at_price") @db.Decimal(12, 2)
-  isFeatured       Boolean  @default(false) @map("is_featured")
-  isActive         Boolean  @default(true) @map("is_active")
-  seoTitle         String?  @map("seo_title")
-  seoDescription   String?  @map("seo_description") @db.Text
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  slug             String    @unique
+  description      String?   @db.Text
+  shortDescription String?   @map("short_description") @db.Text
+  basePrice        Decimal   @map("base_price") @db.Decimal(12, 2)
+  costPrice        Decimal   @default(0) @map("cost_price") @db.Decimal(12, 2)
+  compareAtPrice   Decimal?  @map("compare_at_price") @db.Decimal(12, 2)
+  status           String    @default("draft")
+  isFeatured       Boolean   @default(false) @map("is_featured")
+  isActive         Boolean   @default(true) @map("is_active")
+  deletedAt        DateTime? @map("deleted_at")
+  seoTitle         String?   @map("seo_title")
+  seoDescription   String?   @map("seo_description") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   brand        Brand              @relation(fields: [brandId], references: [id])
   category     Category           @relation(fields: [categoryId], references: [id])
@@ -222,6 +240,7 @@ model Product {
   orderItems   OrderItem[]
   wishlists    WishlistItem[]
   flashSales   FlashSale[]
+  backInStockNotifications BackInStockNotification[]
 
   @@index([brandId, isActive])
   @@index([categoryId, isActive])
@@ -305,6 +324,18 @@ model ProductBoxContent {
   @@map("product_box_contents")
 }
 
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  visitorId String   @map("visitor_id")
+  type      String
+  path      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([visitorId, createdAt])
+  @@map("analytics_events")
+}
+
 // ─── Inventory ─────────────────────────────────────────────────────────────────
 
 model Inventory {
@@ -338,7 +369,8 @@ model InventoryLog {
 
 model Address {
   id         String      @id @default(cuid())
-  userId     String      @map("user_id")
+  /// Null for a guest checkout — the address belongs only to its order.
+  userId     String?     @map("user_id")
   type       AddressType @default(SHIPPING)
   name       String
   phone      String
@@ -350,7 +382,7 @@ model Address {
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders Order[]
 
   @@index([userId])
@@ -413,6 +445,8 @@ model Order {
   total       Decimal     @db.Decimal(12, 2)
   currency    String      @default("KES")
   notes       String?     @db.Text
+  /// Contact address for a guest order, where there is no account to fall back on.
+  guestEmail  String?     @map("guest_email")
   addressId   String?     @map("address_id")
   couponId    String?     @map("coupon_id")
   createdAt   DateTime    @default(now()) @map("created_at")
@@ -428,6 +462,7 @@ model Order {
 
   @@index([userId])
   @@index([status])
+  @@index([createdAt])
   @@map("orders")
 }
 
@@ -447,6 +482,7 @@ model OrderItem {
   product Product        @relation(fields: [productId], references: [id])
 
   @@index([orderId])
+  @@index([productId])
   @@map("order_items")
 }
 
@@ -473,6 +509,13 @@ model Payment {
   status     PaymentStatus   @default(PENDING)
   externalId String?         @map("external_id")
   metadata   Json?
+  // Provider-agnostic columns, populated by M-Pesa today. Kept as real
+  // columns rather than metadata JSON so admin screens can filter/search
+  // on them. All nullable — Stripe rows simply leave them empty.
+  payerPhone    String?   @map("payer_phone")
+  receiptNumber String?   @map("receipt_number")
+  failureReason String?   @map("failure_reason")
+  paidAt        DateTime? @map("paid_at")
   createdAt  DateTime        @default(now()) @map("created_at")
   updatedAt  DateTime        @updatedAt @map("updated_at")
 
@@ -480,6 +523,8 @@ model Payment {
 
   @@index([orderId])
   @@index([externalId])
+  @@index([receiptNumber])
+  @@index([provider, status, createdAt])
   @@map("payments")
 }
 
@@ -490,6 +535,10 @@ model Coupon {
   value     Decimal    @db.Decimal(12, 2)
   minOrder  Decimal?   @map("min_order") @db.Decimal(12, 2)
   maxUses   Int?       @map("max_uses")
+  /// Per-customer cap. Without it, only a global limit existed, so one
+  /// account could reuse a code across many orders until the store-wide
+  /// allowance ran out.
+  maxUsesPerCustomer Int? @map("max_uses_per_customer")
   usedCount Int        @default(0) @map("used_count")
   startsAt  DateTime?  @map("starts_at")
   endsAt    DateTime?  @map("ends_at")
@@ -519,15 +568,20 @@ model Shipment {
 // ─── Reviews ───────────────────────────────────────────────────────────────────
 
 model Review {
-  id         String   @id @default(cuid())
-  productId  String   @map("product_id")
-  userId     String   @map("user_id")
-  rating     Int
-  title      String?
-  body       String?  @db.Text
-  isApproved Boolean  @default(false) @map("is_approved")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id                 String    @id @default(cuid())
+  productId          String    @map("product_id")
+  userId             String    @map("user_id")
+  rating             Int
+  title              String?
+  body               String?   @db.Text
+  isApproved         Boolean   @default(false) @map("is_approved")
+  isPinned           Boolean   @default(false) @map("is_pinned")
+  isHidden           Boolean   @default(false) @map("is_hidden")
+  isVerifiedPurchase Boolean   @default(false) @map("is_verified_purchase")
+  helpfulCount       Int       @default(0) @map("helpful_count")
+  adminReply         String?   @db.Text @map("admin_reply")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -535,6 +589,7 @@ model Review {
 
   @@unique([productId, userId])
   @@index([productId, isApproved])
+  @@index([createdAt])
   @@map("reviews")
 }
 
@@ -573,15 +628,63 @@ model SiteSetting {
   @@map("site_settings")
 }
 
-model MediaLibrary {
-  id         String   @id @default(cuid())
-  url        String
-  filename   String
-  mimeType   String   @map("mime_type")
-  size       Int
-  alt        String?
-  uploadedBy String?  @map("uploaded_by")
-  createdAt  DateTime @default(now()) @map("created_at")
+model BackInStockNotification {
+  id         String    @id @default(cuid())
+  productId  String    @map("product_id")
+  userId     String?   @map("user_id")
+  email      String?
+  phone      String?
+  isActive   Boolean   @default(true) @map("is_active")
+  notifiedAt DateTime? @map("notified_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
 
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, email])
+  @@unique([productId, userId])
+  @@map("back_in_stock_notifications")
+}
+
+model MediaFolder {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?  @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children MediaFolder[] @relation("FolderHierarchy")
+  files    MediaLibrary[]
+
+  @@index([parentId])
+  @@map("media_folders")
+}
+
+model MediaLibrary {
+  id               String    @id @default(cuid())
+  url              String
+  filename         String
+  originalFilename String    @map("original_filename")
+  mimeType         String    @map("mime_type")
+  extension        String
+  size             Int
+  width            Int?
+  height           Int?
+  storageKey       String    @map("storage_key")
+  alt              String?
+  caption          String?
+  folderId         String?   @map("folder_id")
+  uploadedBy       String?   @map("uploaded_by")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  folder   MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  uploader User?        @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  @@index([folderId])
+  @@index([uploadedBy])
+  @@index([mimeType])
   @@map("media_library")
 }

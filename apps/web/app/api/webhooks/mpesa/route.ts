@@ -1,38 +1,19 @@
-import { parseMpesaCallback, type MpesaCallbackPayload } from '@/lib/payments/mpesa';
-import { createRepositories } from '@repo/database';
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
-  let payload: MpesaCallbackPayload;
-  try {
-    payload = (await request.json()) as MpesaCallbackPayload;
-  } catch {
-    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
-  }
-
-  const result = parseMpesaCallback(payload);
-  if (!result) {
-    return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' });
-  }
-
-  const repos = createRepositories();
-  const payment = await repos.payment.findByExternalId(result.checkoutRequestId);
-
-  if (!payment) {
-    return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' });
-  }
-
-  if (result.success) {
-    await repos.payment.completePayment(payment.id, result.receipt ?? result.checkoutRequestId, {
-      mpesaReceipt: result.receipt,
-      resultDesc: result.resultDesc,
-    });
-  } else {
-    await repos.payment.markFailed(payment.id, {
-      resultDesc: result.resultDesc,
-      checkoutRequestId: result.checkoutRequestId,
-    });
-  }
-
-  return NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' });
+/**
+ * Legacy unauthenticated M-Pesa callback path.
+ *
+ * Previously this endpoint completed payments straight from the request body,
+ * which let anyone who knew a CheckoutRequestID mark an order as paid. It now
+ * rejects everything; the real handler lives at
+ * `/api/webhooks/mpesa/{MPESA_CALLBACK_SECRET}`.
+ *
+ * Kept (rather than deleted) so a misconfigured Daraja CallBackURL shows up
+ * as a logged 404 instead of a silent Next.js route miss.
+ */
+export async function POST() {
+  console.warn(
+    'M-Pesa callback hit the legacy unauthenticated path. Update the Daraja CallBackURL to include the callback secret.'
+  );
+  return NextResponse.json({ error: 'Not found' }, { status: 404 });
 }

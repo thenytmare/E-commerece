@@ -2,12 +2,18 @@ import { getPaymentConfig } from '@repo/config';
 import type { OrderDetail } from '@repo/database';
 import Stripe from 'stripe';
 
+// Matches the discipline already applied to the M-Pesa client — without an
+// explicit timeout, a hung Stripe call falls back to the SDK's own default
+// (~80s), which can hold a checkout request open far longer than most
+// hosting platforms allow.
+const STRIPE_TIMEOUT_MS = 15_000;
+
 function getStripeClient(): Stripe {
   const { stripeSecretKey } = getPaymentConfig();
   if (!stripeSecretKey) {
     throw new Error('Stripe is not configured');
   }
-  return new Stripe(stripeSecretKey);
+  return new Stripe(stripeSecretKey, { timeout: STRIPE_TIMEOUT_MS });
 }
 
 function orderTotalKes(order: OrderDetail): number {
@@ -16,9 +22,16 @@ function orderTotalKes(order: OrderDetail): number {
     : Number(order.total);
 }
 
-/** Convert KES amount to Stripe minor units (cents) */
+/**
+ * Convert a KES amount to the integer Stripe expects.
+ *
+ * KES is a zero-decimal currency on Stripe — amounts are passed as whole
+ * shillings with no minor unit. Multiplying by 100 would charge customers
+ * 100× the intended price.
+ * https://stripe.com/docs/currencies#zero-decimal
+ */
 export function toStripeAmount(kes: number): number {
-  return Math.round(kes * 100);
+  return Math.round(kes);
 }
 
 export async function createStripeCheckoutSession(
@@ -53,6 +66,17 @@ export async function createStripeCheckoutSession(
       paymentId,
     },
   });
+}
+
+/**
+ * Look up a Checkout Session's authoritative current state directly from
+ * Stripe, bypassing whatever a (possibly lost) webhook reported.
+ */
+export function retrieveStripeCheckoutSession(
+  sessionId: string
+): Promise<Stripe.Checkout.Session> {
+  const stripe = getStripeClient();
+  return stripe.checkout.sessions.retrieve(sessionId);
 }
 
 export function constructStripeEvent(payload: string, signature: string): Stripe.Event {

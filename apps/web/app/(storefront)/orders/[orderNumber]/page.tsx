@@ -1,6 +1,8 @@
-import { requireAuth } from '@/lib/actions/auth';
-import { formatPrice } from '@/lib/format';
+import { loadViewableOrder } from '@/lib/order-access';
+import { formatDate, formatPrice } from '@/lib/format';
 import { createRepositories } from '@repo/database';
+import { getStoreSettings } from '@/lib/store';
+import { DigitalReceipt } from '@/components/order/DigitalReceipt';
 import { Badge, Button, Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -29,17 +31,44 @@ export async function generateMetadata({ params }: OrderPageProps): Promise<Meta
 export default async function OrderConfirmationPage({ params, searchParams }: OrderPageProps) {
   const { orderNumber } = await params;
   const query = await searchParams;
-  const session = await requireAuth();
   const repos = createRepositories();
-  const order = await repos.order.findByOrderNumberForUser(orderNumber, session.user.id);
+  // Resolves for the owning account or, for a guest order, this browser's
+  // signed cookie — so a guest can reach the order they just placed.
+  const order = await loadViewableOrder(orderNumber);
 
   if (!order) {
     notFound();
   }
 
+  const settings = await getStoreSettings();
   const completedPayment = order.payments.find((payment) => payment.status === 'COMPLETED');
   const isPaid = order.status === 'CONFIRMED' || Boolean(completedPayment);
   const awaitingPayment = order.status === 'PENDING' && !completedPayment;
+
+  const receiptProps = {
+    storeName: settings.name,
+    storePhone: settings.phone,
+    storeEmail: settings.email,
+    storeAddress: settings.address,
+    orderNumber: order.orderNumber,
+    orderDate: formatDate(order.createdAt),
+    status: order.status,
+    customerName: order.user?.name ?? order.address?.name ?? 'Customer',
+    customerPhone: order.address?.phone ?? '',
+    customerAddress: order.address ? `${order.address.street}, ${order.address.city}, ${order.address.county}` : '',
+    items: order.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      sku: item.sku,
+      quantity: item.quantity,
+      price: typeof item.price === 'object' && 'toNumber' in item.price ? item.price.toNumber() : Number(item.price),
+    })),
+    subtotal: formatPrice(order.subtotal),
+    shipping: formatPrice(order.shipping),
+    discount: formatPrice(order.discount),
+    total: formatPrice(order.total),
+    paymentMethod: completedPayment ? `${completedPayment.provider} (${completedPayment.status})` : 'Pending',
+  };
 
   return (
     <main>
@@ -109,7 +138,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
                 ) : null}
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Date</dt>
-                  <dd>{order.createdAt.toLocaleDateString('en-KE')}</dd>
+                  <dd>{formatDate(order.createdAt)}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Subtotal</dt>
@@ -159,6 +188,11 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
               <Text variant="muted">{order.notes}</Text>
             </div>
           ) : null}
+
+          {/* Digital Receipt */}
+          <div className="mt-8 pt-8 border-t border-border">
+            <DigitalReceipt {...receiptProps} />
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <Link

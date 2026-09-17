@@ -1,14 +1,18 @@
 'use client';
 
 import React from 'react';
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Search, 
-  Filter, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
   Download,
-  Printer
+  Columns3,
+  Inbox,
+  type LucideIcon
 } from 'lucide-react';
+import { EmptyState } from './EmptyState';
+import { LoadingSkeleton } from './LoadingSkeleton';
 
 export interface ColumnDef<T> {
   key: keyof T | string;
@@ -23,7 +27,11 @@ export interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   isLoading?: boolean;
   emptyMessage?: string;
-  
+  /** Optional richer empty state shown instead of the plain message. */
+  emptyTitle?: string;
+  emptyIcon?: LucideIcon;
+  emptyAction?: React.ReactNode;
+
   // Sorting
   sortKey?: string;
   sortDirection?: 'asc' | 'desc';
@@ -38,6 +46,8 @@ export interface DataTableProps<T> {
   selectable?: boolean;
   selectedIds?: string[];
   onSelect?: (ids: string[]) => void;
+  /** Human-readable label for a row's checkbox, e.g. `(item) => item.name`. Falls back to the row id. */
+  getRowLabel?: (item: T) => string;
   
   // Actions
   rowActions?: (item: T) => React.ReactNode;
@@ -45,7 +55,15 @@ export interface DataTableProps<T> {
   
   // Search & Filter
   onSearch?: (term: string) => void;
+  /** Current search term, so the box still shows it after a reload or a
+   *  parent-driven "clear filters". */
+  searchValue?: string;
+  searchPlaceholder?: string;
+  /** Milliseconds to wait before firing onSearch. 0 fires immediately. */
+  searchDebounceMs?: number;
   onFilter?: () => void;
+  onExport?: (rows: T[]) => void;
+  exportFilename?: string;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -53,6 +71,9 @@ export function DataTable<T extends { id: string | number }>({
   columns,
   isLoading,
   emptyMessage = "No results found",
+  emptyTitle,
+  emptyIcon,
+  emptyAction,
   sortKey,
   sortDirection,
   onSort,
@@ -62,30 +83,105 @@ export function DataTable<T extends { id: string | number }>({
   selectable,
   selectedIds = [],
   onSelect,
+  getRowLabel,
   rowActions,
   bulkActions,
   onSearch,
-  onFilter
+  searchValue,
+  searchPlaceholder = 'Search...',
+  searchDebounceMs = 300,
+  onFilter,
+  onExport,
+  exportFilename = 'export.csv'
 }: DataTableProps<T>) {
-  
-  const visibleColumns = columns.filter(c => !c.hidden);
+  const [internalSelectedIds, setInternalSelectedIds] = React.useState<string[]>([]);
+
+  // The search box is controlled so a parent "clear filters" actually empties
+  // it — it used to be uncontrolled, leaving stale text visible over reset
+  // results. Debouncing lives here so every caller doesn't reinvent it.
+  const [searchTerm, setSearchTerm] = React.useState(searchValue ?? '');
+  const lastEmitted = React.useRef(searchValue ?? '');
+
+  React.useEffect(() => {
+    if (searchValue !== undefined && searchValue !== lastEmitted.current) {
+      setSearchTerm(searchValue);
+      lastEmitted.current = searchValue;
+    }
+  }, [searchValue]);
+
+  React.useEffect(() => {
+    if (!onSearch || searchTerm === lastEmitted.current) return;
+    const timer = setTimeout(() => {
+      lastEmitted.current = searchTerm;
+      onSearch(searchTerm);
+    }, searchDebounceMs);
+    return () => clearTimeout(timer);
+  }, [searchTerm, searchDebounceMs, onSearch]);
+
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = React.useState(false);
+  const [hiddenColumns, setHiddenColumns] = React.useState<Set<string>>(
+    () => new Set(columns.filter((column) => column.hidden).map((column) => String(column.key)))
+  );
+  const activeSelectedIds = selectedIds.length > 0 || onSelect ? selectedIds : internalSelectedIds;
+  const visibleColumns = columns.filter((column) => !hiddenColumns.has(String(column.key)));
+
+  const allSelected = data.length > 0 && data.every((item) => activeSelectedIds.includes(String(item.id)));
+  const someSelected = activeSelectedIds.length > 0 && !allSelected;
+
+  const setSelectedIds = (ids: string[]) => {
+    if (onSelect) onSelect(ids);
+    else setInternalSelectedIds(ids);
+  };
   
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!onSelect) return;
     if (e.target.checked) {
-      onSelect(data.map(item => String(item.id)));
+      setSelectedIds(data.map(item => String(item.id)));
     } else {
-      onSelect([]);
+      setSelectedIds([]);
     }
   };
 
   const handleSelectRow = (id: string, checked: boolean) => {
-    if (!onSelect) return;
     if (checked) {
-      onSelect([...selectedIds, id]);
+      setSelectedIds([...activeSelectedIds, id]);
     } else {
-      onSelect(selectedIds.filter(selectedId => selectedId !== id));
+      setSelectedIds(activeSelectedIds.filter(selectedId => selectedId !== id));
     }
+  };
+
+  const toggleColumn = (key: string) => {
+    setHiddenColumns((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const exportRows = () => {
+    if (onExport) {
+      onExport(data);
+      return;
+    }
+    // Spreadsheet apps execute a cell beginning =, +, - or @ as a formula.
+    // Exported columns include admin-editable free text, so prefix those with
+    // an apostrophe to keep them inert.
+    const escapeValue = (value: unknown) => {
+      const raw = String(value ?? '');
+      const safe = /^[=+\-@]/.test(raw) ? `'${raw}` : raw;
+      return `"${safe.replaceAll('"', '""')}"`;
+    };
+    const csv = [
+      visibleColumns.map((column) => escapeValue(column.header)).join(','),
+      ...data.map((item) => visibleColumns.map((column) =>
+        escapeValue(item[column.key as keyof T])
+      ).join(',')),
+    ].join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = exportFilename;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -96,11 +192,13 @@ export function DataTable<T extends { id: string | number }>({
           {onSearch && (
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
+              <input
+                type="search"
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
                 className="w-full bg-background border border-border rounded-md pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                onChange={(e) => onSearch(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           )}
@@ -116,19 +214,34 @@ export function DataTable<T extends { id: string | number }>({
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          {bulkActions && selectedIds.length > 0 && (
+          {bulkActions && activeSelectedIds.length > 0 && (
             <div className="flex items-center gap-2 mr-2">
-              <span className="text-sm text-muted-foreground mr-2">{selectedIds.length} selected</span>
+              <span className="text-sm text-muted-foreground mr-2">{activeSelectedIds.length} selected</span>
               {bulkActions}
             </div>
           )}
           
           <div className="flex items-center gap-2">
-            <button className="p-2 text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted" title="Export CSV">
+            <div className="relative">
+              <button type="button" onClick={() => setIsColumnMenuOpen((open) => !open)} aria-expanded={isColumnMenuOpen} aria-label="Choose visible columns" className="p-2 text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted">
+                <Columns3 className="h-4 w-4" />
+              </button>
+              {isColumnMenuOpen && (
+                <div className="absolute right-0 top-full z-20 mt-2 w-48 rounded-md border border-border bg-card p-2 shadow-elevated">
+                  {columns.map((column) => {
+                    const key = String(column.key);
+                    return (
+                      <label key={key} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted">
+                        <input type="checkbox" checked={!hiddenColumns.has(key)} onChange={() => toggleColumn(key)} />
+                        {column.header}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={exportRows} className="p-2 text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted" title="Export CSV" aria-label="Export CSV">
               <Download className="h-4 w-4" />
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-foreground border border-border rounded-md hover:bg-muted" title="Print">
-              <Printer className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -137,30 +250,43 @@ export function DataTable<T extends { id: string | number }>({
       {/* Table Container */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-muted/50 text-muted-foreground text-xs uppercase bg-gray-50 border-b border-border">
+          <thead className="bg-muted/50 text-muted-foreground text-xs uppercase border-b border-border">
             <tr>
               {selectable && (
                 <th className="px-4 py-3 w-10">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="rounded border-border text-primary focus:ring-primary"
-                    checked={data.length > 0 && selectedIds.length === data.length}
+                    aria-label="Select all rows"
+                    ref={(node) => {
+                      // Otherwise a partial selection reads as fully unchecked.
+                      if (node) node.indeterminate = someSelected && !allSelected;
+                    }}
+                    checked={allSelected}
                     onChange={handleSelectAll}
                   />
                 </th>
               )}
               {visibleColumns.map((col) => (
-                <th 
-                  key={String(col.key)} 
+                <th
+                  key={String(col.key)}
+                  aria-sort={
+                    col.sortable
+                      ? sortKey === col.key
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : 'none'
+                      : undefined
+                  }
                   className={`px-4 py-3 font-medium tracking-wider ${col.sortable ? 'cursor-pointer hover:bg-muted/80' : ''}`}
-                  onClick={() => col.sortable && onSort && onSort(String(col.key))}
                 >
-                  <div className="flex items-center gap-1">
-                    {col.header}
-                    {col.sortable && sortKey === col.key && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-                    )}
-                  </div>
+                  {col.sortable ? (
+                    <button type="button" onClick={() => onSort?.(String(col.key))} className="flex items-center gap-1" aria-label={`Sort by ${col.header}`}>
+                      {col.header}
+                      {sortKey === col.key && (sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />)}
+                    </button>
+                  ) : col.header}
                 </th>
               ))}
               {rowActions && <th className="px-4 py-3 text-right">Actions</th>}
@@ -168,17 +294,36 @@ export function DataTable<T extends { id: string | number }>({
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading ? (
-              <tr>
-                <td colSpan={visibleColumns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)} className="px-4 py-12 text-center">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                  </div>
-                </td>
-              </tr>
+              // Skeleton rows mirror the real column layout so the table
+              // doesn't collapse and jump when data arrives.
+              Array.from({ length: 5 }).map((_, rowIndex) => (
+                <tr key={`skeleton-${rowIndex}`}>
+                  {selectable && (
+                    <td className="px-4 py-3">
+                      <LoadingSkeleton className="h-4 w-4" />
+                    </td>
+                  )}
+                  {visibleColumns.map((col) => (
+                    <td key={String(col.key)} className="px-4 py-3">
+                      <LoadingSkeleton className="h-4 w-full" />
+                    </td>
+                  ))}
+                  {rowActions && (
+                    <td className="px-4 py-3">
+                      <LoadingSkeleton className="h-4 w-12 ml-auto" />
+                    </td>
+                  )}
+                </tr>
+              ))
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={visibleColumns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)} className="px-4 py-12 text-center text-muted-foreground">
-                  {emptyMessage}
+                <td colSpan={visibleColumns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)} className="p-4">
+                  <EmptyState
+                    icon={emptyIcon ?? Inbox}
+                    title={emptyTitle ?? 'Nothing here yet'}
+                    description={emptyMessage}
+                    action={emptyAction}
+                  />
                 </td>
               </tr>
             ) : (
@@ -186,11 +331,12 @@ export function DataTable<T extends { id: string | number }>({
                 <tr key={String(item.id)} className="hover:bg-muted/30 transition-colors">
                   {selectable && (
                     <td className="px-4 py-3">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="rounded border-border text-primary focus:ring-primary"
-                        checked={selectedIds.includes(String(item.id))}
+                        checked={activeSelectedIds.includes(String(item.id))}
                         onChange={(e) => handleSelectRow(String(item.id), e.target.checked)}
+                        aria-label={`Select ${getRowLabel ? getRowLabel(item) : `row ${item.id}`}`}
                       />
                     </td>
                   )}

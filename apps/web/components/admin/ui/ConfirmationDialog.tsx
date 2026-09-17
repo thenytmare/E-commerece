@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { useFocusTrap } from '@/lib/hooks/use-focus-trap';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -26,6 +27,17 @@ export function ConfirmationDialog({
   onCancel,
   isLoading
 }: ConfirmationDialogProps) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const handleEscape = useCallback(() => {
+    if (!isLoading) onCancel();
+  }, [isLoading, onCancel]);
+
+  // Traps Tab inside the dialog, locks background scroll, and restores focus
+  // to whatever opened it.
+  useFocusTrap(dialogRef, isOpen, handleEscape);
+
   if (!isOpen) return null;
 
   const bgIconClass = 
@@ -40,21 +52,29 @@ export function ConfirmationDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={isLoading ? undefined : onCancel} />
-      <div className="relative bg-card rounded-lg shadow-elevated w-full max-w-md overflow-hidden transform transition-all border border-border">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={isLoading ? undefined : onCancel} aria-hidden="true" />
+      <div
+        ref={dialogRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-dialog-title"
+        aria-describedby="confirmation-dialog-description"
+        className="relative bg-card rounded-lg shadow-elevated w-full max-w-md overflow-hidden transform transition-all border border-border"
+      >
         <div className="p-6">
           <div className="flex items-start gap-4">
             <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${bgIconClass}`}>
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
-              <p className="text-sm text-muted-foreground">{description}</p>
+              <h3 id="confirmation-dialog-title" className="text-lg font-semibold text-foreground mb-1">{title}</h3>
+              <p id="confirmation-dialog-description" className="text-sm text-muted-foreground">{description}</p>
             </div>
             <button 
               onClick={isLoading ? undefined : onCancel}
               className="text-muted-foreground hover:text-foreground"
               disabled={isLoading}
+              aria-label="Close confirmation dialog"
             >
               <X className="h-5 w-5" />
             </button>
@@ -64,6 +84,7 @@ export function ConfirmationDialog({
           <button
             onClick={onCancel}
             disabled={isLoading}
+            ref={cancelButtonRef}
             className="px-4 py-2 border border-border bg-background hover:bg-muted text-foreground font-medium rounded-md text-sm transition-colors disabled:opacity-50"
           >
             {cancelText}

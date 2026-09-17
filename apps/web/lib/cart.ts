@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { auth } from '@/auth';
 import { ensureCartSessionId, getCartSessionId } from '@/lib/cart-session';
 import { createRepositories, type CartWithItems } from '@repo/database';
@@ -9,21 +10,44 @@ export function sumCartItems(cart: CartWithItems | null): number {
   return cart.items.reduce((total, item) => total + item.quantity, 0);
 }
 
-export function calculateCartSubtotal(cart: CartWithItems): number {
-  return cart.items.reduce((total, item) => {
-    const price =
-      typeof item.variant.price === 'object' && 'toNumber' in item.variant.price
-        ? item.variant.price.toNumber()
-        : Number(item.variant.price);
-    return total + price * item.quantity;
-  }, 0);
+/**
+ * Unit price per variant for this cart, with any active flash sale applied.
+ *
+ * Mirrors what OrderRepository charges at checkout, so the cart, the checkout
+ * summary, and the final invoice all show the same number. The order
+ * repository still resolves prices independently — it is the authority on what
+ * is actually charged; this exists so the customer isn't shown something else.
+ */
+export async function resolveCartUnitPrices(
+  cart: CartWithItems
+): Promise<Map<string, number>> {
+  const repos = createRepositories();
+  const productIds = [...new Set(cart.items.map((item) => item.variant.productId))];
+  const sales = await repos.flashSale.getActiveForProducts(productIds);
+
+  const unitPrices = new Map<string, number>();
+  for (const item of cart.items) {
+    const listPrice = Number(item.variant.price);
+    const sale = sales.get(item.variant.productId);
+    unitPrices.set(
+      item.variantId,
+      sale ? Math.min(listPrice, Number(sale.salePrice)) : listPrice
+    );
+  }
+  return unitPrices;
 }
 
-/** Resolve the active cart for the current visitor (user or guest) */
-export async function resolveCart(): Promise<{
+/**
+ * Resolve the active cart for the current visitor (user or guest).
+ *
+ * The header, the cart page, and the checkout page each call this
+ * independently within the same request. `cache()` dedupes them into one
+ * DB round trip per request.
+ */
+export const resolveCart = cache(async (): Promise<{
   cart: CartWithItems | null;
   itemCount: number;
-}> {
+}> => {
   const repos = createRepositories();
   const session = await auth();
 
@@ -39,7 +63,7 @@ export async function resolveCart(): Promise<{
 
   const cart = await repos.cart.findBySessionId(sessionId);
   return { cart, itemCount: sumCartItems(cart) };
-}
+});
 
 /** Get or create the cart for the current visitor */
 export async function getOrCreateActiveCart(): Promise<CartWithItems> {

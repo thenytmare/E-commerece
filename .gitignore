@@ -26,6 +26,10 @@ Thumbs.db
 
 # Testing
 coverage
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/playwright/.cache/
+/apps/web/blob-report/
 
 # Logs
 *.log
@@ -34,3 +38,6 @@ pnpm-debug.log*
 
 # Misc
 *.tsbuildinfo
+
+# Database backups (see docs/backups.md — never commit real dumps)
+/backups/

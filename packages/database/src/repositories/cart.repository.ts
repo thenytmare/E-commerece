@@ -9,9 +9,12 @@ const cartWithItemsInclude = {
           product: {
             include: {
               images: {
-                where: { isFeatured: true },
+                // Prefer the featured image, but fall back to the first by
+                // sort order. Filtering on isFeatured alone left products that
+                // have photos — but none flagged featured — showing a blank
+                // placeholder.
                 take: 1,
-                orderBy: { sortOrder: 'asc' as const },
+                orderBy: [{ isFeatured: 'desc' as const }, { sortOrder: 'asc' as const }],
               },
             },
           },
@@ -88,11 +91,57 @@ export class CartRepository extends BaseRepository {
       return userCart;
     }
 
-    for (const item of guestCart.items) {
-      await this.addItem(userCart.id, item.variantId, item.quantity);
-    }
+    // Batch the merge into a single transaction instead of one transaction
+    // (plus a full-cart reload) per item, which used to run on every login
+    // that had a guest cart. Conflict handling mirrors addItem(): each
+    // variant's quantity is summed with any existing quantity in the user's
+    // cart and checked against available stock before being written.
+    await this.db.$transaction(async (tx) => {
+      const variantIds = guestCart.items.map((item) => item.variantId);
 
-    await this.db.cart.delete({ where: { id: guestCart.id } });
+      const existingItems = await tx.cartItem.findMany({
+        where: { cartId: userCart.id, variantId: { in: variantIds } },
+      });
+      const inventories = await tx.inventory.findMany({
+        where: { variantId: { in: variantIds } },
+      });
+
+      const existingByVariant = new Map(existingItems.map((item) => [item.variantId, item]));
+      const inventoryByVariant = new Map(inventories.map((inv) => [inv.variantId, inv]));
+
+      const toCreate: Prisma.CartItemCreateManyInput[] = [];
+
+      for (const item of guestCart.items) {
+        const inventory = inventoryByVariant.get(item.variantId);
+        const available = inventory ? inventory.quantity - inventory.reserved : 0;
+        const existing = existingByVariant.get(item.variantId);
+        const newQuantity = (existing?.quantity ?? 0) + item.quantity;
+
+        if (newQuantity > available) {
+          throw new Error('Insufficient stock for this quantity');
+        }
+
+        if (existing) {
+          await tx.cartItem.update({
+            where: { id: existing.id },
+            data: { quantity: newQuantity },
+          });
+        } else {
+          toCreate.push({ cartId: userCart.id, variantId: item.variantId, quantity: newQuantity });
+        }
+      }
+
+      if (toCreate.length > 0) {
+        await tx.cartItem.createMany({ data: toCreate, skipDuplicates: true });
+      }
+
+      await tx.cart.update({
+        where: { id: userCart.id },
+        data: { updatedAt: new Date() },
+      });
+
+      await tx.cart.delete({ where: { id: guestCart.id } });
+    });
 
     return this.loadCart(userCart.id);
   }
@@ -139,18 +188,25 @@ export class CartRepository extends BaseRepository {
     });
   }
 
-  /** Update line item quantity; removes the item when quantity is 0 */
-  async updateItemQuantity(cartItemId: string, quantity: number): Promise<CartWithItems> {
+  /**
+   * Update line item quantity; removes the item when quantity is 0.
+   *
+   * `cartId` scopes the lookup to the caller's own cart — without it, any
+   * visitor who obtained another shopper's `cartItemId` could mutate that
+   * cart. A mismatched `cartId` makes the item unfindable rather than
+   * touching someone else's row.
+   */
+  async updateItemQuantity(cartId: string, cartItemId: string, quantity: number): Promise<CartWithItems> {
     if (quantity < 0) {
       throw new Error('Quantity cannot be negative');
     }
 
     const cartItem = await this.db.cartItem.findUniqueOrThrow({
-      where: { id: cartItemId },
+      where: { id: cartItemId, cartId },
     });
 
     if (quantity === 0) {
-      return this.removeItem(cartItemId);
+      return this.removeItem(cartId, cartItemId);
     }
 
     return this.db.$transaction(async (tx) => {
@@ -180,10 +236,10 @@ export class CartRepository extends BaseRepository {
     });
   }
 
-  /** Remove a line item from the cart */
-  async removeItem(cartItemId: string): Promise<CartWithItems> {
+  /** Remove a line item from the cart. `cartId` scopes the lookup — see updateItemQuantity. */
+  async removeItem(cartId: string, cartItemId: string): Promise<CartWithItems> {
     const cartItem = await this.db.cartItem.findUniqueOrThrow({
-      where: { id: cartItemId },
+      where: { id: cartItemId, cartId },
     });
 
     await this.db.cartItem.delete({ where: { id: cartItemId } });

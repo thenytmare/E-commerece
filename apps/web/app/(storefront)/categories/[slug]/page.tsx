@@ -48,6 +48,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         ? (await repos.brand.findBySlug(query.brand))?.id
         : undefined,
       search: query.q?.trim() || undefined,
+      // Deactivated products must never appear on the storefront.
+      isActive: true,
       page,
     }),
   ]);
