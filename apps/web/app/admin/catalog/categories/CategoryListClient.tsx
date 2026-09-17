@@ -18,12 +18,12 @@ import { usePermissions } from '@/lib/hooks/use-permissions';
 
 type ViewMode = 'active' | 'deleted';
 
-export function CategoryListClient({ initialData }: { initialData: AdminCategoryListItem[] }) {
+export function CategoryListClient({ initialData = [] }: { initialData?: AdminCategoryListItem[] }) {
   const { toast } = useToast();
   const { can } = usePermissions();
   const canWrite = can('categories.write');
   const canDelete = can('categories.delete');
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState<AdminCategoryListItem[]>(initialData);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -110,7 +110,7 @@ export function CategoryListClient({ initialData }: { initialData: AdminCategory
       key: '_count',
       header: 'Products',
       cell: (item) => (
-        <span className="text-muted-foreground">{item._count.products} products</span>
+        <span className="text-muted-foreground">{item._count?.products ?? 0} products</span>
       ),
     },
   ];
