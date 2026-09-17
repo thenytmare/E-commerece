@@ -1,0 +1,114 @@
+# Scheduled trigger for database backups (scripts/backup-db.js, run via
+# `pnpm db:backup` — see docs/backups.md).
+#
+# This workflow checks out the repo on a GitHub-hosted runner, installs
+# dependencies, runs `pnpm db:backup` (which shells out to `pg_dump
+# --format=custom`) against DATABASE_URL, and uploads the resulting .dump
+# file as a workflow artifact so it isn't lost when the runner is destroyed.
+#
+# REQUIRED SETUP — this workflow will not function until a repository owner
+# configures the following under:
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#
+#   DATABASE_URL   Must point at the PRODUCTION database, in the same
+#                  postgresql://user:pass@host:port/db form used in .env.
+#
+#                  IMPORTANT — network reachability: this value must be a
+#                  URL that GitHub-hosted runners (which run outside your
+#                  infrastructure, on GitHub's own network) can actually
+#                  reach over the public internet. This repo's
+#                  docker-compose.yml binds Postgres to
+#                  `127.0.0.1:5432:5432` ("never publish Postgres on all
+#                  interfaces") and .env.example's own DATABASE_URL example
+#                  points at 127.0.0.1. If production is deployed the same
+#                  way — Postgres reachable only as localhost on the VPS, or
+#                  only from other containers on the same Docker network —
+#                  then a DATABASE_URL that works for the app will NOT be
+#                  reachable from this workflow at all, and every run will
+#                  fail to connect, full stop.
+#
+#                  Making the DB reachable from GitHub Actions generally
+#                  requires either (a) a secure tunnel set up as an earlier
+#                  step in this workflow (SSH tunnel to the VPS, WireGuard,
+#                  Cloudflare Tunnel, Tailscale, etc.), or (b) exposing
+#                  Postgres publicly with strict firewalling — impractical
+#                  against GitHub's dynamic runner IP ranges. Neither is set
+#                  up here; which one (if any) makes sense is a deployment-
+#                  topology decision outside this codebase.
+#
+#                  If the production DB is not publicly reachable, prefer
+#                  the VPS-cron approach already documented in
+#                  docs/backups.md instead of this workflow: a cron job
+#                  running `pnpm db:backup` directly on the VPS, where
+#                  DATABASE_URL is already reachable as localhost, with
+#                  `rclone sync` afterwards to copy backups/ to offsite
+#                  object storage.
+#
+# NOT covered by this workflow:
+#   - BACKUP_RETENTION_DAYS: the backup script prunes old *.dump files under
+#     the local backups/ directory older than this many days (default 14).
+#     That pruning is meaningless on a GitHub-hosted runner, whose entire
+#     filesystem — including backups/ — is destroyed the moment this job
+#     ends. The closest equivalent control here is the `retention-days` on
+#     the "Upload backup artifact" step below, which controls how long
+#     GitHub keeps the uploaded artifact; adjust it directly in this file.
+#   - Offsite sync: uploading a GitHub Actions artifact is a stopgap so the
+#     dump survives past the end of this one job — it is NOT the offsite,
+#     geographically-separate backup storage docs/backups.md recommends via
+#     `rclone sync` to S3/B2/etc, and GitHub Actions artifacts are not
+#     designed as long-term backup storage. To get real offsite durability
+#     from this workflow, add an `rclone sync` (or equivalent) step after
+#     the backup step, with your storage provider's credentials added as
+#     additional repository secrets — not set up here since no storage
+#     provider has been chosen for this repo yet.
+#   - Media Library uploads (apps/web/public/uploads) are not part of
+#     `pnpm db:backup` and are not covered by this workflow either — see
+#     docs/backups.md.
+#
+# Claude Code cannot set repository secrets itself — only a repository
+# owner/admin can add them, in the GitHub web UI described above.
+
+name: Backup production database
+
+on:
+  schedule:
+    # Nightly at 02:00 UTC.
+    - cron: '0 2 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install postgresql-client (for pg_dump)
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run database backup
+        run: pnpm db:backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backups/*.dump
+          if-no-files-found: error
+          retention-days: 30

@@ -1,6 +1,7 @@
 import { CartItemRow } from '@/components/cart/cart-item-row';
 import { CartSummary } from '@/components/cart/cart-summary';
-import { resolveCart } from '@/lib/cart';
+import { resolveCart, resolveCartUnitPrices } from '@/lib/cart';
+import { serializeDecimals } from '@/lib/serialize';
 import { Button, Container, Grid, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 
 export default async function CartPage() {
   const { cart } = await resolveCart();
+  // Flash-sale-aware prices, resolved once and shared by the rows and summary.
+  const unitPrices = cart ? await resolveCartUnitPrices(cart) : new Map<string, number>();
 
   return (
     <main>
@@ -41,7 +44,13 @@ export default async function CartPage() {
             <Grid cols={1} gap="lg" className="lg:grid-cols-[1fr_360px]">
               <div className="rounded-xl border border-border bg-card px-6">
                 {cart.items.map((item) => (
-                  <CartItemRow key={item.id} item={item} />
+                  // Serialized because CartItemRow is a Client Component and
+                  // variant prices come back from Prisma as Decimal.
+                  <CartItemRow
+                    key={item.id}
+                    item={serializeDecimals(item)}
+                    unitPrice={unitPrices.get(item.variantId)!}
+                  />
                 ))}
               </div>
               <CartSummary cart={cart} />

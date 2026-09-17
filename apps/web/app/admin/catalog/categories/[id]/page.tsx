@@ -19,7 +19,7 @@ export default async function CategoryEditPage({ params }: { params: Promise<{ i
   }
 
   // Get all categories for parent selection (exclude self if editing)
-  const allCategories = await repos.category.adminFindMany();
+  const { items: allCategories } = await repos.category.adminFindMany();
   const availableParents = allCategories.filter(c => c.id !== category?.id);
 
   return (

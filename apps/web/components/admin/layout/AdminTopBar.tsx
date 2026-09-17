@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { getAdminNavigation } from '@/config/admin-navigation';
 import { useAdmin } from '@/components/admin/providers/AdminProvider';
+import { useSearch } from '@/components/admin/providers/SearchProvider';
+import { useNotifications } from '@/components/admin/providers/NotificationProvider';
 import { useTheme } from '@/components/admin/providers/ThemeProvider';
 import { NotificationCenter } from '@/components/admin/ui/NotificationCenter';
 import { AdminUserMenu } from './AdminUserMenu';
@@ -12,7 +14,9 @@ import Link from 'next/link';
 
 export function AdminTopBar() {
   const pathname = usePathname();
-  const { toggleSidebar, setSearchOpen } = useAdmin();
+  const { toggleMobileSidebar } = useAdmin();
+  const { open } = useSearch();
+  const { unreadCount } = useNotifications();
   const { theme, setTheme } = useTheme();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -57,7 +61,7 @@ export function AdminTopBar() {
       <div className="flex items-center gap-4">
         <button
           type="button"
-          onClick={toggleSidebar}
+          onClick={toggleMobileSidebar}
           className="md:hidden text-muted-foreground"
           aria-label="Toggle sidebar"
         >
@@ -83,7 +87,7 @@ export function AdminTopBar() {
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={() => setSearchOpen(true)}
+          onClick={open}
           className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-background text-muted-foreground text-sm hover:bg-muted transition-colors w-48 lg:w-64"
           aria-label="Open command palette"
         >
@@ -93,7 +97,7 @@ export function AdminTopBar() {
         <button
           type="button"
           className="md:hidden text-muted-foreground hover:text-foreground"
-          onClick={() => setSearchOpen(true)}
+          onClick={open}
           aria-label="Open search"
         >
           <Search className="h-5 w-5" />
@@ -118,7 +122,7 @@ export function AdminTopBar() {
             aria-expanded={notificationsOpen}
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive border border-card" />
+            {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive border border-card" />}
           </button>
           {notificationsOpen && (
             <>

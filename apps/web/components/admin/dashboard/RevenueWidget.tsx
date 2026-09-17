@@ -17,6 +17,7 @@ export default async function RevenueWidget() {
     lastMonthRevenue = trend[trend.length - 1]?.revenue ?? 0;
     prevMonthRevenue = trend[trend.length - 2]?.revenue ?? 0;
   } catch (e) {
+    console.error('RevenueWidget: Failed to load revenue', e);
     error = e instanceof Error ? e.message : 'Failed to load revenue';
   }
 

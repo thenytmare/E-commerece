@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/actions/auth';
 import { getDashboardWidgets } from '@/config/dashboard-registry';
 import { AdminPage } from '@/components/admin/ui/AdminPage';
+import { AdminErrorNotice } from '@/components/admin/ui/AdminErrorNotice';
 import { hasPermission } from '@/lib/auth/permissions';
 import type { RoleName } from '@repo/database';
 import '@/config/admin-bootstrap';
@@ -33,8 +34,15 @@ const LG_SPAN: Record<number, string> = {
   12: 'lg:col-span-12',
 };
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const session = await requireAdmin();
+  // requirePermission() redirects here with ?error=forbidden when an action is
+  // rejected, so this is where that has to be explained.
+  const { error } = await searchParams;
   const roles = (session.user.roles as RoleName[]) || [];
   const widgets = getDashboardWidgets().filter((widget) =>
     hasPermission(roles, widget.permission)
@@ -45,6 +53,8 @@ export default async function AdminDashboardPage() {
       title="Dashboard"
       description={`Welcome back, ${session.user.name || session.user.email}`}
     >
+      <AdminErrorNotice error={error} />
+
       <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6">
         {widgets.map((widget) => {
           const WidgetComponent = widget.component;

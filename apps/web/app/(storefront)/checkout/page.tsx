@@ -1,6 +1,6 @@
-import { CheckoutForm } from '@/components/checkout/checkout-form';
-import { CheckoutSummary } from '@/components/checkout/checkout-summary';
-import { requireAuth } from '@/lib/actions/auth';
+import { CheckoutClient } from '@/components/checkout/CheckoutClient';
+import { calculateOrderTotals } from '@/lib/checkout';
+import { auth } from '@/auth';
 import { resolveCart } from '@/lib/cart';
 import { createRepositories } from '@repo/database';
 import { Container, Grid, Heading, Section, Text } from '@repo/ui';
@@ -14,7 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const session = await requireAuth('/login?callbackUrl=/checkout');
+  // Guests can check out; an account is optional.
+  const session = await auth();
   const { cart } = await resolveCart();
 
   if (!cart || cart.items.length === 0) {
@@ -22,7 +23,22 @@ export default async function CheckoutPage() {
   }
 
   const repos = createRepositories();
-  const addresses = await repos.address.findByUserId(session.user.id);
+  const addresses = session?.user?.id
+    ? await repos.address.findByUserId(session.user.id)
+    : [];
+
+  // Totals and line items are computed here (server) and handed to the
+  // client component as plain numbers — the cart/checkout helpers depend on
+  // `next/headers` and cannot be pulled into a client bundle.
+  const { subtotal, shipping, unitPrices } = await calculateOrderTotals(cart);
+  const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const lines = cart.items.map((item) => ({
+    id: item.id,
+    name: item.variant.product.name,
+    quantity: item.quantity,
+    // Uses the same flash-sale-aware price the order will be charged at.
+    lineTotal: unitPrices.get(item.variantId)! * item.quantity,
+  }));
 
   return (
     <main>
@@ -42,8 +58,14 @@ export default async function CheckoutPage() {
       <Section>
         <Container>
           <Grid cols={1} gap="lg" className="lg:grid-cols-[1fr_360px]">
-            <CheckoutForm addresses={addresses} />
-            <CheckoutSummary cart={cart} />
+            <CheckoutClient
+              isGuest={!session?.user?.id}
+              addresses={addresses}
+              subtotal={subtotal}
+              shipping={shipping}
+              itemCount={itemCount}
+              lines={lines}
+            />
           </Grid>
         </Container>
       </Section>

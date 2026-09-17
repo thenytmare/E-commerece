@@ -23,6 +23,7 @@ export default async function ActivityFeedWidget() {
     const data = await getActivityFeedDashboard();
     events = data.events;
   } catch (e) {
+    console.error('ActivityFeedWidget: Failed to load activity', e);
     error = e instanceof Error ? e.message : 'Failed to load activity';
   }
 

@@ -16,18 +16,36 @@ export function ProductCard({ product, priority }: ProductCardProps) {
   const discount = compareAt ? discountPercent(price, compareAt) : null;
   const featuredImage = product.images[0];
 
+  // Stock status on the card itself, so a shopper doesn't click through only
+  // to find the product is sold out.
+  const inventory = defaultVariant?.inventory;
+  const available = inventory ? inventory.quantity - inventory.reserved : null;
+  const isSoldOut = available !== null && available <= 0;
+  const isLowStock = available !== null && available > 0 && available <= 5;
+
   return (
     <Link
       href={`/products/${product.slug}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-soft transition-shadow hover:shadow-md"
     >
-      <ProductImage
-        src={featuredImage?.url}
-        alt={featuredImage?.alt ?? product.name}
-        priority={priority}
-      />
+      <div className="relative">
+        <ProductImage
+          src={featuredImage?.url}
+          alt={featuredImage?.alt ?? product.name}
+          priority={priority}
+        />
+        {isSoldOut ? (
+          <span className="absolute left-2 top-2 rounded-md bg-foreground/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-background">
+            Sold out
+          </span>
+        ) : isLowStock ? (
+          <span className="absolute left-2 top-2 rounded-md bg-warning px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-warning-foreground">
+            Only {available} left
+          </span>
+        ) : null}
+      </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <Text variant="muted" className="text-xs uppercase tracking-wide">
+        <Text variant="muted" className="text-xs font-medium text-primary">
           {product.brand.name}
         </Text>
         <Text className="line-clamp-2 font-medium leading-snug">{product.name}</Text>

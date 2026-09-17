@@ -58,7 +58,7 @@ async function main() {
     update: {},
   });
 
-  const chargers = await prisma.category.upsert({
+  const _chargers = await prisma.category.upsert({
     where: { slug: 'chargers' },
     create: { name: 'Chargers', slug: 'chargers', sortOrder: 3, isActive: true },
     update: {},

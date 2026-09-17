@@ -15,3 +15,15 @@ export const FLAT_SHIPPING_KES = 500;
 
 /** Orders at or above this subtotal qualify for free shipping */
 export const FREE_SHIPPING_THRESHOLD_KES = 10_000;
+
+/**
+ * Tax rate applied to order totals, as a fraction (0 = 0%).
+ *
+ * Kenyan VAT is not currently charged at checkout. That's a pending business
+ * decision (registration status, pricing strategy — whether listed prices are
+ * treated as VAT-inclusive — and provider-side tax handling all need to be
+ * settled first), not an oversight, so this stays a named, discoverable
+ * constant rather than a bare `0` buried in the order-total calculation.
+ * Flip it once that decision is made; nothing downstream assumes it's zero.
+ */
+export const DEFAULT_TAX_RATE = 0;

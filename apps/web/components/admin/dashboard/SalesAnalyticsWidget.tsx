@@ -13,6 +13,7 @@ export default async function SalesAnalyticsWidget() {
     topProducts = data.topProducts;
     revenueByCategory = data.revenueByCategory;
   } catch (e) {
+    console.error('SalesAnalyticsWidget: Failed to load sales analytics', e);
     error = e instanceof Error ? e.message : 'Failed to load sales analytics';
   }
 

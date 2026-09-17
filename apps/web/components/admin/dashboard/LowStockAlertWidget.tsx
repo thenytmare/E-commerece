@@ -16,6 +16,7 @@ export default async function LowStockAlertWidget() {
     const data = await getLowStockDashboard();
     items = data.items;
   } catch (e) {
+    console.error('LowStockAlertWidget: Failed to load low stock alerts', e);
     error = e instanceof Error ? e.message : 'Failed to load low stock alerts';
   }
 

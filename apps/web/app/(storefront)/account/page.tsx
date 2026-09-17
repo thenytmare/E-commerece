@@ -1,6 +1,8 @@
 import { requireAuth } from '@/lib/actions/auth';
+import { canAccessAdmin } from '@/lib/auth/rbac';
 import { Badge, Button, Container, Heading, Section, Text } from '@repo/ui';
 import Link from 'next/link';
+import { DeleteAccountSection } from './DeleteAccountSection';
 
 export const metadata = {
   title: 'My Account',
@@ -8,6 +10,7 @@ export const metadata = {
 
 export default async function AccountPage() {
   const session = await requireAuth();
+  const isStaff = canAccessAdmin(session.user.roles);
 
   return (
     <Section>
@@ -41,8 +44,17 @@ export default async function AccountPage() {
             <Button variant="outline" size="sm" asChild>
               <Link href="/account/orders">My orders</Link>
             </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/account/wishlist">Saved items</Link>
+            </Button>
+            {isStaff ? (
+              <Button size="sm" asChild>
+                <Link href="/admin">Go to Admin Dashboard</Link>
+              </Button>
+            ) : null}
           </div>
         </div>
+        <DeleteAccountSection />
       </Container>
     </Section>
   );

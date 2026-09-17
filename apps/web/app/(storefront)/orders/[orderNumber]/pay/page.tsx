@@ -1,5 +1,5 @@
 import { PaymentMethodPicker } from '@/components/payment/payment-method-picker';
-import { requireAuth } from '@/lib/actions/auth';
+import { loadViewableOrder } from '@/lib/order-access';
 import { formatPrice } from '@/lib/format';
 import {
   isMpesaConfigured,
@@ -25,9 +25,10 @@ export async function generateMetadata({ params }: PayOrderPageProps): Promise<M
 export default async function PayOrderPage({ params, searchParams }: PayOrderPageProps) {
   const { orderNumber } = await params;
   const query = await searchParams;
-  const session = await requireAuth();
   const repos = createRepositories();
-  const order = await repos.order.findByOrderNumberForUser(orderNumber, session.user.id);
+  // Resolves for the owning account or, for a guest order, this browser's
+  // signed cookie — so a guest can reach the order they just placed.
+  const order = await loadViewableOrder(orderNumber);
 
   if (!order) {
     notFound();
@@ -61,10 +62,15 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
         <Container>
           <div className="mx-auto max-w-lg">
             <PaymentMethodPicker
-              order={order}
+              orderNumber={order.orderNumber}
+              total={Number(order.total)}
               stripeEnabled={stripeEnabled}
               mpesaEnabled={mpesaEnabled}
-              devMode={devMode || isPaymentDevMode()}
+              // `devMode` already means "dev mode AND no real provider
+              // configured". OR-ing isPaymentDevMode() back in cancelled that
+              // out, showing the simulate-payment panel on any staging
+              // environment that had real provider keys set.
+              devMode={devMode}
               cancelled={query.cancelled === '1'}
             />
             <Text variant="muted" className="mt-6 text-center text-xs">

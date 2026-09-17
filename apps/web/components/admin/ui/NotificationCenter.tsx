@@ -3,47 +3,11 @@
 import React from 'react';
 import { ShoppingCart, Package, Users, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-
-export type NotificationPriority = 'high' | 'normal' | 'low';
-export type NotificationType = 'order' | 'inventory' | 'customer' | 'system';
-
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: NotificationType;
-  priority: NotificationPriority;
-  read: boolean;
-  createdAt: Date;
-  link?: string;
-}
-
-// Placeholder Data
-const PLACEHOLDER_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    title: 'New Order #1245',
-    message: 'John Doe placed a new order for 2 items.',
-    type: 'order',
-    priority: 'high',
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 5),
-    link: '/admin/orders'
-  },
-  {
-    id: '2',
-    title: 'Low Stock Alert',
-    message: 'AirPods Pro are running low on stock (2 remaining).',
-    type: 'inventory',
-    priority: 'normal',
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    link: '/admin/inventory'
-  }
-];
+import { useNotifications, type AdminNotificationType } from '@/components/admin/providers/NotificationProvider';
 
 export function NotificationCenter() {
-  const getIcon = (type: NotificationType) => {
+  const { notifications, markAllRead, markRead } = useNotifications();
+  const getIcon = (type: AdminNotificationType) => {
     switch(type) {
       case 'order': return <ShoppingCart className="h-4 w-4 text-primary" />;
       case 'inventory': return <Package className="h-4 w-4 text-warning" />;
@@ -52,8 +16,8 @@ export function NotificationCenter() {
     }
   };
 
-  const getTimeAgo = (date: Date) => {
-    const mins = Math.floor((new Date().getTime() - date.getTime()) / 60000);
+  const getTimeAgo = (date: string) => {
+    const mins = Math.floor((new Date().getTime() - new Date(date).getTime()) / 60000);
     if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return `${hrs}h ago`;
@@ -64,16 +28,16 @@ export function NotificationCenter() {
     <div className="w-80 bg-card border border-border rounded-md shadow-elevated overflow-hidden flex flex-col max-h-[400px]">
       <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-muted/30">
         <h3 className="font-semibold text-sm">Notifications</h3>
-        <button className="text-xs text-primary hover:underline">Mark all read</button>
+        <button type="button" onClick={markAllRead} className="text-xs text-primary hover:underline">Mark all read</button>
       </div>
       <div className="overflow-y-auto flex-1">
-        {PLACEHOLDER_NOTIFICATIONS.length === 0 ? (
+        {notifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground text-sm">
             No new notifications
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {PLACEHOLDER_NOTIFICATIONS.map(notif => {
+            {notifications.map(notif => {
               const content = (
                 <div className={`p-4 flex gap-3 hover:bg-muted/50 transition-colors ${!notif.read ? 'bg-primary/5' : ''}`}>
                   <div className="flex-shrink-0 mt-1">{getIcon(notif.type)}</div>
@@ -90,11 +54,11 @@ export function NotificationCenter() {
               );
 
               return notif.link ? (
-                <Link key={notif.id} href={notif.link} className="block">
+                <Link key={notif.id} href={notif.link} onClick={() => markRead(notif.id)} className="block">
                   {content}
                 </Link>
               ) : (
-                <div key={notif.id}>{content}</div>
+                <button key={notif.id} type="button" onClick={() => markRead(notif.id)} className="block w-full text-left">{content}</button>
               );
             })}
           </div>

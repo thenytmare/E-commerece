@@ -1,12 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
 import { StatusBadge, StatusType } from '@/components/admin/ui/StatusBadge';
 import { OrderDetail } from '@repo/database';
-import { formatPrice } from '@/lib/format';
+import type { Serialized } from '@/lib/serialize';
+
+/** Money columns arrive as plain numbers — see lib/serialize.ts. */
+type AdminOrder = Serialized<OrderDetail>;
+import { formatDate, formatDateTime, formatPrice } from '@/lib/format';
 import { Eye, XCircle } from 'lucide-react';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
+import { ShipmentForm } from '@/components/admin/ShipmentForm';
 
 const orderStatusBadgeMap: Record<string, StatusType> = {
   PENDING: 'pending',
@@ -18,19 +24,52 @@ const orderStatusBadgeMap: Record<string, StatusType> = {
   REFUNDED: 'archived',
 };
 
-export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail[] }) {
-  const [orders] = useState<OrderDetail[]>(initialOrders);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
+const ORDER_STATUS_OPTIONS = [
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+  'REFUNDED',
+];
 
-  const filteredOrders = orders.filter(
-    (o) =>
-      o.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (o.address?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (o.address?.phone || '').includes(searchTerm)
+export function OrdersListClient({
+  initialOrders,
+  page,
+  totalPages,
+  total,
+  initialSearch,
+  activeStatus,
+}: {
+  initialOrders: AdminOrder[];
+  page: number;
+  totalPages: number;
+  total: number;
+  initialSearch: string;
+  activeStatus: string;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
+
+  // Search, status filter and paging all run in SQL via URL params, so they
+  // cover every order rather than only the rows already loaded.
+  const pushParams = useCallback(
+    (updates: Record<string, string | null>, resetPage = true) => {
+      const params = new URLSearchParams(searchParams);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value) params.set(key, value);
+        else params.delete(key);
+      }
+      if (resetPage) params.set('page', '1');
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, searchParams]
   );
 
-  const columns: ColumnDef<OrderDetail>[] = [
+  const columns: ColumnDef<AdminOrder>[] = [
     {
       key: 'orderNumber',
       header: 'Order Number',
@@ -42,7 +81,7 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
       header: 'Date',
       cell: (item) => (
         <span className="text-muted-foreground">
-          {new Date(item.createdAt).toLocaleDateString('en-KE')}
+          {formatDate(item.createdAt)}
         </span>
       ),
     },
@@ -87,11 +126,39 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="text-sm text-muted-foreground" htmlFor="order-status-filter">
+          Status
+        </label>
+        <select
+          id="order-status-filter"
+          value={activeStatus}
+          onChange={(e) => pushParams({ status: e.target.value || null })}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="">All statuses</option>
+          {ORDER_STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+        <span className="text-sm text-muted-foreground">
+          {total} order{total === 1 ? '' : 's'}
+        </span>
+      </div>
+
       <DataTable
-        data={filteredOrders}
+        data={initialOrders}
         columns={columns}
-        onSearch={setSearchTerm}
+        onSearch={(term) => pushParams({ search: term || null })}
+        searchValue={initialSearch}
+        searchPlaceholder="Search order number, customer, phone..."
+        page={page}
+        totalPages={totalPages}
+        onPageChange={(next) => pushParams({ page: String(next) }, false)}
         selectable
+        getRowLabel={(order) => order.orderNumber}
         rowActions={(item) => (
           <div className="flex items-center justify-end gap-2">
             <button
@@ -114,7 +181,7 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
                 <div>
                   <h3 className="text-lg font-semibold">{selectedOrder.orderNumber}</h3>
                   <p className="text-xs text-muted-foreground">
-                    Placed on {new Date(selectedOrder.createdAt).toLocaleString()}
+                    Placed on {formatDateTime(selectedOrder.createdAt)}
                   </p>
                 </div>
                 <button
@@ -136,15 +203,133 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
                   />
                 </div>
                 <div className="pt-2 border-t border-border mt-3">
-                  <OrderStatusForm order={selectedOrder} />
+                  <OrderStatusForm
+                    order={{
+                      id: selectedOrder.id,
+                      orderNumber: selectedOrder.orderNumber,
+                      status: selectedOrder.status,
+                      isPaid: selectedOrder.payments.some((p) => p.status === 'COMPLETED'),
+                    }}
+                  />
                 </div>
               </div>
+
+              {/* Shipment Form */}
+              <div className="border border-border rounded-xl p-4 bg-muted/10 mb-6">
+                <ShipmentForm
+                  key={selectedOrder.id}
+                  orderId={selectedOrder.id}
+                  shipment={selectedOrder.shipment}
+                />
+              </div>
+
+              {/* Status History */}
+              {selectedOrder.statusHistory.length > 0 && (
+                <div className="mb-6 space-y-3">
+                  <h4 className="text-sm font-semibold border-b border-border pb-2">Status History</h4>
+                  <ol className="space-y-3">
+                    {selectedOrder.statusHistory.map((entry) => (
+                      <li key={entry.id} className="flex gap-3 text-sm">
+                        <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
+                        <div>
+                          <span className="font-medium">{entry.status}</span>
+                          <span className="text-xs text-muted-foreground block mt-0.5">
+                            {formatDateTime(entry.createdAt)}
+                          </span>
+                          {entry.note && (
+                            <span className="text-xs text-muted-foreground block mt-0.5">{entry.note}</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Payments */}
+              {selectedOrder.payments.length > 0 && (
+                <div className="mb-6 space-y-3">
+                  <h4 className="text-sm font-semibold border-b border-border pb-2">Payments</h4>
+                  {selectedOrder.payments.map((payment) => (
+                    <div key={payment.id} className="rounded-lg border border-border p-3 space-y-1.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium">{payment.provider}</span>
+                        <StatusBadge
+                          status={
+                            payment.status === 'COMPLETED'
+                              ? 'success'
+                              : payment.status === 'FAILED'
+                                ? 'danger'
+                                : payment.status === 'REFUNDED'
+                                  ? 'archived'
+                                  : 'pending'
+                          }
+                          label={payment.status}
+                        />
+                      </div>
+                      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                        <dt className="text-muted-foreground">Amount</dt>
+                        <dd>{formatPrice(Number(payment.amount))}</dd>
+
+                        {payment.receiptNumber && (
+                          <>
+                            <dt className="text-muted-foreground">M-Pesa receipt</dt>
+                            <dd className="font-mono">{payment.receiptNumber}</dd>
+                          </>
+                        )}
+                        {payment.payerPhone && (
+                          <>
+                            <dt className="text-muted-foreground">Paid from</dt>
+                            <dd>{payment.payerPhone}</dd>
+                          </>
+                        )}
+                        {payment.externalId && (
+                          <>
+                            <dt className="text-muted-foreground">Reference</dt>
+                            <dd className="font-mono break-all">{payment.externalId}</dd>
+                          </>
+                        )}
+                        {payment.failureReason && (
+                          <>
+                            <dt className="text-muted-foreground">Failure</dt>
+                            <dd className="text-destructive">{payment.failureReason}</dd>
+                          </>
+                        )}
+                        <dt className="text-muted-foreground">
+                          {payment.paidAt ? 'Paid at' : 'Created'}
+                        </dt>
+                        <dd>
+                          {formatDateTime(payment.paidAt ?? payment.createdAt)}
+                        </dd>
+                      </dl>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Customer Details */}
               <div className="mb-6 space-y-4">
                 <h4 className="text-sm font-semibold border-b border-border pb-2">Customer & Shipping</h4>
                 <div>
-                  <span className="text-xs text-muted-foreground block">Customer Name</span>
+                  <span className="text-xs text-muted-foreground block">Account</span>
+                  {selectedOrder.user ? (
+                    <>
+                      <span className="text-sm font-medium">{selectedOrder.user.name || '—'}</span>
+                      <a
+                        href={`mailto:${selectedOrder.user.email}`}
+                        className="block text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        {selectedOrder.user.email}
+                      </a>
+                    </>
+                  ) : (
+                    <span className="text-sm font-medium">Guest checkout</span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">
+                    Ships to
+                  </span>
                   <span className="text-sm font-medium">{selectedOrder.address?.name || 'N/A'}</span>
                 </div>
                 <div>
@@ -174,11 +359,7 @@ export function OrdersListClient({ initialOrders }: { initialOrders: OrderDetail
                         </span>
                       </div>
                       <span className="text-sm font-semibold">
-                        {formatPrice(
-                          (typeof item.price === 'object' && 'toNumber' in item.price
-                            ? item.price.toNumber()
-                            : Number(item.price)) * item.quantity
-                        )}
+                        {formatPrice(item.price * item.quantity)}
                       </span>
                     </li>
                   ))}

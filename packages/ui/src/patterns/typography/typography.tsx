@@ -28,7 +28,10 @@ export function Heading({
   ...props
 }: HeadingProps) {
   return (
-    <Component className={cn('text-balance text-foreground', sizeClasses[size], className)} {...props}>
+    <Component
+      className={cn('text-balance font-display text-foreground', sizeClasses[size], className)}
+      {...props}
+    >
       {children}
     </Component>
   );

@@ -1,0 +1,55 @@
+# Scheduled trigger for the payment reconciliation endpoint
+# (apps/web/app/api/cron/reconcile/route.ts).
+#
+# That endpoint is bearer-secret-gated and does the actual work: re-checking
+# M-Pesa payments whose provider callback never arrived, and cancelling orders
+# whose payment was never completed so their reserved stock is released. It
+# was never wired to any scheduler, so nothing was calling it and stale
+# payments / abandoned reservations could accumulate indefinitely. This
+# workflow is that scheduler.
+#
+# Interval: every 15 minutes. The endpoint re-checks payments that have been
+# PENDING for more than STALE_AFTER_MINUTES (15, see
+# apps/web/lib/payments/reconcile.ts) and cancels orders abandoned for more
+# than ABANDON_AFTER_HOURS (24). Running every 15 minutes checks at least as
+# often as the shortest staleness window, so a payment becomes eligible for
+# reconciliation at most one run late. The route is idempotent, so more
+# frequent or overlapping runs are safe.
+#
+# REQUIRED SETUP — this workflow will not function until a repository owner
+# configures two repository secrets under:
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#
+#   APP_URL      The deployed app's base URL, e.g. https://yourdomain.com
+#                (no trailing slash).
+#   CRON_SECRET  Must exactly match the CRON_SECRET environment variable
+#                configured on the actual production deployment. The route
+#                returns 404 (not 401/403, deliberately, to avoid confirming
+#                the endpoint's existence) for any request with a missing or
+#                incorrect secret, and is disabled entirely if the
+#                deployment has no CRON_SECRET set.
+#
+# Claude Code cannot set these secrets itself — only a repository owner/admin
+# can add them, in the GitHub web UI described above. Until both secrets are
+# set, every run of this workflow will fail (curl -f treats the 404 as a
+# job failure, which is intentional — a silent no-op here would hide the
+# fact that reconciliation still isn't running).
+
+name: Reconcile stale payments
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call reconcile endpoint
+        run: |
+          curl -f -X POST "${APP_URL}/api/cron/reconcile" \
+            -H "Authorization: Bearer ${CRON_SECRET}"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

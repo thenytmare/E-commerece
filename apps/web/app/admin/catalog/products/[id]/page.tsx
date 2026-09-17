@@ -21,7 +21,7 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
 
   // Get options for dropdowns
   const [categories, brands] = await Promise.all([
-    repos.category.adminFindMany(),
+    repos.category.adminFindMany().then(r => r.items),
     repos.brand.findAllActive()
   ]);
 

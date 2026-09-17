@@ -28,6 +28,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       brandId: filters.brandId,
       search: filters.search,
       isFeatured: filters.isFeatured,
+      // Deactivated products must never appear on the storefront.
+      isActive: true,
       page: filters.page,
     }),
   ]);
