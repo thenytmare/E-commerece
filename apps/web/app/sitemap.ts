@@ -1,6 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { createRepositories } from '@repo/database';
 
+// Query the deployed catalog at request time, not an unavailable build database.
+export const dynamic = 'force-dynamic';
+
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 /**
