@@ -1,4 +1,4 @@
-import { getPaymentConfig } from '@repo/config';
+import { getPaymentConfig, toStripeAmount } from '@repo/config';
 import type { OrderDetail } from '@repo/database';
 import Stripe from 'stripe';
 
@@ -22,18 +22,6 @@ function orderTotalKes(order: OrderDetail): number {
     : Number(order.total);
 }
 
-/**
- * Convert a KES amount to the integer Stripe expects.
- *
- * KES is a zero-decimal currency on Stripe — amounts are passed as whole
- * shillings with no minor unit. Multiplying by 100 would charge customers
- * 100× the intended price.
- * https://stripe.com/docs/currencies#zero-decimal
- */
-export function toStripeAmount(kes: number): number {
-  return Math.round(kes);
-}
-
 export async function createStripeCheckoutSession(
   order: OrderDetail,
   paymentId: string
@@ -42,6 +30,9 @@ export async function createStripeCheckoutSession(
   const stripe = getStripeClient();
   const total = orderTotalKes(order);
 
+  // One session per payment row: if the same payment is initiated twice (double
+  // click, timeout retry), Stripe returns the same session instead of a second
+  // payable one.
   return stripe.checkout.sessions.create({
     mode: 'payment',
     currency: 'kes',
@@ -65,7 +56,7 @@ export async function createStripeCheckoutSession(
       orderNumber: order.orderNumber,
       paymentId,
     },
-  });
+  }, { idempotencyKey: `checkout-session-${paymentId}` });
 }
 
 /**

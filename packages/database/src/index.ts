@@ -24,6 +24,18 @@ export {
   type LowStockInventory,
   type CartWithItems,
   type OrderDetail,
+  JobRepository,
+  enqueueJob,
+  enqueueJobs,
+  retryDelayMs,
+  ORDER_CONFIRMATION_JOB,
+  BACK_IN_STOCK_EMAIL_JOB,
+  type ClaimedJob,
+  type EnqueueInput,
+  type JobStats,
+  type JobStatus,
+  RateLimitRepository,
+  type RateLimitHit,
 } from './repositories';
 
 // Re-export Prisma types for consumers

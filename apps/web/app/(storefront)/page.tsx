@@ -6,13 +6,14 @@ import { getHomepageSections } from '@/lib/homepage';
 import { Button, Container, Grid, Heading, Section, Text } from '@repo/ui';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedRootCategories } from '@/lib/catalog-cache';
 
 export default async function HomePage() {
   const repos = getCatalogRepos();
   const sections = await getHomepageSections();
 
   const [categories, featured, newArrivals, bestSellers] = await Promise.all([
-    sections.featuredCategories.enabled ? repos.category.findRootCategories() : Promise.resolve([]),
+    sections.featuredCategories.enabled ? getCachedRootCategories() : Promise.resolve([]),
     sections.featuredProducts.enabled
       ? repos.product.findMany({ isFeatured: true, isActive: true, limit: 4 })
       : Promise.resolve(null),

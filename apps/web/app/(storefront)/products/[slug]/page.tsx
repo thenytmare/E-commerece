@@ -7,6 +7,7 @@ import { WishlistButton } from '@/components/catalog/WishlistButton';
 import { auth } from '@/auth';
 import { getCatalogRepos } from '@/lib/catalog';
 import { getStoreSettings } from '@/lib/store';
+import { getPublicProduct, getRatingSummary } from '@/lib/request-cache';
 import { toClientProductDetail } from '@/lib/catalog-dtos';
 import { Badge, Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
@@ -20,7 +21,7 @@ interface ProductPageProps {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const repos = getCatalogRepos();
-  const product = await repos.product.findPublicBySlug(slug);
+  const product = await getPublicProduct(slug);
 
   if (!product) {
     return { title: 'Product Not Found' };
@@ -55,7 +56,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   const repos = getCatalogRepos();
   const [product, settings] = await Promise.all([
-    repos.product.findPublicBySlug(slug),
+    getPublicProduct(slug),
     getStoreSettings(),
   ]);
 
@@ -63,17 +64,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // An active flash sale overrides the variant price for the duration of
-  // its window (see Admin → Marketing → Flash Sales).
-  const flashSale = await repos.flashSale.getActiveForProduct(product.id);
-
-  // Related products: same brand + same category, excluding current
-  const related = await repos.product.findMany({
-    brandId: product.brandId,
-    categoryId: product.categoryId,
-    isActive: true,
-    limit: 4,
-  });
+  // These reads do not depend on each other, so they run together. Run one
+  // after another, each await waits again behind other requests when the
+  // server is busy (load test: product page p95 2.8 s at saturation).
+  const [flashSale, related, ratingSummary, session] = await Promise.all([
+    // An active flash sale overrides the variant price for the duration of
+    // its window (see Admin → Marketing → Flash Sales).
+    repos.flashSale.getActiveForProduct(product.id),
+    // Related products: same brand + same category, excluding current
+    repos.product.findMany({
+      brandId: product.brandId,
+      categoryId: product.categoryId,
+      isActive: true,
+      limit: 4,
+    }),
+    getRatingSummary(product.id),
+    auth(),
+  ]);
   const relatedProducts = related.items.filter(p => p.id !== product.id).slice(0, 4);
 
   // Structured-data inputs, taken from the same values the page renders so the
@@ -86,11 +93,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const inStock = product.variants.some(
     (variant) => (variant.inventory?.quantity ?? 0) - (variant.inventory?.reserved ?? 0) > 0
   );
-  const ratingSummary = await repos.review.getRatingSummary(product.id);
-
   // Wishlist state for the signed-in shopper, so the heart renders correctly
   // on first paint instead of flickering after hydration.
-  const session = await auth();
   const isSaved = session?.user?.id
     ? await repos.wishlist.has(session.user.id, product.id)
     : false;

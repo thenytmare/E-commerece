@@ -87,7 +87,7 @@ export type UpdateProductInput = Partial<CreateProductInput> & { status?: string
 export class ProductRepository extends BaseRepository {
   /** Simple findMany for storefront/dashboard — returns paginated products */
   async findMany(filters?: { isActive?: boolean; isFeatured?: boolean; limit?: number; categoryId?: string; brandId?: string; search?: string; page?: number; }): Promise<PaginatedProducts> {
-    const page = Math.max(1, filters?.page ?? 1);
+    const page = Number.isSafeInteger(filters?.page) ? Math.min(10_000, Math.max(1, filters!.page!)) : 1;
     const limit = Math.min(Math.max(1, filters?.limit ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
     const skip = (page - 1) * limit;
     const where: Prisma.ProductWhereInput = { deletedAt: null };
@@ -191,7 +191,7 @@ export class ProductRepository extends BaseRepository {
   }
 
   async adminFindMany(filters: ProductListFilters = {}): Promise<PaginatedProducts> {
-    const page = Math.max(1, filters.page ?? 1);
+    const page = Number.isSafeInteger(filters.page) ? Math.min(10_000, Math.max(1, filters.page!)) : 1;
     const limit = Math.min(Math.max(1, filters.limit ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
     const skip = (page - 1) * limit;
 
@@ -251,6 +251,170 @@ export class ProductRepository extends BaseRepository {
     return this.db.product.update({ where: { id }, data });
   }
 
+  /**
+   * Save a product and its variants, images and features as ONE transaction.
+   *
+   * The caller has already validated every part of the payload. If any write
+   * fails here (a duplicate SKU, a foreign variant, a database error) the whole
+   * save rolls back and the product stays exactly as it was.
+   *
+   * `variants: undefined` means "leave variants alone". Same for images and
+   * features. New variants get the opening stock the admin typed, default 0.
+   */
+  async updateAggregate(
+    id: string,
+    input: {
+      product: UpdateProductInput;
+      basePrice: number;
+      compareAtPrice: number | null;
+      hasVariants: boolean;
+      brandId: string;
+      name: string;
+      variants?: { id?: string; name: string; hex: string; price?: number; stock?: number; expectedStock?: number }[];
+      stock?: number;
+      expectedStock?: number;
+      actorId?: string;
+      images?: { urls: string[]; variantIndexes: (number | null)[] };
+      features?: string[];
+    }
+  ): Promise<void> {
+    const { product, basePrice, compareAtPrice, hasVariants, brandId, name } = input;
+
+    await this.db.$transaction(
+      async (tx) => {
+        await tx.product.update({ where: { id }, data: product });
+
+        const existingVariants = await tx.productVariant.findMany({ where: { productId: id } });
+        const setStock = async (variantId: string, stock: number, expected: number | undefined) => {
+          if (!Number.isInteger(stock) || stock < 0 || stock > 1_000_000 || !Number.isInteger(expected) || expected! < 0) {
+            throw new Error('Stock requires a valid quantity and previous quantity. Reload the product.');
+          }
+          if (stock === expected) return;
+          // Compare-and-set prevents a stale form from overwriting a sale or restock.
+          const result = await tx.inventory.updateMany({
+            where: { variantId, quantity: expected, reserved: { lte: stock } }, data: { quantity: stock },
+          });
+          if (result.count !== 1) throw new Error('Stock changed or the quantity is below reserved units. Reload the product and try again.');
+          await tx.inventoryLog.create({ data: { variantId, change: stock - expected!, reason: 'admin_product_edit', referenceId: input.actorId } });
+        };
+
+        if (hasVariants && input.variants) {
+          const submitted = input.variants;
+          const ownedIds = new Set(existingVariants.map((v) => v.id));
+
+          // A variant id must belong to THIS product. Without this check an
+          // admin request could rewrite a variant of a different product.
+          for (const v of submitted) {
+            if (v.id && !ownedIds.has(v.id)) {
+              throw new Error('A variant does not belong to this product');
+            }
+          }
+
+          for (const v of submitted.filter((x) => x.id)) {
+            if (v.stock !== undefined) await setStock(v.id!, v.stock, v.expectedStock);
+            await tx.productVariant.update({
+              where: { id: v.id! },
+              data: {
+                attributes: { color: v.name, hex: v.hex },
+                price: v.price ?? basePrice,
+                compareAtPrice,
+              },
+            });
+          }
+
+          const newVariants = submitted.filter((x) => !x.id);
+          if (newVariants.length > 0) {
+            const brand = await tx.brand.findUnique({ where: { id: brandId }, select: { name: true } });
+            const skuPrefix = (brand?.name ?? 'PRD').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+            const namePart = name.replace(/[^A-Z0-9]/gi, '').slice(0, 4).toUpperCase();
+            const usedSkus = new Set(existingVariants.map((v) => v.sku));
+            let nextIndex = existingVariants.length + 1;
+            let defaultNeeded = !existingVariants.some((v) => v.isDefault);
+
+            for (const v of newVariants) {
+              // Never reuse a SKU, even after variants were deleted earlier.
+              let sku = `${skuPrefix}-${namePart}-${String(nextIndex++).padStart(2, '0')}`;
+              while (usedSkus.has(sku)) {
+                sku = `${skuPrefix}-${namePart}-${String(nextIndex++).padStart(2, '0')}`;
+              }
+              usedSkus.add(sku);
+
+              await tx.productVariant.create({
+                data: {
+                  productId: id,
+                  sku,
+                  price: v.price ?? basePrice,
+                  compareAtPrice,
+                  attributes: { color: v.name, hex: v.hex },
+                  isDefault: defaultNeeded,
+                  inventory: { create: { quantity: v.stock ?? 0, lowStockThreshold: 5 } },
+                },
+              });
+              defaultNeeded = false;
+            }
+          }
+
+          // Variants removed by the admin. Ones with order history are kept,
+          // because order items point at them.
+          const keepIds = new Set(submitted.filter((x) => x.id).map((x) => x.id!));
+          for (const variant of existingVariants.filter((v) => !keepIds.has(v.id))) {
+            const orderCount = await tx.orderItem.count({ where: { variantId: variant.id } });
+            if (orderCount > 0) continue;
+            await tx.cartItem.deleteMany({ where: { variantId: variant.id } });
+            await tx.wishlistItem.deleteMany({ where: { variantId: variant.id } });
+            await tx.productVariant.delete({ where: { id: variant.id } });
+          }
+        } else if (!hasVariants) {
+          // Simple product: keep its single variant's price in step.
+          const defaultVariant = [...existingVariants].sort(
+            (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+          )[0];
+          if (defaultVariant) {
+            if (input.stock !== undefined) await setStock(defaultVariant.id, input.stock, input.expectedStock);
+            await tx.productVariant.update({
+              where: { id: defaultVariant.id },
+              data: { price: basePrice, compareAtPrice },
+            });
+          }
+        }
+
+        if (input.images) {
+          await tx.productImage.deleteMany({ where: { productId: id } });
+          if (input.images.urls.length > 0) {
+            // Read after the variant changes above, so indexes match.
+            const records = await tx.productVariant.findMany({
+              where: { productId: id },
+              orderBy: { createdAt: 'asc' },
+            });
+            for (const [i, url] of input.images.urls.entries()) {
+              const idx = input.images.variantIndexes[i] ?? null;
+              await tx.productImage.create({
+                data: {
+                  productId: id,
+                  variantId: idx !== null && records[idx] ? records[idx].id : null,
+                  url,
+                  alt: name,
+                  sortOrder: i,
+                  isFeatured: i === 0,
+                },
+              });
+            }
+          }
+        }
+
+        if (input.features) {
+          await tx.productFeature.deleteMany({ where: { productId: id } });
+          if (input.features.length > 0) {
+            await tx.productFeature.createMany({
+              data: input.features.map((text, i) => ({ productId: id, text, sortOrder: i })),
+            });
+          }
+        }
+      },
+      { maxWait: 10_000, timeout: 20_000 }
+    );
+  }
+
   async duplicate(id: string): Promise<Product> {
     const src = await this.db.product.findUnique({ where: { id }, include: { variants: { include: { inventory: true } }, images: true } });
     if (!src) throw new Error('Product not found');
@@ -307,9 +471,73 @@ export class ProductRepository extends BaseRepository {
     return r.count;
   }
 
+  /**
+   * Show or hide products on the storefront. Hidden products keep all their
+   * data, stock, images and order history. They just stop appearing to customers.
+   *
+   * Sets `isActive` and `status` together, so the two never disagree
+   * (`updateProductAction` keeps them in step the same way). Deleted products
+   * are skipped: hiding is not a way to bring a trashed product back.
+   * One conditional statement, so no read-then-write gap. Returns the number
+   * of products that were actually updated.
+   */
   async bulkSetActive(ids: string[], isActive: boolean): Promise<number> {
-    const r = await this.db.product.updateMany({ where: { id: { in: ids } }, data: { isActive } });
+    if (ids.length === 0) return 0;
+    const r = await this.db.product.updateMany({
+      where: { id: { in: ids }, deletedAt: null },
+      data: { isActive, status: isActive ? 'active' : 'draft' },
+    });
     return r.count;
+  }
+
+  /** Show or hide one product. Returns false when it is missing or deleted. */
+  async setVisibility(id: string, isActive: boolean): Promise<boolean> {
+    return (await this.bulkSetActive([id], isActive)) === 1;
+  }
+
+  /**
+   * Counts for the All / Visible / Hidden tabs. They respect the search, brand,
+   * category and featured filters, but never the visibility filter itself, so
+   * each tab shows how many products it would list.
+   */
+  async getVisibilityCounts(
+    filters: { search?: string; brandId?: string; categoryId?: string; isFeatured?: boolean } = {}
+  ): Promise<{ all: number; visible: number; hidden: number }> {
+    const where: Prisma.ProductWhereInput = { deletedAt: null };
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { slug: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+    if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.brandId) where.brandId = filters.brandId;
+    if (filters.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
+
+    const [visible, hidden] = await Promise.all([
+      this.db.product.count({ where: { ...where, isActive: true } }),
+      this.db.product.count({ where: { ...where, isActive: false } }),
+    ]);
+    return { all: visible + hidden, visible, hidden };
+  }
+
+  /**
+   * Units available to buy (on hand minus reserved) for each product, summed
+   * over all its variants. For the admin list's stock column. Products with no
+   * stock row are returned as 0.
+   */
+  async getAvailableStockByProduct(productIds: string[]): Promise<Map<string, number>> {
+    const totals = new Map<string, number>(productIds.map((id) => [id, 0]));
+    if (productIds.length === 0) return totals;
+    const rows = await this.db.inventory.findMany({
+      where: { variant: { productId: { in: productIds } } },
+      select: { quantity: true, reserved: true, variant: { select: { productId: true } } },
+    });
+    for (const row of rows) {
+      const id = row.variant.productId;
+      totals.set(id, (totals.get(id) ?? 0) + Math.max(0, row.quantity - row.reserved));
+    }
+    return totals;
   }
 
   async bulkDelete(ids: string[]): Promise<number> {

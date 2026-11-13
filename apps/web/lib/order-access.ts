@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { createRepositories } from '@repo/database';
 import type { OrderDetail } from '@repo/database';
 import { canAccessGuestOrder } from '@/lib/guest-orders';
+import { getCartSessionId } from '@/lib/cart-session';
 
 /**
  * Load an order the current visitor is entitled to see.
@@ -25,6 +26,17 @@ export async function loadViewableOrder(orderNumber: string): Promise<OrderDetai
     // Only genuinely ownerless orders are reachable this way — a cookie must
     // never open an order that belongs to somebody's account.
     if (order && order.userId === null) return order;
+  }
+
+  // The original guest cart also proves ownership if writing the separate
+  // order cookie failed after the checkout transaction committed.
+  const cartSession = await getCartSessionId();
+  if (cartSession) {
+    const cart = await repos.cart.findBySessionId(cartSession);
+    if (cart) {
+      const order = await repos.order.findByOrderNumber(orderNumber);
+      if (order && order.userId === null && order.sourceCartId === cart.id) return order;
+    }
   }
 
   return null;

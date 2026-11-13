@@ -161,8 +161,14 @@ export class UserRepository extends BaseRepository {
     });
   }
 
+  /**
+   * Restore an archived customer. Archiving also turned the account off, so
+   * restoring switches it back on. There is no record of whether an account
+   * was deactivated on purpose before it was archived, so an admin who wants
+   * it to stay off should deactivate it again after restoring.
+   */
   async restore(id: string): Promise<User> {
-    return this.db.user.update({ where: { id }, data: { deletedAt: null } });
+    return this.db.user.update({ where: { id }, data: { deletedAt: null, isActive: true } });
   }
 
   async toggleActive(id: string, isActive: boolean): Promise<User> {
@@ -179,7 +185,7 @@ export class UserRepository extends BaseRepository {
   }
 
   async bulkRestore(ids: string[]): Promise<number> {
-    const r = await this.db.user.updateMany({ where: { id: { in: ids } }, data: { deletedAt: null } });
+    const r = await this.db.user.updateMany({ where: { id: { in: ids } }, data: { deletedAt: null, isActive: true } });
     return r.count;
   }
 }

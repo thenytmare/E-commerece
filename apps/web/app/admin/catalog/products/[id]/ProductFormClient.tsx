@@ -28,6 +28,9 @@ export function ProductFormClient({
   // the form genuinely inert instead of failing silently on submit.
   const { can } = usePermissions();
   const canWrite = can('products.write');
+  const canEditStock = can('inventory.write');
+  const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
+  const [stock, setStock] = useState(String(initialData?.stock ?? 0));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -48,11 +51,11 @@ export function ProductFormClient({
 
   // Variants toggle
   const [hasVariants, setHasVariants] = useState(() => initialData?.hasVariants ?? false);
-  const [colorVariants, setColorVariants] = useState<{ id?: string; name: string; hex: string; price?: number }[]>(
+  const [colorVariants, setColorVariants] = useState<{ id?: string; name: string; hex: string; price?: number; stock?: number; reserved?: number }[]>(
     () =>
-      initialData?.hasVariants && initialData.variants.length > 0
-        ? initialData.variants
-        : [{ name: '', hex: '#000000' }]
+      initialData?.variants.length
+        ? initialData.variants.map(v => ({ ...v, name: initialData.hasVariants ? v.name : '' }))
+        : [{ name: '', hex: '#000000', stock: 0 }]
   );
 
   const addImage = (url: string) => {
@@ -130,13 +133,14 @@ export function ProductFormClient({
   };
 
   const addVariant = () => {
-    setColorVariants(prev => [...prev, { name: '', hex: '#000000' }]);
+    setColorVariants(prev => [...prev, { name: '', hex: '#000000', stock: 0 }]);
   };
 
-  const updateVariant = (index: number, field: 'name' | 'hex' | 'price', value: string) => {
+  const updateVariant = (index: number, field: 'name' | 'hex' | 'price' | 'stock', value: string) => {
     setColorVariants(prev => prev.map((v, i) => {
       if (i !== index) return v;
       if (field === 'price') return { ...v, price: value ? Number(value) : undefined };
+      if (field === 'stock') return { ...v, stock: value === '' ? undefined : Number(value) };
       return { ...v, [field]: value };
     }));
   };
@@ -156,7 +160,14 @@ export function ProductFormClient({
     formData.append('imageVariants', JSON.stringify(images.map(img => img.variantIndex)));
     formData.append('features', JSON.stringify(features.filter(f => f.trim())));
     if (hasVariants) {
-      formData.append('variants', JSON.stringify(colorVariants.filter(v => v.name.trim())));
+      formData.append('variants', JSON.stringify(colorVariants.map(v => {
+        const previous = initialData?.variants.find(old => old.id === v.id);
+        const { stock: quantity, ...details } = v;
+        return { ...details, ...(canEditStock && (!previous || quantity !== previous.stock) ? { stock: quantity, expectedStock: previous?.stock } : {}) };
+      })));
+    } else if (canEditStock && (!initialData || Number(stock) !== initialData.stock)) {
+      formData.set('stock', stock);
+      if (initialData) formData.set('expectedStock', String(initialData.stock));
     }
 
     let res;
@@ -288,7 +299,8 @@ export function ProductFormClient({
               <select
                 id="categoryId"
                 name="categoryId"
-                defaultValue={initialData?.categoryId || ''}
+                value={categoryId}
+                onChange={e => setCategoryId(e.target.value)}
                 required
                 className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
               >
@@ -355,6 +367,16 @@ export function ProductFormClient({
         </div>
       </FormSection>
 
+      <FormSection title="Stock & Inventory" description="On-hand quantity includes units reserved for orders. Available stock is on-hand minus reserved.">
+        {hasVariants ? <p className="text-sm">Enter the stock quantity for each color in Color Variants below.</p> : <div className="max-w-sm space-y-2">
+          <FormField id="stockQuantity" label="Stock quantity (on hand)" required>
+            <input id="stockQuantity" type="number" min={initialData?.reserved ?? 0} max={1000000} step="1" required disabled={!canEditStock} value={stock} onChange={e => setStock(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+          </FormField>
+          <p className="text-sm text-muted-foreground">Reserved: {initialData?.reserved ?? 0} · Available: {Math.max(0, Number(stock) - (initialData?.reserved ?? 0))}</p>
+        </div>}
+        {!canEditStock && <p className="text-sm text-muted-foreground">You need inventory write permission to change stock.</p>}
+      </FormSection>
+
       <FormSection title="Short Description" description="A brief summary shown under the product name.">
         <textarea
           id="shortDescription"
@@ -405,7 +427,7 @@ export function ProductFormClient({
         {hasVariants && (
           <div className="space-y-3 border border-border rounded-lg p-4">
             {colorVariants.map((v, i) => (
-              <div key={i} className="flex items-center gap-3">
+              <div key={i} className="flex flex-wrap items-center gap-3">
                 <input
                   type="color"
                   value={v.hex}
@@ -417,6 +439,8 @@ export function ProductFormClient({
                   value={v.name}
                   onChange={(e) => updateVariant(i, 'name', e.target.value)}
                   placeholder="Color name (e.g., Midnight Black)"
+                  required
+                  aria-label={`Color ${i + 1} name`}
                   className="flex-1 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                 />
                 <input
@@ -425,8 +449,13 @@ export function ProductFormClient({
                   value={v.price ?? ''}
                   onChange={(e) => updateVariant(i, 'price', e.target.value)}
                   placeholder="Price (optional)"
+                  aria-label={`Color ${i + 1} price`}
                   className="w-28 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
                 />
+                <label className="text-xs">Stock quantity
+                  <input type="number" aria-label={`Color ${i + 1} stock quantity`} min={v.reserved ?? 0} max={1000000} step="1" required disabled={!canEditStock} value={v.stock ?? ''} onChange={e => updateVariant(i, 'stock', e.target.value)} className="block w-28 rounded-md border border-border bg-background px-3 py-2 text-sm" />
+                  <span className="text-muted-foreground">{v.reserved ?? 0} reserved · {Math.max(0, (v.stock ?? 0) - (v.reserved ?? 0))} available</span>
+                </label>
                 {colorVariants.length > 1 && (
                   <button type="button" onClick={() => removeVariant(i)} className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-muted">
                     <X className="h-4 w-4" />
@@ -522,6 +551,8 @@ export function ProductFormClient({
         isOpen={pickerOpen}
         onClose={() => { setPickerOpen(false); setPickerIndex(null); }}
         onSelect={(url) => addImage(url)}
+        multiple={pickerIndex === null}
+        categoryId={categoryId}
       />
     </form>
   );

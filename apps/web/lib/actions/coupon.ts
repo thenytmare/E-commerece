@@ -26,7 +26,7 @@ export async function validateCouponAction(code: string, subtotal: number): Prom
   // Unauthenticated and easy to script — this is the guard against
   // brute-force enumeration of valid promo codes, not against normal
   // shoppers occasionally mistyping one.
-  const limit = rateLimit(`coupon:${await clientIdentifier()}`, 20, 5 * 60_000);
+  const limit = await rateLimit(`coupon:${await clientIdentifier()}`, 20, 5 * 60_000);
   if (!limit.allowed) {
     return { valid: false, error: retryMessage(limit.retryAfterSeconds) };
   }

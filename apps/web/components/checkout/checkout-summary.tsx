@@ -2,6 +2,7 @@
 
 import { formatPrice } from '@/lib/format';
 import { Text } from '@repo/ui';
+import type { DeliveryZone } from '@repo/config/delivery';
 import type { AppliedCoupon } from './CheckoutClient';
 
 /** One order line, pre-serialized on the server (no Prisma Decimals). */
@@ -14,7 +15,9 @@ export interface CheckoutSummaryLine {
 
 interface CheckoutSummaryProps {
   subtotal: number;
-  shipping: number;
+  /** null until the customer has chosen a delivery option and location. */
+  shipping: number | null;
+  deliveryZone: DeliveryZone | null;
   itemCount: number;
   lines: CheckoutSummaryLine[];
   appliedCoupon?: AppliedCoupon | null;
@@ -23,12 +26,13 @@ interface CheckoutSummaryProps {
 export function CheckoutSummary({
   subtotal,
   shipping,
+  deliveryZone,
   itemCount,
   lines,
   appliedCoupon,
 }: CheckoutSummaryProps) {
   const discount = appliedCoupon?.discount ?? 0;
-  const total = Math.max(0, subtotal + shipping - discount);
+  const total = Math.max(0, subtotal + (shipping ?? 0) - discount);
 
   return (
     // On mobile this renders before the address form (order-1) so the total
@@ -44,9 +48,17 @@ export function CheckoutSummary({
           <dd className="font-medium">{formatPrice(subtotal)}</dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Shipping</dt>
+          <dt className="text-muted-foreground">
+            {deliveryZone === 'PICKUP' ? 'Shop pickup' : 'Delivery fee'}
+          </dt>
           <dd className="font-medium">
-            {shipping === 0 ? 'Free' : formatPrice(shipping)}
+            {shipping === null ? (
+              <span className="text-muted-foreground">Select location</span>
+            ) : shipping === 0 ? (
+              'Free'
+            ) : (
+              formatPrice(shipping)
+            )}
           </dd>
         </div>
         {appliedCoupon ? (

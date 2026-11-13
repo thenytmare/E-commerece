@@ -2,6 +2,8 @@ import { CheckoutClient } from '@/components/checkout/CheckoutClient';
 import { calculateOrderTotals } from '@/lib/checkout';
 import { auth } from '@/auth';
 import { resolveCart } from '@/lib/cart';
+import { isCartItemAvailable } from '@/lib/cart-view';
+import { getStoreSettings } from '@/lib/store';
 import { createRepositories } from '@repo/database';
 import { Container, Grid, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
@@ -22,6 +24,12 @@ export default async function CheckoutPage() {
     redirect('/cart');
   }
 
+  // A hidden or removed product blocks checkout. Send the customer back to the
+  // cart, where it is marked "No longer available".
+  if (cart.items.some((item) => !isCartItemAvailable(item))) {
+    redirect('/cart');
+  }
+
   const repos = createRepositories();
   const addresses = session?.user?.id
     ? await repos.address.findByUserId(session.user.id)
@@ -30,7 +38,8 @@ export default async function CheckoutPage() {
   // Totals and line items are computed here (server) and handed to the
   // client component as plain numbers — the cart/checkout helpers depend on
   // `next/headers` and cannot be pulled into a client bundle.
-  const { subtotal, shipping, unitPrices } = await calculateOrderTotals(cart);
+  const { subtotal, unitPrices } = await calculateOrderTotals(cart);
+  const store = await getStoreSettings();
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
   const lines = cart.items.map((item) => ({
     id: item.id,
@@ -62,7 +71,7 @@ export default async function CheckoutPage() {
               isGuest={!session?.user?.id}
               addresses={addresses}
               subtotal={subtotal}
-              shipping={shipping}
+              storeAddress={store.address}
               itemCount={itemCount}
               lines={lines}
             />

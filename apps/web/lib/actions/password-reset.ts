@@ -3,9 +3,9 @@
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { createRepositories, prisma } from '@repo/database';
+import { createRepositories, enqueueJob, prisma } from '@repo/database';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
-import { sendMail } from '@/lib/mail';
+import { PASSWORD_RESET_EMAIL_JOB } from '@/lib/jobs/types';
 
 const repos = createRepositories();
 
@@ -37,7 +37,7 @@ export async function requestPasswordResetAction(
   _prevState: PasswordResetState | null,
   formData: FormData
 ): Promise<PasswordResetState> {
-  const limit = rateLimit(`password-reset:${await clientIdentifier()}`, 5, 15 * 60_000);
+  const limit = await rateLimit(`password-reset:${await clientIdentifier()}`, 5, 15 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -57,32 +57,31 @@ export async function requestPasswordResetAction(
     if (user && user.isActive && !user.deletedAt && user.passwordHash) {
       const identifier = `${IDENTIFIER_PREFIX}${email}`;
 
-      // Any earlier link for this account stops working the moment a new one
-      // is requested.
-      await prisma.verificationToken.deleteMany({ where: { identifier } });
-
       const token = randomBytes(32).toString('base64url');
-      await prisma.verificationToken.create({
-        data: {
-          identifier,
-          token: hashToken(token),
-          expires: new Date(Date.now() + TOKEN_TTL_MS),
-        },
-      });
-
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
       const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
-      await sendMail({
-        to: email,
-        subject: 'Reset your Prime Accessories Kenya password',
-        text: [
-          'We received a request to reset your password.',
-          '',
-          `Open this link to choose a new one: ${resetUrl}`,
-          '',
-          'The link expires in one hour. If you did not ask for this, you can ignore this email — your password will not change.',
-        ].join('\n'),
+      // One transaction: the old links stop working, the new one is saved, and
+      // the email is queued, all or nothing. The background worker sends it,
+      // so this request no longer waits on the mail server. The job's copy of
+      // the link is cleared as soon as it is sent or gives up.
+      await prisma.$transaction(async (tx) => {
+        // Any earlier link for this account stops working the moment a new one
+        // is requested.
+        await tx.verificationToken.deleteMany({ where: { identifier } });
+        await tx.verificationToken.create({
+          data: {
+            identifier,
+            token: hashToken(token),
+            expires: new Date(Date.now() + TOKEN_TTL_MS),
+          },
+        });
+        await enqueueJob(tx, {
+          type: PASSWORD_RESET_EMAIL_JOB,
+          payload: { to: email, resetUrl },
+          // About 8 minutes of retries. The link itself lasts an hour.
+          maxAttempts: 5,
+        });
       });
     }
   } catch (error) {
@@ -109,7 +108,7 @@ export async function resetPasswordAction(
   _prevState: PasswordResetState | null,
   formData: FormData
 ): Promise<PasswordResetState> {
-  const limit = rateLimit(`password-reset-submit:${await clientIdentifier()}`, 10, 15 * 60_000);
+  const limit = await rateLimit(`password-reset-submit:${await clientIdentifier()}`, 10, 15 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -135,25 +134,38 @@ export async function resetPasswordAction(
   const identifier = `${IDENTIFIER_PREFIX}${parsed.data.email}`;
 
   try {
-    const record = await prisma.verificationToken.findUnique({
-      where: { token: hashToken(parsed.data.token) },
-    });
-
-    if (!record || record.identifier !== identifier || record.expires < new Date()) {
+    const user = await repos.user.findByEmail(parsed.data.email);
+    if (!user || !user.isActive || user.deletedAt) {
+      // Same reply as an expired link, so this can't be used to find accounts.
       return { error: 'This reset link has expired or already been used. Request a new one.' };
     }
 
-    const user = await repos.user.findByEmail(parsed.data.email);
-    if (!user || !user.isActive || user.deletedAt) {
-      return { error: 'This account is no longer active.' };
-    }
-
     const passwordHash = await bcrypt.hash(parsed.data.password, 12);
-    await repos.user.updatePassword(user.id, passwordHash);
 
-    // Single use — consume every token for this account, so a second copy of
-    // the link can't be replayed.
-    await prisma.verificationToken.deleteMany({ where: { identifier } });
+    // One transaction: spend the token and change the password together.
+    // Deleting the token with its conditions is the claim. Of two requests
+    // using the same link, only one deletes a row, so only one changes the
+    // password. If the password update fails, the token is not spent.
+    const outcome = await prisma.$transaction(async (tx) => {
+      const spent = await tx.verificationToken.deleteMany({
+        where: {
+          token: hashToken(parsed.data.token),
+          identifier,
+          expires: { gt: new Date() },
+        },
+      });
+      if (spent.count !== 1) {
+        return 'invalid' as const;
+      }
+      await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+      // Any other links for this account stop working too.
+      await tx.verificationToken.deleteMany({ where: { identifier } });
+      return 'ok' as const;
+    });
+
+    if (outcome === 'invalid') {
+      return { error: 'This reset link has expired or already been used. Request a new one.' };
+    }
 
     return { success: true };
   } catch (error) {

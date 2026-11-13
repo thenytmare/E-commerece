@@ -2,11 +2,17 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
-import { StatusBadge } from '@/components/admin/ui/StatusBadge';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Edit, Trash, Eye, CheckCircle, XCircle, Star, RotateCcw } from 'lucide-react';
-import { deleteProductAction, restoreProductAction, toggleProductStatusAction, bulkActionProducts } from '@/lib/actions/admin-products';
+import { Edit, Trash, Eye, EyeOff, Star, RotateCcw } from 'lucide-react';
+import {
+  deleteProductAction,
+  restoreProductAction,
+  setProductVisibilityAction,
+  bulkSetProductVisibilityAction,
+  bulkActionProducts,
+} from '@/lib/actions/admin-products';
+import { VisibilitySwitch } from './VisibilitySwitch';
 import { ConfirmationDialog } from '@/components/admin/ui/ConfirmationDialog';
 import { useToast } from '@/components/ui/toast';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -20,6 +26,8 @@ type ProductListItem = {
   basePrice: number;
   isActive: boolean;
   isFeatured: boolean;
+  /** Units available to buy across all variants. */
+  availableStock: number;
   status: string;
   brand: { name: string; slug: string } | null;
   category: { name: string; slug: string } | null;
@@ -39,15 +47,27 @@ type FilterOptions = {
   categories: { id: string; name: string }[];
 };
 
+const LOW_STOCK_AT = 5;
+
+function StockLabel({ stock }: { stock: number }) {
+  if (stock <= 0) return <span className="text-xs font-medium text-destructive">Out of stock</span>;
+  if (stock <= LOW_STOCK_AT) return <span className="text-xs font-medium text-amber-700">{stock} left (low)</span>;
+  return <span className="text-xs text-muted-foreground">{stock} in stock</span>;
+}
+
 export function ProductListClient({
   initialData,
   initialSearch,
+  counts,
+  visibility,
   filterOptions,
   sortKey,
   sortDirection,
 }: {
   initialData: PaginatedProducts;
   initialSearch: string;
+  counts: { all: number; visible: number; hidden: number };
+  visibility: 'all' | 'visible' | 'hidden';
   filterOptions: FilterOptions;
   sortKey?: string;
   sortDirection?: 'asc' | 'desc';
@@ -63,11 +83,22 @@ export function ProductListClient({
 
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
+  // Optimistic switch state. A switch moves at once, then the server confirms.
+  // `overrides` holds the value the admin just chose. `busyIds` are rows whose
+  // request is still running, so a quick second click cannot send a conflicting one.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [busyIds, setBusyIds] = useState<string[]>([]);
+  useEffect(() => {
+    // Fresh data from the server replaces any local guesses.
+    setOverrides({});
+  }, [initialData]);
+
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState<{ action: string; ids: string[] } | null>(null);
+  const isVisible = (item: ProductListItem) => overrides[item.id] ?? item.isActive;
 
   // Filters
   const brandFilter = searchParams.get('brand') ?? '';
@@ -135,18 +166,49 @@ export function ProductListClient({
     setRestoringId(null);
   };
 
-  const toggleStatus = async (id: string, currentStatus: boolean) => {
-    await toggleProductStatusAction(id, !currentStatus);
-    router.refresh();
+  const handleToggle = async (item: ProductListItem, next: boolean) => {
+    if (busyIds.includes(item.id)) return;
+    setBusyIds((ids) => [...ids, item.id]);
+    setOverrides((current) => ({ ...current, [item.id]: next }));
+    try {
+      const res = await setProductVisibilityAction(item.id, next);
+      if (!res.success) throw new Error(res.error || 'Could not change visibility.');
+      toast(next ? `${item.name} is now visible to customers` : `${item.name} is now hidden from customers`, 'success');
+      router.refresh();
+    } catch (error) {
+      // Put the switch back where it was and say why.
+      setOverrides((current) => {
+        const copy = { ...current };
+        delete copy[item.id];
+        return copy;
+      });
+      toast(error instanceof Error ? error.message : 'Could not change visibility.', 'error');
+    } finally {
+      setBusyIds((ids) => ids.filter((id) => id !== item.id));
+    }
   };
 
   const handleBulkAction = async () => {
     if (!bulkConfirm) return;
     setIsBulkProcessing(true);
     try {
-      await bulkActionProducts(bulkConfirm.ids, bulkConfirm.action as 'soft-delete' | 'restore' | 'activate' | 'deactivate' | 'permanent-delete');
-      setSelectedIds([]);
-      router.refresh();
+      const res =
+        bulkConfirm.action === 'activate' || bulkConfirm.action === 'deactivate'
+          ? await bulkSetProductVisibilityAction(bulkConfirm.ids, bulkConfirm.action === 'activate')
+          : await bulkActionProducts(
+              bulkConfirm.ids,
+              bulkConfirm.action as 'soft-delete' | 'restore' | 'permanent-delete'
+            );
+      const changed = 'changed' in res ? res.changed : (res as { count?: number }).count;
+      if (res.success) {
+        const verb =
+          bulkConfirm.action === 'activate' ? 'shown' : bulkConfirm.action === 'deactivate' ? 'hidden' : 'updated';
+        toast(`${changed ?? bulkConfirm.ids.length} product${changed === 1 ? '' : 's'} ${verb}`, 'success');
+        setSelectedIds([]);
+        router.refresh();
+      } else {
+        toast(res.error || 'Bulk action failed', 'error');
+      }
     } catch {
       toast('Bulk action failed', 'error');
     }
@@ -182,16 +244,16 @@ export function ProductListClient({
         };
       case 'activate':
         return {
-          title: `Activate ${noun}?`,
-          description: 'They become visible and purchasable on the storefront.',
-          confirmText: 'Activate',
+          title: `Show ${noun} to customers?`,
+          description: 'They appear on the storefront and can be bought.',
+          confirmText: 'Show',
           variant: 'info' as const,
         };
       default:
         return {
-          title: `Deactivate ${noun}?`,
-          description: 'They stay in the catalogue but stop appearing on the storefront.',
-          confirmText: 'Deactivate',
+          title: `Hide ${noun} from customers?`,
+          description: 'They stay in your catalogue with their stock and order history, but customers cannot see or buy them. Items already in a cart are marked "No longer available".',
+          confirmText: 'Hide',
           variant: 'warning' as const,
         };
     }
@@ -211,9 +273,12 @@ export function ProductListClient({
               <div className="h-full w-full flex items-center justify-center text-muted-foreground text-xs">No img</div>
             )}
           </div>
-          <div>
+          <div className={viewMode === 'active' && !isVisible(item) ? 'opacity-70' : undefined}>
             <p className="font-medium">{item.name}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{item.brand?.name} • {item.category?.name}</p>
+            {viewMode === 'active' && !isVisible(item) ? (
+              <p className="mt-0.5 text-xs font-medium text-muted-foreground">Hidden from customers</p>
+            ) : null}
           </div>
         </div>
       ),
@@ -225,12 +290,31 @@ export function ProductListClient({
       cell: (item) => <span className="font-medium">{formatPrice(item.basePrice)}</span>,
     },
     {
+      key: 'availableStock',
+      header: 'Stock',
+      cell: (item) => <StockLabel stock={item.availableStock} />,
+    },
+    {
       key: 'isActive',
-      header: 'Active',
+      header: 'Storefront',
       cell: (item) => (
-        <button onClick={() => toggleStatus(item.id, item.isActive)}>
-          <StatusBadge status={item.isActive ? 'success' : 'draft'} />
-        </button>
+        <div>
+          {viewMode === 'deleted' ? (
+            <span className="text-xs text-muted-foreground">In Trash</span>
+          ) : (
+            <VisibilitySwitch
+              checked={isVisible(item)}
+              productName={item.name}
+              disabled={!canWrite}
+              disabledReason="You can view products but not change them."
+              busy={busyIds.includes(item.id)}
+              onChange={(next) => handleToggle(item, next)}
+            />
+          )}
+          {viewMode === 'active' && isVisible(item) && item.availableStock === 0 ? (
+            <p className="text-xs text-amber-700">Visible, but customers cannot buy it: out of stock</p>
+          ) : null}
+        </div>
       ),
     },
     {
@@ -272,7 +356,7 @@ export function ProductListClient({
         disabled={isBulkProcessing}
         className="px-3 py-1.5 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-600 hover:bg-green-600/20 flex items-center gap-1"
       >
-        <CheckCircle className="h-3 w-3" /> Activate
+        <Eye className="h-3 w-3" /> Show selected
       </button>
       <button
         type="button"
@@ -280,7 +364,7 @@ export function ProductListClient({
         disabled={isBulkProcessing}
         className="px-3 py-1.5 border border-muted-foreground/30 bg-muted rounded-md text-xs font-medium text-muted-foreground hover:bg-muted/80 flex items-center gap-1"
       >
-        <XCircle className="h-3 w-3" /> Deactivate
+        <EyeOff className="h-3 w-3" /> Hide selected
       </button>
       {canDelete ? (
         <button
@@ -297,18 +381,34 @@ export function ProductListClient({
 
   return (
     <>
-      <div className="flex items-center gap-2 mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2" role="tablist" aria-label="Product visibility">
+        {(
+          [
+            { key: 'all', label: 'All', count: counts.all },
+            { key: 'visible', label: 'Visible', count: counts.visible },
+            { key: 'hidden', label: 'Hidden', count: counts.hidden },
+          ] as const
+        ).map((tab) => {
+          const selected = viewMode === 'active' && visibility === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${selected ? 'bg-primary text-primary-foreground' : 'bg-background border border-border text-muted-foreground hover:bg-muted'}`}
+              onClick={() => pushParams({ status: null, visibility: tab.key === 'all' ? null : tab.key })}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          );
+        })}
         <button
           type="button"
-          className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'active' ? 'bg-primary text-primary-foreground' : 'bg-background border border-border text-muted-foreground hover:bg-muted'}`}
-          onClick={() => pushParams({ status: null })}
-        >
-          Active
-        </button>
-        <button
-          type="button"
+          role="tab"
+          aria-selected={viewMode === 'deleted'}
           className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'deleted' ? 'bg-primary text-primary-foreground' : 'bg-background border border-border text-muted-foreground hover:bg-muted'}`}
-          onClick={() => pushParams({ status: 'archived' })}
+          onClick={() => pushParams({ status: 'archived', visibility: null })}
         >
           Trash
         </button>
@@ -317,6 +417,7 @@ export function ProductListClient({
       {/* Filters bar */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <select
+          aria-label="Filter by brand"
           value={brandFilter}
           onChange={(e) => pushParams({ brand: e.target.value || null })}
           className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -328,6 +429,7 @@ export function ProductListClient({
         </select>
 
         <select
+          aria-label="Filter by category"
           value={categoryFilter}
           onChange={(e) => pushParams({ category: e.target.value || null })}
           className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -339,18 +441,18 @@ export function ProductListClient({
         </select>
 
         <select
+          aria-label="Filter by status"
           value={statusFilter}
           onChange={(e) => pushParams({ status: e.target.value || null })}
           className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
           <option value="draft">Draft</option>
           <option value="archived">Archived</option>
         </select>
 
         <select
+          aria-label="Filter by featured"
           value={featuredFilter}
           onChange={(e) => pushParams({ featured: e.target.value || null })}
           className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -360,7 +462,7 @@ export function ProductListClient({
           <option value="false">Not Featured</option>
         </select>
 
-        {(brandFilter || categoryFilter || statusFilter || featuredFilter) && (
+        {(brandFilter || categoryFilter || statusFilter || featuredFilter || visibility !== 'all') && (
           <button
             type="button"
             onClick={() => {
@@ -384,6 +486,57 @@ export function ProductListClient({
         page={initialData.page}
         totalPages={initialData.totalPages}
         onPageChange={handlePageChange}
+        emptyTitle={
+          viewMode === 'deleted' ? 'Trash is empty' : visibility === 'hidden' ? 'No hidden products' : visibility === 'visible' ? 'No visible products' : 'No products found'
+        }
+        emptyMessage={
+          viewMode === 'deleted'
+            ? 'Deleted products appear here.'
+            : visibility === 'hidden'
+              ? 'Every product matching these filters is visible to customers.'
+              : 'Try a different search or clear the filters.'
+        }
+        searchValue={searchTerm}
+        mobileCard={(item, checkbox) => (
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              {checkbox}
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+                {item.images?.[0]?.url ? (
+                  <Image src={item.images[0].url} alt={item.name} fill sizes="56px" className="object-cover" />
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium leading-snug">{item.name}</p>
+                <p className="text-xs text-muted-foreground">{item.brand?.name} • {item.category?.name}</p>
+                <p className="mt-1 text-sm font-medium">{formatPrice(item.basePrice)}</p>
+                <StockLabel stock={item.availableStock} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              {viewMode === 'deleted' ? (
+                <span className="text-xs text-muted-foreground">In Trash</span>
+              ) : (
+                <VisibilitySwitch
+                  checked={isVisible(item)}
+                  productName={item.name}
+                  disabled={!canWrite}
+                  disabledReason="You can view products but not change them."
+                  busy={busyIds.includes(item.id)}
+                  onChange={(next) => handleToggle(item, next)}
+                />
+              )}
+              {canWrite && viewMode === 'active' ? (
+                <Link href={`/admin/catalog/products/${item.id}`} className="inline-flex min-h-[44px] items-center px-3 text-sm font-medium text-primary">
+                  Edit
+                </Link>
+              ) : null}
+            </div>
+            {viewMode === 'active' && !isVisible(item) ? (
+              <p className="text-xs font-medium text-muted-foreground">Hidden from customers</p>
+            ) : null}
+          </div>
+        )}
         selectable
         getRowLabel={(product) => product.name}
         selectedIds={selectedIds}
@@ -391,14 +544,24 @@ export function ProductListClient({
         bulkActions={bulkActions}
         rowActions={(item) => (
           <div className="flex items-center justify-end gap-2">
-            <Link
-              href={`/products/${item.slug}`}
-              target="_blank"
-              className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted"
-              title="Preview"
-            >
-              <Eye className="h-4 w-4" />
-            </Link>
+            {isVisible(item) && viewMode === 'active' ? (
+              <Link
+                href={`/products/${item.slug}`}
+                target="_blank"
+                className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted"
+                title="View on storefront"
+                aria-label={`View ${item.name} on the storefront`}
+              >
+                <Eye className="h-4 w-4" />
+              </Link>
+            ) : (
+              <span
+                className="p-1.5 text-muted-foreground/40"
+                title="Hidden products are not on the storefront. Show it to preview."
+              >
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              </span>
+            )}
             {viewMode === 'deleted' ? (
               canDelete ? (
                 <button

@@ -1,7 +1,5 @@
 import { cache } from 'react';
-import { createRepositories } from '@repo/database';
-
-const repos = createRepositories();
+import { getCachedSetting } from '@/lib/catalog-cache';
 
 export type StoreSettings = {
   name: string;
@@ -16,7 +14,7 @@ export type StoreSettings = {
 // settings independently within the same request. `cache()` dedupes those
 // into one DB round trip per request instead of one per caller.
 export const getStoreSettings = cache(async (): Promise<StoreSettings> => {
-  const setting = await repos.siteSetting.findByKey('store');
+  const setting = await getCachedSetting('store');
   const value = setting?.value as Record<string, unknown> | null;
 
   return {

@@ -11,15 +11,15 @@
  * PATH; otherwise falls back to running it inside the `postgres` service
  * from docker-compose.yml.
  *
- * NOTE: this backs up the Postgres database only. Uploaded media files under
- * apps/web/public/uploads are stored on local disk and are NOT covered by
- * this script — see docs/backups.md.
+ * Uploaded media (UPLOAD_DIR, default apps/web/public/uploads) is archived next
+ * to each dump as <dump name>-uploads.tar.gz.
  */
 const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { loadEnv } = require('./lib/env');
 const { parseDatabaseUrl } = require('./lib/db-connection');
+const { planDump, resolveUploadDir, uploadsArchiveFor, planUploadsBackup } = require('./lib/pg-plan');
 
 loadEnv();
 
@@ -35,27 +35,19 @@ function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, '-');
 }
 
-async function dumpWithLocalPgDump(databaseUrl, outFile) {
+/** Run a planned command. Passwords travel in the environment, never in arguments. */
+function run(planned, { stdoutFile } = {}) {
   return new Promise((resolve, reject) => {
-    const proc = spawn('pg_dump', ['--format=custom', '--no-owner', '--file', outFile, databaseUrl], {
-      stdio: 'inherit',
+    const proc = spawn(planned.command, planned.args, {
+      cwd: path.join(__dirname, '..'),
+      env: { ...process.env, ...(planned.env || {}) },
+      stdio: ['ignore', stdoutFile ? 'pipe' : 'inherit', 'inherit'],
     });
+    if (stdoutFile) proc.stdout.pipe(fs.createWriteStream(stdoutFile));
     proc.on('error', reject);
-    proc.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`pg_dump exited with code ${code}`))));
-  });
-}
-
-async function dumpWithDockerCompose(conn, outFile) {
-  return new Promise((resolve, reject) => {
-    const out = fs.createWriteStream(outFile);
-    const proc = spawn(
-      'docker',
-      ['compose', 'exec', '-T', '-e', `PGPASSWORD=${conn.password}`, 'postgres', 'pg_dump', '--format=custom', '--no-owner', '-U', conn.user, conn.database],
-      { cwd: path.join(__dirname, '..'), stdio: ['ignore', 'pipe', 'inherit'] }
+    proc.on('exit', (code) =>
+      code === 0 ? resolve() : reject(new Error(`${planned.command} exited with code ${code}`))
     );
-    proc.stdout.pipe(out);
-    proc.on('error', reject);
-    proc.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`docker compose pg_dump exited with code ${code}`))));
   });
 }
 
@@ -63,7 +55,7 @@ function pruneOldBackups() {
   if (!fs.existsSync(BACKUP_DIR)) return;
   const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
   for (const file of fs.readdirSync(BACKUP_DIR)) {
-    if (!file.endsWith('.dump')) continue;
+    if (!file.endsWith('.dump') && !file.endsWith('-uploads.tar.gz')) continue;
     const fullPath = path.join(BACKUP_DIR, file);
     const stat = fs.statSync(fullPath);
     if (stat.mtimeMs < cutoff) {
@@ -87,13 +79,17 @@ async function main() {
 
   console.log(`Backing up database "${conn.database}" to ${outFile}...`);
 
+  const planned = planDump(conn, outFile, { hasPgDump: commandExists('pg_dump') });
+  if (planned.mode === 'refuse') {
+    console.error(planned.reason);
+    process.exit(1);
+  }
+  if (planned.mode === 'docker') {
+    console.log('pg_dump not found on PATH, using the local Docker Postgres...');
+  }
+
   try {
-    if (commandExists('pg_dump')) {
-      await dumpWithLocalPgDump(databaseUrl, outFile);
-    } else {
-      console.log('pg_dump not found on PATH, falling back to `docker compose exec postgres pg_dump`...');
-      await dumpWithDockerCompose(conn, outFile);
-    }
+    await run(planned, { stdoutFile: planned.stdoutFile });
   } catch (error) {
     if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
     console.error('Backup failed:', error.message);
@@ -102,6 +98,21 @@ async function main() {
 
   const sizeKb = (fs.statSync(outFile).size / 1024).toFixed(1);
   console.log(`Backup complete: ${outFile} (${sizeKb} KB)`);
+
+  // Uploaded media is not in the database, so it is archived next to the dump.
+  const uploadDir = resolveUploadDir(path.join(__dirname, '..'));
+  if (fs.existsSync(uploadDir) && commandExists('tar')) {
+    const archive = uploadsArchiveFor(outFile);
+    try {
+      await run(planUploadsBackup(uploadDir, archive));
+      console.log(`Uploads archived: ${archive}`);
+    } catch (error) {
+      console.error('Uploads backup failed:', error.message);
+      process.exit(1);
+    }
+  } else {
+    console.warn(`Uploads folder not archived (not found, or tar missing): ${uploadDir}`);
+  }
 
   pruneOldBackups();
 }

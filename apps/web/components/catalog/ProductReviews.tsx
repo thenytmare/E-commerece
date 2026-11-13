@@ -5,6 +5,7 @@ import { formatDate } from '@/lib/format';
 import { StarRating } from './StarRating';
 import { ReviewForm } from './ReviewForm';
 import { BadgeCheck } from 'lucide-react';
+import { getRatingSummary } from '@/lib/request-cache';
 
 /**
  * Customer reviews for a product: the summary, the approved reviews, and the
@@ -24,7 +25,7 @@ export async function ProductReviews({
   const session = await auth();
 
   const [summary, reviews, existing] = await Promise.all([
-    repos.review.getRatingSummary(productId),
+    getRatingSummary(productId),
     repos.review.findPublicForProduct(productId),
     session?.user?.id
       ? repos.review.findByProductAndUser(productId, session.user.id)

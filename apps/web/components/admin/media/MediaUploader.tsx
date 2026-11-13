@@ -1,85 +1,102 @@
 'use client';
+import { useEffect, useRef, useState } from 'react';
+import { MediaDialog } from './MediaDialog';
+import { optionPath, type MediaOption } from './media-options';
 
-import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2 } from 'lucide-react';
+type Upload = { id: string; file: File; status: 'queued' | 'uploading' | 'done' | 'error'; error?: string };
+type Props = { folderId?: string | null; categoryId?: string | null; imagesOnly?: boolean; onUploadComplete: () => void };
 
-interface Props {
-  folderId?: string | null;
-  onUploadComplete: () => void;
-}
+export function MediaUploader({ folderId, categoryId, imagesOnly, onUploadComplete }: Props) {
+  const [open, setOpen] = useState(false);
+  const [uploads, setUploads] = useState<Upload[]>([]);
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const [category, setCategory] = useState('');
+  const [folder, setFolder] = useState('');
+  const [categories, setCategories] = useState<MediaOption[]>([]);
+  const [folders, setFolders] = useState<MediaOption[]>([]);
+  const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const directoryRef = useRef<HTMLInputElement>(null);
 
-export function MediaUploader({ folderId, onUploadComplete }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [uploads, setUploads] = useState<{ name: string; progress: number; status: 'uploading' | 'done' | 'error' }[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const abort = new AbortController();
+    setReady(false);
+    fetch('/api/admin/media/folders?all=1', { signal: abort.signal }).then(async res => {
+      if (!res.ok) throw new Error('Unable to load categories and folders. Close and try again.');
+      const data = await res.json(); setCategories(data.categories); setFolders(data.folders); setReady(true);
+    }).catch(err => { if (!abort.signal.aborted) setError(err.message); });
+    directoryRef.current?.setAttribute('webkitdirectory', '');
+    return () => abort.abort();
+  }, [open]);
 
-  const uploadFiles = async (files: FileList) => {
-    const newUploads = Array.from(files).map(f => ({ name: f.name, progress: 0, status: 'uploading' as const }));
-    setUploads(prev => [...prev, ...newUploads]);
-
-    for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append('file', file);
-      if (folderId) formData.append('folderId', folderId);
-
+  const run = async (batch: Upload[]) => {
+    if (busyRef.current || !ready) return;
+    busyRef.current = true; setBusy(true); setError('');
+    let succeeded = false;
+    for (const item of batch) {
+      setUploads(prev => prev.map(u => u.id === item.id ? { ...u, status: 'uploading', error: undefined } : u));
+      const body = new FormData(); body.append('file', item.file);
+      if (category) body.append('categoryId', category);
+      if (folder) body.append('folderId', folder);
       try {
-        const res = await fetch('/api/admin/media/upload', { method: 'POST', body: formData });
-        if (!res.ok) throw new Error('Upload failed');
-        setUploads(prev => prev.map(u => u.name === file.name ? { ...u, status: 'done' as const } : u));
-      } catch {
-        setUploads(prev => prev.map(u => u.name === file.name ? { ...u, status: 'error' as const } : u));
+        const res = await fetch('/api/admin/media/upload', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed. Try again.');
+        succeeded = true;
+        setUploads(prev => prev.map(u => u.id === item.id ? { ...u, status: 'done' } : u));
+      } catch (err) {
+        setUploads(prev => prev.map(u => u.id === item.id ? { ...u, status: 'error', error: err instanceof Error ? err.message : 'Upload failed' } : u));
       }
     }
-    onUploadComplete();
+    busyRef.current = false; setBusy(false);
+    if (succeeded) onUploadComplete();
   };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files);
-    setIsOpen(false);
+  const add = (files: FileList | null) => {
+    if (!files?.length || busyRef.current || !ready) return;
+    const selected = Array.from(files).filter(file => !imagesOnly || file.type.startsWith('image/'));
+    const batch: Upload[] = selected.map(file => ({ id: crypto.randomUUID(), file, status: 'queued' }));
+    if (!batch.length) { setError('Choose image files.'); return; }
+    setUploads(prev => [...prev, ...batch]); void run(batch);
   };
-
-  return (
-    <>
-      <button type="button" onClick={() => setIsOpen(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-        <Upload className="h-4 w-4" /> Upload
-      </button>
-
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsOpen(false)}>
-          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md space-y-4" onClick={e => e.stopPropagation()}
-            onDragOver={e => e.preventDefault()}
-            onDrop={handleDrop}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Upload Files</h3>
-              <button onClick={() => setIsOpen(false)}><X className="h-5 w-5" /></button>
-            </div>
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-              onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">Drag & drop files here or click to browse</p>
-            </div>
-            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => { if (e.target.files?.length) uploadFiles(e.target.files); }} accept="image/*,.pdf,.doc,.docx,.txt,.zip,.csv,.xlsx" />
-
-            {uploads.length > 0 && (
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {uploads.map(u => (
-                  <div key={u.name} className="flex items-center gap-2 text-sm">
-                    {u.status === 'uploading' ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> :
-                     u.status === 'done' ? <span className="text-success">✓</span> :
-                     <span className="text-destructive">✗</span>}
-                    <span className="flex-1 truncate">{u.name}</span>
-                    <span className="text-xs text-muted-foreground">{u.status === 'uploading' ? 'Uploading...' : u.status === 'done' ? 'Done' : 'Failed'}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex justify-end">
-              <button onClick={() => { setIsOpen(false); onUploadComplete(); }} className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm">Close</button>
-            </div>
-          </div>
+  return <>
+    <button type="button" className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground" onClick={() => {
+      setCategory(categoryId && categoryId !== '__none__' ? categoryId : '');
+      setFolder(folderId && folderId !== '__root__' ? folderId : '');
+      setUploads([]); setError(''); setOpen(true);
+    }}>Upload files</button>
+    {open && <MediaDialog title="Upload files" onClose={() => { if (!busyRef.current) setOpen(false); }}>
+      <p className="text-sm text-muted-foreground">Choose a product category, then select several files or an entire folder. Maximum 10 MB per file.</p>
+      {error && <p role="alert" className="text-destructive">{error}</p>}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm">Product category
+          <select aria-label="Upload product category" value={category} disabled={busy || !ready} onChange={e => setCategory(e.target.value)} className="block w-full rounded border bg-background p-2">
+            <option value="">Uncategorized</option>{categories.map(c => <option key={c.id} value={c.id}>{optionPath(c, categories)}</option>)}
+          </select>
+        </label>
+        <label className="text-sm">Media folder
+          <select aria-label="Upload media folder" value={folder} disabled={busy || !ready} onChange={e => setFolder(e.target.value)} className="block w-full rounded border bg-background p-2">
+            <option value="">No folder</option>{folders.map(f => <option key={f.id} value={f.id}>{optionPath(f, folders)}</option>)}
+          </select>
+        </label>
+      </div>
+      <div className="rounded border-2 border-dashed p-6 text-center space-y-3" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); add(e.dataTransfer.files); }}>
+        <p>Drop files here or browse your computer.</p>
+        <div className="flex justify-center gap-3">
+          <button type="button" disabled={busy || !ready} onClick={() => fileRef.current?.click()} className="rounded border px-3 py-2 disabled:opacity-50">Choose files</button>
+          <button type="button" disabled={busy || !ready} onClick={() => directoryRef.current?.click()} className="rounded border px-3 py-2 disabled:opacity-50">Choose folder</button>
         </div>
-      )}
-    </>
-  );
+      </div>
+      <input ref={fileRef} aria-label="Files to upload" type="file" multiple hidden accept={imagesOnly ? 'image/*' : 'image/*,.pdf,.txt,.csv'} onChange={e => { add(e.target.files); e.target.value = ''; }} />
+      <input ref={directoryRef} aria-label="Folder to upload" type="file" multiple hidden onChange={e => { add(e.target.files); e.target.value = ''; }} />
+      <ul aria-live="polite" className="max-h-64 overflow-auto space-y-2">{uploads.map(u => <li key={u.id} className="text-sm">
+        <span className="font-medium">{u.file.webkitRelativePath || u.file.name}</span> — {u.status === 'done' ? 'Uploaded' : u.status}
+        {u.error && <p className="text-destructive">{u.error}</p>}
+      </li>)}</ul>
+      {uploads.some(u => u.status === 'error') && <button type="button" disabled={busy} onClick={() => void run(uploads.filter(u => u.status === 'error'))} className="rounded border px-3 py-2">Retry failed uploads</button>}
+      {busy && <p className="text-sm" role="status">Uploading… Keep this dialog open until uploads finish.</p>}
+    </MediaDialog>}
+  </>;
 }

@@ -41,7 +41,7 @@ export async function loginAction(
   const password = String(formData.get('password') ?? '');
   const callbackUrl = String(formData.get('callbackUrl') ?? '/');
 
-  const limit = rateLimit(`login:${await clientIdentifier()}`, 10, 5 * 60_000);
+  const limit = await rateLimit(`login:${await clientIdentifier()}`, 10, 5 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -123,7 +123,7 @@ export async function registerAction(
     return { fieldErrors };
   }
 
-  const limit = rateLimit(`register:${await clientIdentifier()}`, 5, 15 * 60_000);
+  const limit = await rateLimit(`register:${await clientIdentifier()}`, 5, 15 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }

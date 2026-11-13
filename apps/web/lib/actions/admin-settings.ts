@@ -2,7 +2,7 @@
 
 import { createRepositories } from '@repo/database';
 import { requirePermission } from './auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { parseFormData, storeSettingsSchema, type FieldErrors } from '@/lib/validations/admin';
 
 const repos = createRepositories();
@@ -39,7 +39,7 @@ export async function updateStoreSettingsAction(
       // Fall back to the main phone when no dedicated WhatsApp number is set.
       whatsappNumber: (whatsappNumber ?? phone).replace(/[^0-9+]/g, ''),
     } satisfies Record<string, unknown>);
-    revalidatePath('/admin/settings/store');
+    revalidatePath('/admin/settings/store'); revalidateTag('settings');
     revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {

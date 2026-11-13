@@ -100,6 +100,12 @@ const FILE_TYPE_RULES: FileTypeRule[] = [
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
+/** MIME type for a stored extension, or null if it is not an allowed upload type. */
+export function mimeTypeForExtension(extension: string): string | null {
+  const ext = extension.toLowerCase();
+  return FILE_TYPE_RULES.find((rule) => rule.extensions.includes(ext))?.mimeType ?? null;
+}
+
 export const ALLOWED_UPLOAD_EXTENSIONS = FILE_TYPE_RULES.flatMap((rule) => rule.extensions);
 
 export type UploadValidationResult =

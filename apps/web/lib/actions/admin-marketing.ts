@@ -1,7 +1,7 @@
 'use server';
 
 import { createRepositories } from '@repo/database';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { requirePermission } from './auth';
 import { getClientIp } from '@/lib/request-context';
 import { bannersSchema, homepageSectionsSchema } from '@/lib/validations/marketing';
@@ -35,7 +35,7 @@ export async function updateHomepageAction(sections: unknown): Promise<Marketing
     entityId: 'homepage',
   });
 
-  revalidatePath('/admin/marketing/homepage');
+  revalidatePath('/admin/marketing/homepage'); revalidateTag('settings');
   revalidatePath('/', 'layout');
   return { success: true };
 }
@@ -58,7 +58,7 @@ export async function updateBannersAction(banners: unknown): Promise<MarketingAc
     metadata: { count: parsed.data.length },
   });
 
-  revalidatePath('/admin/marketing/banners');
+  revalidatePath('/admin/marketing/banners'); revalidateTag('settings');
   revalidatePath('/', 'layout');
   return { success: true };
 }

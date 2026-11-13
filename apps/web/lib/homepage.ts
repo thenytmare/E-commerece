@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { createRepositories } from '@repo/database';
+import { getCachedSetting } from '@/lib/catalog-cache';
 
 export type HomepageSections = {
   hero: { enabled: boolean; title: string; subtitle: string; ctaText: string; ctaLink: string; imageUrl: string };
@@ -29,7 +29,6 @@ export const defaultHomepageSections: HomepageSections = {
 // The announcement bar and the homepage both read this independently within
 // the same request. `cache()` dedupes them into one DB round trip.
 export const getHomepageSections = cache(async (): Promise<HomepageSections> => {
-  const repos = createRepositories();
-  const setting = await repos.siteSetting.findByKey('homepage');
+  const setting = await getCachedSetting('homepage');
   return (setting?.value as HomepageSections | undefined) ?? defaultHomepageSections;
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  chooseCashOnDeliveryAction,
   initiateMpesaPaymentAction,
   initiateStripePaymentAction,
   simulatePaymentAction,
@@ -14,6 +15,7 @@ import { MpesaPaymentStatus } from './mpesa-payment-status';
 const initialState: PaymentActionState = {};
 
 interface PaymentMethodPickerProps {
+  initialPaymentId?: string;
   orderNumber: string;
   /**
    * Plain number, not Prisma's Decimal. Decimal instances can't cross the
@@ -23,15 +25,19 @@ interface PaymentMethodPickerProps {
   total: number;
   stripeEnabled: boolean;
   mpesaEnabled: boolean;
+  /** Cash on Delivery — Nairobi deliveries only. */
+  codEnabled: boolean;
   devMode: boolean;
   cancelled?: boolean;
 }
 
 export function PaymentMethodPicker({
+  initialPaymentId,
   orderNumber,
   total,
   stripeEnabled,
   mpesaEnabled,
+  codEnabled,
   devMode,
   cancelled,
 }: PaymentMethodPickerProps) {
@@ -41,19 +47,41 @@ export function PaymentMethodPicker({
   );
   const [isStripePending, startStripeTransition] = useTransition();
   const [isSimulating, startSimulateTransition] = useTransition();
+  const [isCodPending, startCodTransition] = useTransition();
+  const [codError, setCodError] = useState<string | null>(null);
+  const [stripeError, setStripeError] = useState<string | null>(null);
 
   // Once an STK push is accepted we swap the form for the live status panel.
-  const [trackingPaymentId, setTrackingPaymentId] = useState<string | null>(null);
+  const [trackingPaymentId, setTrackingPaymentId] = useState<string | null>(initialPaymentId ?? null);
 
   useEffect(() => {
     if (mpesaState?.paymentId) {
       setTrackingPaymentId(mpesaState.paymentId);
     }
-  }, [mpesaState?.paymentId]);
+  }, [mpesaState]);
 
   const handleStripe = () => {
+    setStripeError(null);
     startStripeTransition(async () => {
-      await initiateStripePaymentAction(orderNumber);
+      try {
+        // On success the action redirects to Stripe and never returns. A
+        // returned value is always a failure, so show it and keep the button
+        // usable for another try.
+        const result = await initiateStripePaymentAction(orderNumber);
+        if (result?.error) setStripeError(result.error);
+      } catch (error) {
+        // Next.js redirects surface as a thrown signal. Let those through.
+        if (error && typeof error === 'object' && 'digest' in error) throw error;
+        setStripeError('Could not start card payment. Please try again.');
+      }
+    });
+  };
+
+  const handleCashOnDelivery = () => {
+    setCodError(null);
+    startCodTransition(async () => {
+      const result = await chooseCashOnDeliveryAction(orderNumber);
+      if (result?.error) setCodError(result.error);
     });
   };
 
@@ -88,6 +116,11 @@ export function PaymentMethodPicker({
           <Button onClick={handleStripe} isLoading={isStripePending} className="w-full">
             Pay with card
           </Button>
+          {stripeError ? (
+            <p className="mt-3 text-sm text-destructive" role="alert">
+              {stripeError} You can try again, or choose another method.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -127,6 +160,28 @@ export function PaymentMethodPicker({
         )
       ) : null}
 
+      {codEnabled ? (
+        <div className="rounded-xl border border-border bg-card p-6">
+          <Text className="mb-3 font-semibold">Cash on Delivery</Text>
+          <Text variant="muted" className="mb-4 text-sm">
+            Pay the rider in cash when your order arrives. Available for Nairobi deliveries.
+          </Text>
+          {codError ? (
+            <p className="mb-3 text-sm text-destructive" role="alert">
+              {codError}
+            </p>
+          ) : null}
+          <Button
+            variant="outline"
+            onClick={handleCashOnDelivery}
+            isLoading={isCodPending}
+            className="w-full"
+          >
+            Pay on delivery
+          </Button>
+        </div>
+      ) : null}
+
       {devMode ? (
         <div className="rounded-xl border border-dashed border-amber-500/50 bg-amber-500/5 p-6">
           <Text className="mb-2 font-semibold">Development mode</Text>
@@ -152,7 +207,7 @@ export function PaymentMethodPicker({
         </div>
       ) : null}
 
-      {!stripeEnabled && !mpesaEnabled && !devMode ? (
+      {!stripeEnabled && !mpesaEnabled && !codEnabled && !devMode ? (
         <div className="rounded-xl border border-border bg-muted/30 p-6 text-center">
           <Text variant="muted">No payment methods are configured. Contact support.</Text>
         </div>

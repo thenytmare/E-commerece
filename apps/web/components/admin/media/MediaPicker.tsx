@@ -1,188 +1,93 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Search, X, Folder, FolderPlus } from 'lucide-react';
+import { MediaDialog } from './MediaDialog';
+import { MediaUploader } from './MediaUploader';
+import { optionPath, type MediaOption } from './media-options';
+import { usePermissions } from '@/lib/hooks/use-permissions';
 
-interface MediaFile {
-  id: string;
-  url: string;
-  filename: string;
-  mimeType: string;
+type MediaFile = { id: string; url: string; filename: string; originalFilename?: string; mimeType: string };
+type Props = { isOpen: boolean; onClose: () => void; onSelect: (url: string) => void; multiple?: boolean; categoryId?: string };
+
+export function MediaPicker(props: Props) {
+  // Mount fresh for each use, so old selections never leak into another field.
+  return props.isOpen ? <Picker {...props} /> : null;
 }
-
-interface MediaFolder {
-  id: string;
-  name: string;
-  _count: { files: number };
-  children: MediaFolder[];
-}
-
-interface MediaPickerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (url: string) => void;
-  multiple?: boolean;
-}
-
-export function MediaPicker({ isOpen, onClose, onSelect, multiple }: MediaPickerProps) {
+function Picker({ onClose, onSelect, multiple, categoryId }: Props) {
+  const { can } = usePermissions();
   const [files, setFiles] = useState<MediaFile[]>([]);
-  const [folders, setFolders] = useState<MediaFolder[]>([]);
+  const [folders, setFolders] = useState<MediaOption[]>([]);
+  const [categories, setCategories] = useState<MediaOption[]>([]);
+  const [category, setCategory] = useState(categoryId || '');
+  const [folder, setFolder] = useState('');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-  const [newFolderName, setNewFolderName] = useState('');
-
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [revision, setRevision] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [newFolder, setNewFolder] = useState('');
+  const [creating, setCreating] = useState(false);
   useEffect(() => {
-    if (!isOpen) return;
-    setLoading(true);
-
-    // Search server-side (debounced) so results aren't limited to the
-    // already-loaded page of files.
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams();
-      if (currentFolderId) params.set('folderId', currentFolderId);
-      if (search.trim()) params.set('search', search.trim());
-      const qs = params.toString();
-
-      fetch(`/api/admin/media/list${qs ? `?${qs}` : ''}`)
-        .then(res => res.json())
-        .then(data => setFiles(data.files || []))
-        .finally(() => setLoading(false));
-    }, search.trim() ? 250 : 0);
-
-    return () => clearTimeout(timer);
-  }, [isOpen, currentFolderId, search]);
-
+    const abort = new AbortController();
+    fetch('/api/admin/media/folders?all=1', { signal: abort.signal }).then(async res => {
+      if (!res.ok) throw new Error('Unable to load categories and folders.');
+      const data = await res.json(); setFolders(data.folders); setCategories(data.categories);
+    }).catch(err => { if (!abort.signal.aborted) setError(err.message); });
+    return () => abort.abort();
+  }, [revision]);
   useEffect(() => {
-    if (!isOpen) return;
-    fetch(`/api/admin/media/folders${currentFolderId ? `?parentId=${currentFolderId}` : ''}`)
-      .then(res => res.json())
-      .then(data => setFolders(data.folders || []));
-  }, [isOpen, currentFolderId]);
-
-  const filtered = files;
-
+    const abort = new AbortController(); setLoading(true); setError('');
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ imagesOnly: '1', page: String(page), search });
+        if (category) params.set('categoryId', category);
+        if (folder) params.set('folderId', folder);
+        const res = await fetch(`/api/admin/media/list?${params}`, { signal: abort.signal });
+        if (!res.ok) throw new Error('Unable to load images. Please try again.');
+        const data = await res.json(); setFiles(data.files); setPages(data.totalPages);
+      } catch (err) { if (!abort.signal.aborted) setError(err instanceof Error ? err.message : 'Unable to load images.'); }
+      finally { if (!abort.signal.aborted) setLoading(false); }
+    }, search ? 250 : 0);
+    return () => { clearTimeout(timer); abort.abort(); };
+  }, [folder, category, search, page, revision]);
   const createFolder = async () => {
-    if (!newFolderName.trim()) return;
-    await fetch('/api/admin/media/folders', {
-      method: 'POST',
-      body: JSON.stringify({ name: newFolderName.trim(), parentId: currentFolderId }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    setNewFolderName('');
-    // Refresh
-    fetch(`/api/admin/media/folders${currentFolderId ? `?parentId=${currentFolderId}` : ''}`)
-      .then(res => res.json())
-      .then(data => setFolders(data.folders || []));
+    if (!newFolder.trim() || creating) return;
+    setCreating(true); setError('');
+    try {
+      const res = await fetch('/api/admin/media/folders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newFolder.trim(), parentId: folder && folder !== '__root__' ? folder : null }) });
+      const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Unable to create folder.');
+      setNewFolder(''); setFolder(data.folder.id); setPage(1); setRevision(r => r + 1);
+    } catch (err) { setError(err instanceof Error ? err.message : 'Unable to create folder.'); }
+    finally { setCreating(false); }
   };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card border border-border rounded-lg w-full max-w-4xl max-h-[80vh] flex flex-col m-4" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <div>
-            <h3 className="text-lg font-semibold">Media Library</h3>
-            {/* Folder breadcrumb */}
-            <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-              <button onClick={() => setCurrentFolderId(null)} className="hover:text-primary hover:underline">All Files</button>
-              {currentFolderId && (
-                <span className="text-muted-foreground">/ ...</span>
-              )}
-            </div>
-          </div>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
-        </div>
-
-        {/* Folders + Search */}
-        <div className="p-3 border-b border-border space-y-3">
-          {/* Folders row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {folders.map(folder => (
-              <button
-                key={folder.id}
-                onClick={() => setCurrentFolderId(folder.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-md text-sm hover:bg-muted/80 transition-colors"
-              >
-                <Folder className="h-4 w-4 text-amber-500" />
-                {folder.name}
-                <span className="text-xs text-muted-foreground">({folder._count.files})</span>
-              </button>
-            ))}
-            {/* New folder input */}
-            <div className="flex items-center gap-1">
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={e => setNewFolderName(e.target.value)}
-                placeholder="New folder..."
-                className="w-28 bg-background border border-border rounded-md px-2 py-1.5 text-xs"
-                onKeyDown={e => e.key === 'Enter' && createFolder()}
-              />
-              <button
-                type="button"
-                onClick={createFolder}
-                className="p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-muted"
-                title="Create folder"
-              >
-                <FolderPlus className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text" placeholder="Search files..." value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-background border border-border rounded-md pl-9 pr-3 py-2 text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Files grid */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No files found</div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {filtered.map(file => (
-                <div
-                  key={file.id}
-                  className={`relative aspect-square rounded-lg border-2 cursor-pointer overflow-hidden transition-all hover:border-primary ${selected.includes(file.url) ? 'border-primary bg-primary/10' : 'border-border'}`}
-                  onClick={() => {
-                    if (multiple) {
-                      setSelected(prev => prev.includes(file.url) ? prev.filter(u => u !== file.url) : [...prev, file.url]);
-                    } else {
-                      onSelect(file.url);
-                      onClose();
-                    }
-                  }}
-                >
-                  {file.mimeType.startsWith('image/') ? (
-                    <Image src={file.url} alt={file.filename} fill className="object-cover" sizes="150px" />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-xs text-muted-foreground p-2 text-center">{file.filename}</div>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] p-1 truncate">{file.filename}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {multiple && selected.length > 0 && (
-          <div className="p-4 border-t border-border flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">{selected.length} selected</span>
-            <button onClick={() => { selected.forEach(url => onSelect(url)); onClose(); }} className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm">Insert Selected</button>
-          </div>
-        )}
-      </div>
+  return <MediaDialog title="Media Library" onClose={onClose}>
+    <div className="flex flex-wrap gap-3">
+      <label className="text-sm">Product category<select aria-label="Filter media category" value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} className="block rounded border bg-background p-2">
+        <option value="">All categories</option><option value="__none__">Uncategorized</option>{categories.map(c => <option key={c.id} value={c.id}>{optionPath(c, categories)}</option>)}
+      </select></label>
+      <label className="text-sm">Media folder<select aria-label="Filter media folder" value={folder} onChange={e => { setFolder(e.target.value); setPage(1); }} className="block rounded border bg-background p-2">
+        <option value="">All folders</option><option value="__root__">No folder</option>{folders.map(f => <option key={f.id} value={f.id}>{optionPath(f, folders)}</option>)}
+      </select></label>
+      {can('media.write') && <div className="self-end"><MediaUploader imagesOnly categoryId={category} folderId={folder} onUploadComplete={() => setRevision(r => r + 1)} /></div>}
     </div>
-  );
+    {can('media.write') && <div className="flex gap-2">
+      <input aria-label="New media folder" value={newFolder} maxLength={100} onChange={e => setNewFolder(e.target.value)} placeholder="New folder name" className="min-w-0 rounded border bg-background p-2 text-sm" />
+      <button type="button" disabled={creating || !newFolder.trim()} onClick={createFolder} className="rounded border px-3 text-sm disabled:opacity-50">Create folder</button>
+    </div>}
+    <input type="search" aria-label="Search images" placeholder="Search image filenames…" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="w-full rounded border bg-background p-2" />
+    {error && <p role="alert" className="text-destructive">{error} <button type="button" className="underline" onClick={() => setRevision(r => r + 1)}>Retry</button></p>}
+    {loading ? <p role="status">Loading images…</p> : !files.length ? <p>No images found. Try another category or upload images.</p> :
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">{files.map(file => <button type="button" key={file.id} aria-label={`Select ${file.originalFilename || file.filename}`} aria-pressed={selected.includes(file.url)}
+        className={`relative aspect-square overflow-hidden rounded border-2 ${selected.includes(file.url) ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
+        onClick={() => { if (multiple) setSelected(prev => prev.includes(file.url) ? prev.filter(url => url !== file.url) : [...prev, file.url]); else { onSelect(file.url); onClose(); } }}>
+        <Image src={file.url} alt="" fill sizes="150px" className="object-cover" />
+        <span className="absolute inset-x-0 bottom-0 truncate bg-black/70 p-1 text-xs text-white">{file.originalFilename || file.filename}</span>
+      </button>)}</div>}
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-3"><button type="button" disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)}>Previous</button><span>Page {page} of {pages}</span><button type="button" disabled={page >= pages || loading} onClick={() => setPage(p => p + 1)}>Next</button></div>
+      {multiple && <button type="button" disabled={!selected.length} className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50" onClick={() => { selected.forEach(onSelect); onClose(); }}>Insert selected ({selected.length})</button>}
+    </div>
+  </MediaDialog>;
 }

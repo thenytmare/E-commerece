@@ -46,7 +46,7 @@ export async function submitReviewAction(
     return { error: 'Please sign in to leave a review.' };
   }
 
-  const limit = rateLimit(`review:${await clientIdentifier()}`, 5, 10 * 60_000);
+  const limit = await rateLimit(`review:${await clientIdentifier()}`, 5, 10 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }

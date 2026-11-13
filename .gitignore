@@ -41,3 +41,11 @@ pnpm-debug.log*
 
 # Database backups (see docs/backups.md — never commit real dumps)
 /backups/
+
+# Runtime media and local reports are copied/backed up separately.
+/apps/web/public/uploads/
+/Claude outputs/
+/scripts/catalog-scraper/data/debug/
+/tests/cache/results.json
+/tests/cache/build-routes.txt
+/tests/load/results/

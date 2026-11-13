@@ -6,6 +6,8 @@ import { addressSchema } from '@/lib/validations/checkout';
 import { rememberGuestOrder } from '@/lib/guest-orders';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { createRepositories } from '@repo/database';
+import { deliveryFeeFor, isDeliveryZone } from '@repo/config';
+import { getStoreSettings } from '@/lib/store';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -29,7 +31,7 @@ export async function placeOrderAction(
 
   // Defense in depth — order creation is already bounded by real cart and
   // inventory state, but nothing stopped a script from hammering this action.
-  const limit = rateLimit(`place-order:${await clientIdentifier()}`, 10, 5 * 60_000);
+  const limit = await rateLimit(`place-order:${await clientIdentifier()}`, 10, 5 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -43,6 +45,19 @@ export async function placeOrderAction(
 
   const addressId = String(formData.get('addressId') ?? '');
   const notes = String(formData.get('notes') ?? '').trim();
+
+  // Delivery option and location. Checked against the shared delivery table;
+  // the fee itself is worked out again inside createFromCart.
+  const deliveryZoneRaw = formData.get('deliveryZone');
+  if (!isDeliveryZone(deliveryZoneRaw)) {
+    return { fieldErrors: { deliveryZone: 'Choose a delivery option.' } };
+  }
+  const deliveryZone = deliveryZoneRaw;
+  const deliveryLocation =
+    deliveryZone === 'PICKUP' ? null : String(formData.get('deliveryLocation') ?? '').trim();
+  if (deliveryFeeFor(deliveryZone, deliveryLocation) === null) {
+    return { fieldErrors: { deliveryLocation: 'Choose your location from the list.' } };
+  }
 
   // Guests get their order updates by email, so it's required for them and
   // ignored for signed-in customers (whose account address is used instead).
@@ -58,12 +73,30 @@ export async function placeOrderAction(
   let resolvedAddressId = addressId || undefined;
 
   if (!resolvedAddressId) {
+    // County and town follow from the delivery choice, so the customer isn't
+    // asked twice. Shop pickup only needs a name and phone number.
+    let county = formData.get('county');
+    let city = formData.get('city');
+    let street = formData.get('street');
+    if (deliveryZone === 'PICKUP') {
+      const store = await getStoreSettings();
+      county = 'Nairobi';
+      city = 'Shop pickup';
+      street = store.address;
+    } else if (deliveryZone === 'NAIROBI') {
+      county = 'Nairobi';
+      city = deliveryLocation;
+    } else {
+      // Outside Nairobi: the county; outside Kenya: the country.
+      county = deliveryLocation;
+    }
+
     const parsed = addressSchema.safeParse({
       name: formData.get('name'),
       phone: formData.get('phone'),
-      county: formData.get('county'),
-      city: formData.get('city'),
-      street: formData.get('street'),
+      county,
+      city,
+      street,
       postalCode: formData.get('postalCode') || undefined,
     });
 
@@ -103,6 +136,8 @@ export async function placeOrderAction(
       notes: notes || undefined,
       couponCode,
       guestEmail,
+      deliveryZone,
+      deliveryLocation,
     });
     orderNumber = order.orderNumber;
   } catch (error) {

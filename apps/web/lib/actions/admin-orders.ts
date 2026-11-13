@@ -17,6 +17,15 @@ const shipmentStatusForOrderStatus: Partial<Record<OrderStatus, string>> = {
   DELIVERED: 'delivered',
 };
 
+const ADMIN_SETTABLE_STATUSES: OrderStatus[] = [
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+  'REFUNDED',
+];
+
 export type AdminOrderActionState = {
   error?: string;
   success?: string;
@@ -44,15 +53,23 @@ export async function updateAdminOrderStatusAction(
   _prevState: AdminOrderActionState | null,
   formData: FormData
 ): Promise<AdminOrderActionState> {
-  const session = await requirePermission('orders.write');
+  // Refunding needs the same permission as the dedicated refund action, so
+  // the generic status control can't be used to get round it.
+  const requestedStatus = String(formData.get('status') ?? '');
+  const session = await requirePermission(
+    requestedStatus === 'REFUNDED' ? 'orders.delete' : 'orders.write'
+  );
 
   const orderId = String(formData.get('orderId') ?? '');
   const orderNumber = String(formData.get('orderNumber') ?? '');
-  const status = String(formData.get('status') ?? '') as OrderStatus;
 
-  if (!orderId || !status) {
+  if (!orderId || !requestedStatus) {
     return { error: 'Missing order details' };
   }
+  if (!ADMIN_SETTABLE_STATUSES.includes(requestedStatus as OrderStatus)) {
+    return { error: 'That status is not allowed' };
+  }
+  const status = requestedStatus as OrderStatus;
 
   const repos = createRepositories();
 

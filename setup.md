@@ -71,10 +71,10 @@ openssl rand -base64 32
 [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
 ```
 
-The default `DATABASE_URL` in `.env.example` matches the Docker Compose PostgreSQL service:
+Set `DATABASE_URL` to match the PostgreSQL credentials you choose in `.env` for Docker Compose. Replace the password placeholder below (URL-encode special characters):
 
 ```
-postgresql://prime_accessories_kenya:prime_accessories_kenya@localhost:5432/prime_accessories_kenya?schema=public
+postgresql://prime_accessories_kenya:<database-password>@localhost:5432/prime_accessories_kenya?schema=public
 ```
 
 ---

@@ -3,7 +3,15 @@
 import { createRepositories, prisma } from '@repo/database';
 import { slugify, uniqueSlug } from '@repo/utils';
 import { requirePermission } from './auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
+import {
+  parseFeaturesJson,
+  parseImageUrlsJson,
+  parseImageVariantsJson,
+  parseVariantsJson,
+} from '@repo/config';
 import { parseFormData, productSchema } from '@/lib/validations/admin';
 import { getClientIp } from '@/lib/request-context';
 
@@ -33,152 +41,56 @@ export async function createProductAction(
   formData: FormData
 ): Promise<ActionState> {
   const session = await requirePermission('products.write');
-
   const validation = parseFormData(productSchema, formData);
-  if (validation.fieldErrors) {
-    return { error: 'Please correct the highlighted fields.', fieldErrors: validation.fieldErrors };
-  }
-  const {
-    name,
-    brandId,
-    categoryId,
-    basePrice,
-    compareAtPrice,
-    costPrice,
-    shortDescription,
-    seoTitle,
-    seoDescription,
-    isActive,
-    isFeatured,
-    hasVariants,
-  } = validation.data;
-
+  if (validation.fieldErrors) return { error: 'Please correct the highlighted fields.', fieldErrors: validation.fieldErrors };
+  const { name, brandId, categoryId, basePrice, compareAtPrice, costPrice, shortDescription, seoTitle, seoDescription, isActive, isFeatured, hasVariants, stock } = validation.data;
+  const variants = parseVariantsJson(formData.get('variants') as string | null);
+  const images = parseImageUrlsJson(formData.get('imageUrls') as string | null);
+  const assignments = parseImageVariantsJson(formData.get('imageVariants') as string | null);
+  const features = parseFeaturesJson(formData.get('features') as string | null);
+  if (!variants.ok) return { error: variants.error };
+  if (!images.ok) return { error: images.error };
+  if (!assignments.ok) return { error: assignments.error };
+  if (!features.ok) return { error: features.error };
+  if (hasVariants && !variants.value?.length) return { error: 'Add at least one color variant.' };
+  if (compareAtPrice !== null && compareAtPrice !== undefined && compareAtPrice < 0) return { error: 'Compare-at price cannot be negative.' };
+  if ((stock ?? 0) > 0 || variants.value?.some(v => (v.stock ?? 0) > 0)) await requirePermission('inventory.write');
   try {
-    // Auto-generate unique slug from product name
-    const baseSlug = slugify(name);
-    const slug = await uniqueSlug(
-      (s) => prisma.product.count({ where: { slug: s } }).then((c) => c > 0),
-      baseSlug,
-    );
-
-    // Parse image URLs (multiple) and variant assignments
-    const imageUrlsJson = formData.get('imageUrls') as string;
-    const imageUrls: string[] = imageUrlsJson ? JSON.parse(imageUrlsJson) : [];
-    const imageVariantsJson = formData.get('imageVariants') as string;
-    const imageVariants: (number | null)[] = imageVariantsJson ? JSON.parse(imageVariantsJson) : [];
-
-    // Parse features (multiple bullet points)
-    const featuresJson = formData.get('features') as string;
-    const features: string[] = featuresJson ? JSON.parse(featuresJson) : [];
-
-    // Parse variants if enabled
-    const variantsJson = formData.get('variants') as string;
-    const colorVariants: { name: string; hex: string; price?: number }[] = variantsJson ? JSON.parse(variantsJson) : [];
-
-    // Generate SKU prefix from brand + name
-    const brand = await prisma.brand.findUnique({ where: { id: brandId }, select: { name: true } });
-    const skuPrefix = (brand?.name ?? 'PRD').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
-
-    // Create the product
-    const product = await prisma.product.create({
-      data: {
-        name,
-        slug,
-        brandId,
-        categoryId,
-        basePrice,
-        compareAtPrice: compareAtPrice ?? null,
-        costPrice,
-        shortDescription: shortDescription ?? null,
-        isFeatured,
-        isActive,
-        status: isActive ? 'active' : 'draft',
-        seoTitle: seoTitle ?? null,
-        seoDescription: seoDescription ?? null,
-      },
-    });
-
-    // Create images with variant assignments
-    if (imageUrls.length > 0) {
-      const variantRecords = hasVariants && colorVariants.length > 0
-        ? await prisma.productVariant.findMany({ where: { productId: product.id }, orderBy: { createdAt: 'asc' } })
-        : [];
-      
-      await Promise.all(imageUrls.map((url, i) => {
-        const variantIdx = imageVariants[i] ?? null;
-        const variantId = variantIdx !== null && variantRecords[variantIdx] ? variantRecords[variantIdx].id : null;
-        return prisma.productImage.create({
-          data: {
-            productId: product.id,
-            variantId,
-            url,
-            alt: name,
-            sortOrder: i,
-            isFeatured: i === 0,
-          },
-        });
-      }));
-    }
-
-    // Create features
-    if (features.length > 0) {
-      await prisma.productFeature.createMany({
-        data: features.map((text, i) => ({
-          productId: product.id,
-          text,
-          sortOrder: i,
-        })),
-      });
-    }
-
-    // Create variants
-    if (hasVariants && colorVariants.length > 0) {
-      await Promise.all(colorVariants.map((v, i) =>
-        prisma.productVariant.create({
-          data: {
-            productId: product.id,
-            sku: `${skuPrefix}-${skuNamePart(name)}-${String(i + 1).padStart(2, '0')}`,
-            price: v.price ?? basePrice,
-            compareAtPrice: compareAtPrice ?? null,
-            attributes: { color: v.name, hex: v.hex },
-            isDefault: i === 0,
-            inventory: { create: { quantity: 10, lowStockThreshold: 5 } },
-          },
-        })
-      ));
-    } else {
-      // Auto-create single default variant
-      await prisma.productVariant.create({
-        data: {
-          productId: product.id,
-          sku: `${skuPrefix}-${skuNamePart(name)}-01`,
-          price: basePrice,
-          compareAtPrice: compareAtPrice ?? null,
-          attributes: { color: 'Default' },
-          isDefault: true,
-          inventory: { create: { quantity: 10, lowStockThreshold: 5 } },
-        },
-      });
-    }
-
-    // Log audit
-    await repos.auditLog.create({
-      actorId: session.user.id,
-      ipAddress: (await getClientIp()) ?? undefined,
-      action: 'product.create',
-      entity: 'Product',
-      entityId: product.id,
-      metadata: { name, basePrice },
-    });
-
-    revalidatePath('/admin/catalog/products');
+    const slug = await uniqueSlug(s => prisma.product.count({ where: { slug: s } }).then(c => c > 0), slugify(name));
+    await prisma.$transaction(async tx => {
+      const brand = await tx.brand.findUnique({ where: { id: brandId }, select: { name: true } });
+      const prefix = (brand?.name ?? 'PRD').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+      const created = await tx.product.create({ data: {
+        name, slug, brandId, categoryId, basePrice, compareAtPrice: compareAtPrice ?? null, costPrice,
+        shortDescription: shortDescription ?? null, isFeatured, isActive, status: isActive ? 'active' : 'draft',
+        seoTitle: seoTitle ?? null, seoDescription: seoDescription ?? null,
+      } });
+      const inputs = hasVariants ? variants.value! : [{ name: 'Default', hex: '#000000', stock: stock ?? 0 }];
+      const variantIds: string[] = [];
+      for (const [i, v] of inputs.entries()) {
+        const variant = await tx.productVariant.create({ data: {
+          productId: created.id, sku: `${prefix}-${skuNamePart(name)}-${created.id}-${i + 1}`,
+          price: v.price ?? basePrice, compareAtPrice: compareAtPrice ?? null,
+          attributes: { color: v.name, hex: v.hex }, isDefault: i === 0,
+          inventory: { create: { quantity: v.stock ?? 0, lowStockThreshold: 5 } },
+        } });
+        variantIds.push(variant.id);
+        if (v.stock) await tx.inventoryLog.create({ data: { variantId: variant.id, change: v.stock, reason: 'opening_stock', referenceId: session.user.id } });
+      }
+      for (const [i, url] of (images.value ?? []).entries()) {
+        const idx = assignments.value[i];
+        await tx.productImage.create({ data: { productId: created.id, url, alt: name, sortOrder: i, isFeatured: i === 0, variantId: idx == null ? null : variantIds[idx] ?? null } });
+      }
+      if (features.value?.length) await tx.productFeature.createMany({ data: features.value.map((text, i) => ({ productId: created.id, text, sortOrder: i })) });
+      await tx.auditLog.create({ data: { actorId: session.user.id, action: 'product.create', entity: 'Product', entityId: created.id, metadata: { name, basePrice } } });
+    }, { maxWait: 10_000, timeout: 20_000 });
+    revalidatePath('/admin/catalog/products'); revalidatePath('/admin/inventory'); revalidateTag('catalog');
     return { success: true };
   } catch (error) {
     console.error('Failed to create product:', error);
-    return { error: 'Failed to create product.' };
+    return { error: 'Failed to create product. Nothing was saved.' };
   }
 }
-
 export async function updateProductAction(
   id: string,
   _prevState: ActionState | null,
@@ -202,13 +114,33 @@ export async function updateProductAction(
     seoDescription,
     isActive,
     isFeatured,
-    hasVariants,
+    hasVariants, stock, expectedStock,
   } = validation.data;
+
+  // Check every nested part of the payload BEFORE writing anything.
+  const variants = parseVariantsJson(formData.get('variants') as string | null);
+  if (!variants.ok) return { error: variants.error };
+  const imageUrls = parseImageUrlsJson(formData.get('imageUrls') as string | null);
+  if (!imageUrls.ok) return { error: imageUrls.error };
+  const imageVariants = parseImageVariantsJson(formData.get('imageVariants') as string | null);
+  if (!imageVariants.ok) return { error: imageVariants.error };
+  const features = parseFeaturesJson(formData.get('features') as string | null);
+  if (!features.ok) return { error: features.error };
+
+  if (hasVariants && !variants.value?.length) return { error: 'Add at least one color variant.' };
+  if (stock !== null || variants.value?.some(v => v.stock !== undefined)) await requirePermission('inventory.write');
+  if (variants.value?.some(v => v.id && v.stock !== undefined && v.expectedStock === undefined)) return { error: 'Stock requires the previous quantity. Reload the product.' };
+  if (stock !== null && expectedStock === null) return { error: 'Stock requires the previous quantity. Reload the product.' };
+  // Variant prices follow the same rules as the base price.
+  if (compareAtPrice !== undefined && compareAtPrice !== null && compareAtPrice < 0) {
+    return { error: 'Compare-at price cannot be negative.' };
+  }
 
   try {
     // Get current product to detect name changes
     const existing = await repos.product.findById(id);
-    const nameChanged = existing && existing.name !== name;
+    if (!existing) return { error: 'Product not found.' };
+    const nameChanged = existing.name !== name;
 
     // Only regenerate slug if name actually changed
     let slug: string | undefined;
@@ -220,164 +152,35 @@ export async function updateProductAction(
       );
     }
 
-    await repos.product.update(id, {
-      name,
-      ...(slug ? { slug } : {}),
-      brandId,
-      categoryId,
+    // One transaction: if anything fails, the product is left as it was.
+    await repos.product.updateAggregate(id, {
+      product: {
+        name,
+        ...(slug ? { slug } : {}),
+        brandId,
+        categoryId,
+        basePrice,
+        compareAtPrice: compareAtPrice ?? null,
+        costPrice,
+        shortDescription: shortDescription ?? null,
+        isFeatured,
+        isActive,
+        status: isActive ? 'active' : 'draft',
+        seoTitle: seoTitle ?? null,
+        seoDescription: seoDescription ?? null,
+      },
       basePrice,
       compareAtPrice: compareAtPrice ?? null,
-      costPrice,
-      shortDescription: shortDescription ?? null,
-      isFeatured,
-      isActive,
-      status: isActive ? 'active' : 'draft',
-      seoTitle: seoTitle ?? null,
-      seoDescription: seoDescription ?? null,
+      hasVariants,
+      brandId,
+      name,
+      variants: variants.value,
+      stock: stock ?? undefined, expectedStock: expectedStock ?? undefined, actorId: session.user.id,
+      images: imageUrls.value
+        ? { urls: imageUrls.value, variantIndexes: imageVariants.value }
+        : undefined,
+      features: features.value,
     });
-
-    // Handle color variants. Must run before image handling below, since
-    // image->variant assignments are resolved against the post-edit variant
-    // list (see comment there).
-    const variantsJson = formData.get('variants') as string | null;
-
-    if (hasVariants && variantsJson) {
-      const submittedVariants: { id?: string; name: string; hex: string; price?: number }[] =
-        JSON.parse(variantsJson);
-
-      const existingVariants = await prisma.productVariant.findMany({ where: { productId: id } });
-      const submittedIds = new Set(submittedVariants.filter((v) => v.id).map((v) => v.id));
-
-      // Update variants that still exist.
-      await Promise.all(
-        submittedVariants
-          .filter((v) => v.id)
-          .map((v) =>
-            prisma.productVariant.update({
-              where: { id: v.id },
-              data: {
-                attributes: { color: v.name, hex: v.hex },
-                price: v.price ?? basePrice,
-                compareAtPrice: compareAtPrice ?? null,
-              },
-            })
-          )
-      );
-
-      // Create newly-added variants.
-      const newVariants = submittedVariants.filter((v) => !v.id);
-      if (newVariants.length > 0) {
-        const brand = await prisma.brand.findUnique({
-          where: { id: brandId },
-          select: { name: true },
-        });
-        const skuPrefix = (brand?.name ?? 'PRD').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
-        const namePart = skuNamePart(name);
-        let nextIndex = existingVariants.length + 1;
-        // If the product had zero variants going in (shouldn't normally
-        // happen), make the first newly-created one the default.
-        const needsDefault = !existingVariants.some((v) => v.isDefault);
-        let defaultAssigned = false;
-
-        await Promise.all(
-          newVariants.map((v) => {
-            const sku = `${skuPrefix}-${namePart}-${String(nextIndex++).padStart(2, '0')}`;
-            const isDefault = needsDefault && !defaultAssigned;
-            if (isDefault) defaultAssigned = true;
-            return prisma.productVariant.create({
-              data: {
-                productId: id,
-                sku,
-                price: v.price ?? basePrice,
-                compareAtPrice: compareAtPrice ?? null,
-                attributes: { color: v.name, hex: v.hex },
-                isDefault,
-                inventory: { create: { quantity: 10, lowStockThreshold: 5 } },
-              },
-            });
-          })
-        );
-      }
-
-      // Variants removed by the admin: only hard-delete ones with no order
-      // history, since OrderItem.variant is a required FK (deleting would
-      // corrupt past orders). Cart items referencing a removed variant are
-      // cleared first so the delete isn't blocked by that FK either.
-      const removedVariants = existingVariants.filter((v) => !submittedIds.has(v.id));
-      for (const variant of removedVariants) {
-        const orderCount = await prisma.orderItem.count({ where: { variantId: variant.id } });
-        if (orderCount > 0) continue;
-        await prisma.cartItem.deleteMany({ where: { variantId: variant.id } });
-        await prisma.wishlistItem.deleteMany({ where: { variantId: variant.id } });
-        await prisma.productVariant.delete({ where: { id: variant.id } });
-      }
-    } else if (!hasVariants) {
-      // Simple (non-variant) product: keep its single default variant's
-      // price in sync with the Base Price / Compare-at Price fields, since
-      // the storefront always reads price from the variant, not the product.
-      const defaultVariant = await prisma.productVariant.findFirst({
-        where: { productId: id },
-        orderBy: { createdAt: 'asc' },
-      });
-      if (defaultVariant) {
-        await prisma.productVariant.update({
-          where: { id: defaultVariant.id },
-          data: { price: basePrice, compareAtPrice: compareAtPrice ?? null },
-        });
-      }
-    }
-
-    // Handle images (with variant associations)
-    const imageUrlsJson = formData.get('imageUrls') as string;
-    if (imageUrlsJson) {
-      const imageUrls: string[] = JSON.parse(imageUrlsJson);
-      const imageVariantsJson = formData.get('imageVariants') as string;
-      const imageVariants: (number | null)[] = imageVariantsJson ? JSON.parse(imageVariantsJson) : [];
-
-      // Delete existing images
-      await prisma.productImage.deleteMany({ where: { productId: id } });
-
-      if (imageUrls.length > 0) {
-        // Fetch variants ordered by creation to map indices -> ids. This must
-        // run after the variant create/update/delete step above so removed
-        // variants don't shift indices and newly-added ones are included.
-        const variantRecords = await prisma.productVariant.findMany({
-          where: { productId: id },
-          orderBy: { createdAt: 'asc' },
-        });
-
-        await Promise.all(imageUrls.map((url, i) => {
-          const variantIdx = imageVariants[i] ?? null;
-          const variantId = variantIdx !== null && variantRecords[variantIdx] ? variantRecords[variantIdx].id : null;
-          return prisma.productImage.create({
-            data: {
-              productId: id,
-              variantId,
-              url,
-              alt: name,
-              sortOrder: i,
-              isFeatured: i === 0,
-            },
-          });
-        }));
-      }
-    }
-
-    // Handle features
-    const featuresJson = formData.get('features') as string;
-    if (featuresJson) {
-      const features: string[] = JSON.parse(featuresJson);
-      await prisma.productFeature.deleteMany({ where: { productId: id } });
-      if (features.length > 0) {
-        await prisma.productFeature.createMany({
-          data: features.map((text, i) => ({
-            productId: id,
-            text,
-            sortOrder: i,
-          })),
-        });
-      }
-    }
 
     // Log audit
     await repos.auditLog.create({
@@ -389,12 +192,19 @@ export async function updateProductAction(
       metadata: { name },
     });
 
-    revalidatePath('/admin/catalog/products');
+    revalidatePath('/admin/catalog/products'); revalidateTag('catalog');
+    revalidatePath('/admin/inventory');
     revalidatePath(`/admin/catalog/products/${id}`);
     return { success: true };
   } catch (error) {
     console.error('Failed to update product:', error);
-    return { error: 'Failed to update product.' };
+    if (error instanceof Error && (error.message.includes('does not belong') || error.message.startsWith('Stock'))) {
+      return { error: error.message };
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return { error: 'A SKU or slug already exists. Nothing was saved.' };
+    }
+    return { error: 'Failed to update product. Nothing was saved.' };
   }
 }
 
@@ -411,7 +221,7 @@ export async function deleteProductAction(id: string): Promise<{ success: boolea
       entityId: id,
       metadata: { name: product?.name ?? 'Unknown' },
     });
-    revalidatePath('/admin/catalog/products');
+    revalidatePath('/admin/catalog/products'); revalidateTag('catalog');
     return { success: true };
   } catch (error) {
     console.error('Failed to delete product:', error);
@@ -423,30 +233,99 @@ export async function restoreProductAction(id: string): Promise<{ success: boole
   await requirePermission('products.write');
   try {
     await repos.product.restore(id);
-    revalidatePath('/admin/catalog/products');
+    revalidatePath('/admin/catalog/products'); revalidateTag('catalog');
     return { success: true };
   } catch {
     return { success: false, error: 'Failed to restore product.' };
   }
 }
 
-export async function toggleProductStatusAction(id: string, isActive: boolean): Promise<{ success: boolean; error?: string }> {
-  await requirePermission('products.write');
-  try {
-    await repos.product.update(id, { isActive });
-    revalidatePath('/admin/catalog/products');
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to toggle product status:', error);
-    return { success: false, error: 'Failed to toggle product status.' };
+export type VisibilityResult = { success: boolean; changed?: number; error?: string };
+
+const MAX_BULK_VISIBILITY = 200;
+const visibilityInputSchema = z.object({
+  ids: z.array(z.string().trim().min(1).max(64)).min(1).max(MAX_BULK_VISIBILITY),
+  isActive: z.boolean(),
+});
+
+/**
+ * Show or hide products on the storefront. Shared by the single toggle, the
+ * bulk buttons and the old bulk "activate" and "deactivate" actions, so every
+ * path validates, writes, logs and refreshes the same way.
+ */
+async function applyProductVisibility(
+  session: { user: { id: string } },
+  ids: string[],
+  isActive: boolean
+): Promise<VisibilityResult> {
+  const parsed = visibilityInputSchema.safeParse({ ids: [...new Set(ids)], isActive });
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: ids.length > MAX_BULK_VISIBILITY
+        ? `Choose at most ${MAX_BULK_VISIBILITY} products at a time.`
+        : 'Invalid request.',
+    };
   }
+
+  try {
+    const changed = await repos.product.bulkSetActive(parsed.data.ids, parsed.data.isActive);
+    if (changed === 0) {
+      return { success: false, changed: 0, error: 'That product is missing or in the Trash.' };
+    }
+
+    await repos.auditLog.create({
+      actorId: session.user.id,
+      ipAddress: (await getClientIp()) ?? undefined,
+      action: 'product.visibility_change',
+      entity: 'Product',
+      entityId: parsed.data.ids.length === 1 ? parsed.data.ids[0]! : 'bulk',
+      metadata: { ids: parsed.data.ids, isActive: parsed.data.isActive, changed },
+    });
+
+    // Refresh cached storefront data and the admin list so the change shows soon.
+    revalidateTag('catalog');
+    revalidatePath('/admin/catalog/products');
+    revalidatePath('/');
+    revalidatePath('/products');
+    return { success: true, changed };
+  } catch (error) {
+    console.error('Failed to change product visibility:', error);
+    return { success: false, error: 'Could not change visibility. Nothing was changed.' };
+  }
+}
+
+/** Show (true) or hide (false) one product on the storefront. */
+export async function setProductVisibilityAction(
+  productId: string,
+  isActive: boolean
+): Promise<VisibilityResult> {
+  const session = await requirePermission('products.write');
+  return applyProductVisibility(session, [productId], isActive);
+}
+
+/** Show or hide up to 200 products at once. */
+export async function bulkSetProductVisibilityAction(
+  ids: string[],
+  isActive: boolean
+): Promise<VisibilityResult> {
+  const session = await requirePermission('products.write');
+  return applyProductVisibility(session, ids, isActive);
+}
+
+/** Kept for older callers. Same behaviour as setProductVisibilityAction. */
+export async function toggleProductStatusAction(
+  id: string,
+  isActive: boolean
+): Promise<VisibilityResult> {
+  return setProductVisibilityAction(id, isActive);
 }
 
 export async function bulkActionProducts(
   ids: string[],
   action: 'soft-delete' | 'restore' | 'activate' | 'deactivate' | 'permanent-delete'
 ): Promise<{ success: boolean; error?: string; count?: number }> {
-  await requirePermission('products.write');
+  const session = await requirePermission('products.write');
   try {
     let count = 0;
     switch (action) {
@@ -458,17 +337,17 @@ export async function bulkActionProducts(
         count = await repos.product.bulkRestore(ids);
         break;
       case 'activate':
-        count = await repos.product.bulkSetActive(ids, true);
-        break;
-      case 'deactivate':
-        count = await repos.product.bulkSetActive(ids, false);
-        break;
+      case 'deactivate': {
+        const visibility = await applyProductVisibility(session, ids, action === 'activate');
+        if (!visibility.success) return { success: false, error: visibility.error };
+        return { success: true, count: visibility.changed };
+      }
       case 'permanent-delete':
         await requirePermission('products.delete');
         count = await repos.product.bulkDelete(ids);
         break;
     }
-    revalidatePath('/admin/catalog/products');
+    revalidatePath('/admin/catalog/products'); revalidateTag('catalog');
     return { success: true, count };
   } catch {
     return { success: false, error: `Bulk ${action} failed.` };

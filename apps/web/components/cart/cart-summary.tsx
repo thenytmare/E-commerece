@@ -1,3 +1,4 @@
+import { isCartItemAvailable } from '@/lib/cart-view';
 import { calculateOrderTotals, FREE_SHIPPING_THRESHOLD_KES } from '@/lib/checkout';
 import { formatPrice } from '@/lib/format';
 import type { CartWithItems } from '@repo/database';
@@ -9,7 +10,8 @@ interface CartSummaryProps {
 }
 
 export async function CartSummary({ cart }: CartSummaryProps) {
-  const { subtotal, shipping, total } = await calculateOrderTotals(cart);
+  const { subtotal } = await calculateOrderTotals(cart);
+  const unavailableCount = cart.items.filter((item) => !isCartItemAvailable(item)).length;
   const itemCount = cart.items.reduce((count, item) => count + item.quantity, 0);
 
   return (
@@ -23,24 +25,38 @@ export async function CartSummary({ cart }: CartSummaryProps) {
           <dd className="font-medium">{formatPrice(subtotal)}</dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Shipping</dt>
-          <dd className="font-medium">
-            {shipping === 0 ? 'Free' : formatPrice(shipping)}
+          <dt className="text-muted-foreground">Delivery</dt>
+          <dd className="font-medium text-muted-foreground">
+            {subtotal >= FREE_SHIPPING_THRESHOLD_KES ? 'Free' : 'Calculated at checkout'}
           </dd>
         </div>
       </dl>
       {subtotal < FREE_SHIPPING_THRESHOLD_KES ? (
         <Text variant="muted" className="mt-3 text-xs">
-          Free shipping on orders over {formatPrice(FREE_SHIPPING_THRESHOLD_KES)}
+          Delivery from {formatPrice(100)} in Nairobi CBD. Free shop pickup, and free delivery on
+          orders over {formatPrice(FREE_SHIPPING_THRESHOLD_KES)}
         </Text>
       ) : null}
       <div className="mt-4 flex justify-between border-t border-border pt-4">
-        <Text className="font-semibold">Estimated total</Text>
-        <Text className="text-lg font-semibold">{formatPrice(total)}</Text>
+        <Text className="font-semibold">Subtotal</Text>
+        <Text className="text-lg font-semibold">{formatPrice(subtotal)}</Text>
       </div>
-      <Button className="mt-6 w-full" asChild>
-        <Link href="/checkout">Proceed to checkout</Link>
-      </Button>
+      {unavailableCount > 0 ? (
+        <>
+          <Text className="mt-4 text-sm text-destructive" role="alert">
+            {unavailableCount === 1
+              ? 'One item is no longer available. Remove it to continue.'
+              : `${unavailableCount} items are no longer available. Remove them to continue.`}
+          </Text>
+          <Button className="mt-4 w-full" disabled>
+            Proceed to checkout
+          </Button>
+        </>
+      ) : (
+        <Button className="mt-6 w-full" asChild>
+          <Link href="/checkout">Proceed to checkout</Link>
+        </Button>
+      )}
       <Button variant="outline" className="mt-3 w-full" asChild>
         <Link href="/products">Continue shopping</Link>
       </Button>

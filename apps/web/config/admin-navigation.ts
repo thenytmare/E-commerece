@@ -13,7 +13,8 @@ import {
   Layout,
   Megaphone,
   BellRing,
-  Zap
+  Zap,
+  Timer
 } from 'lucide-react';
 
 // Register core Phase 1 modules here for now.
@@ -303,6 +304,26 @@ registerModule({
           href: '/admin/settings/store',
           icon: Settings,
           requiredPermissions: ['settings.read'],
+        }
+      ]
+    }
+  ]
+});
+
+registerModule({
+  id: 'jobs-module',
+  name: 'Background Jobs',
+  permissions: ['settings.write'],
+  routes: ['/admin/settings/jobs'],
+  navigation: [
+    {
+      group: 'Settings',
+      items: [
+        {
+          title: 'Background Jobs',
+          href: '/admin/settings/jobs',
+          icon: Timer,
+          requiredPermissions: ['settings.write'],
         }
       ]
     }

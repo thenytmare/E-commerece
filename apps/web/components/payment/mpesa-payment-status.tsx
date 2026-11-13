@@ -16,7 +16,7 @@ type PaymentStatusResponse = {
   terminal: boolean;
 };
 
-type UiState = 'waiting' | 'success' | 'failed' | 'timeout';
+type UiState = 'waiting' | 'success' | 'failed' | 'timeout' | 'refunded';
 
 interface Props {
   paymentId: string;
@@ -35,6 +35,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
   const [state, setState] = useState<UiState>('waiting');
   const [detail, setDetail] = useState<PaymentStatusResponse | null>(null);
   const startedAt = useRef(Date.now());
+  const [pollRun, setPollRun] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +66,12 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
             setState('failed');
             return;
           }
+          // Refunded is a final state too. Stop polling.
+          if (data.status === 'REFUNDED') {
+            setState('refunded');
+            router.refresh();
+            return;
+          }
         }
       } catch {
         // Transient network problem — keep polling until the cap.
@@ -78,7 +85,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [paymentId, router]);
+  }, [paymentId, router, pollRun]);
 
   if (state === 'success') {
     return (
@@ -110,18 +117,32 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
     );
   }
 
+  if (state === 'refunded') {
+    return (
+      <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+        <Text className="font-semibold">This payment was refunded</Text>
+        <Text variant="muted" className="text-sm">
+          No further payment is needed for this order.
+        </Text>
+        <Button asChild className="w-full">
+          <a href={`/orders/${orderNumber}`}>View your order</a>
+        </Button>
+      </div>
+    );
+  }
+
   if (state === 'timeout') {
     return (
       <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-6 space-y-3">
         <Text className="font-semibold">Still waiting for confirmation</Text>
         <Text variant="muted" className="text-sm">
           We haven&apos;t had a result from M-Pesa yet. If you completed the payment it will
-          appear on your order shortly — refresh this page in a moment. Otherwise you can try
-          again.
+          appear on your order shortly. Check the status again before retrying if money was deducted.
+          Your order items are saved in your cart.
         </Text>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => router.refresh()}>
-            Refresh
+          <Button variant="outline" onClick={() => { startedAt.current = Date.now(); setState('waiting'); setPollRun(n => n + 1); }}>
+            Check status again
           </Button>
           <Button variant="outline" onClick={onRetry}>
             Try again
@@ -142,8 +163,9 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
       </div>
       <Text variant="muted" className="text-sm">
         Enter your M-Pesa PIN on the prompt to complete payment. This page updates automatically
-        — don&apos;t close it.
+        and your items remain saved if you leave this page.
       </Text>
+      <Button variant="outline" onClick={onRetry} className="w-full">Didn&apos;t receive a prompt? Try again</Button>
     </div>
   );
 }

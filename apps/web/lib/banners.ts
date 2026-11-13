@@ -1,4 +1,4 @@
-import { createRepositories } from '@repo/database';
+import { getCachedSetting } from '@/lib/catalog-cache';
 
 export type Banner = {
   id: string;
@@ -13,8 +13,7 @@ export type Banner = {
 
 /** All banners as stored, regardless of active/expiry state — admin use. */
 export async function getAllBanners(): Promise<Banner[]> {
-  const repos = createRepositories();
-  const setting = await repos.siteSetting.findByKey('banners');
+  const setting = await getCachedSetting('banners');
   return (setting?.value as Banner[] | undefined) ?? [];
 }
 

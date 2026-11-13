@@ -5,6 +5,7 @@ import { ProductGrid } from '@/components/catalog/product-grid';
 import { getCatalogRepos, resolveCatalogFilters, type CatalogSearchParams } from '@/lib/catalog';
 import { Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
+import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedRootCategories } from '@/lib/catalog-cache';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -21,8 +22,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const filters = await resolveCatalogFilters(params);
 
   const [categories, brands, catalog] = await Promise.all([
-    repos.category.findRootCategories(),
-    repos.brand.findAllActive(),
+    getCachedRootCategories(),
+    getCachedActiveBrands(),
     repos.product.findMany({
       categoryId: filters.categoryId,
       brandId: filters.brandId,

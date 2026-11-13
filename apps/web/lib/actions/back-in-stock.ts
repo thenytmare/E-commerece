@@ -40,7 +40,7 @@ export async function subscribeBackInStock(
 ) {
   // Public and unauthenticated by design, so it needs its own throttle —
   // otherwise anyone can sign an address up for unlimited restock alerts.
-  const limit = rateLimit(`back-in-stock:${await clientIdentifier()}`, 10, 10 * 60_000);
+  const limit = await rateLimit(`back-in-stock:${await clientIdentifier()}`, 10, 10 * 60_000);
   if (!limit.allowed) {
     return { success: false, error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -59,6 +59,11 @@ export async function subscribeBackInStock(
     // Link to the account when there is one, so the subscription follows the
     // customer rather than whichever address they happened to type.
     const session = await auth();
+
+    const visible = await repos.product.findById(parsed.data.productId);
+    if (!visible || !visible.isActive || visible.deletedAt) {
+      return { success: false, error: 'This product is no longer available.' };
+    }
 
     await repos.backInStock.subscribe({
       productId: parsed.data.productId,

@@ -16,6 +16,12 @@ export async function register() {
     validateEnv();
 
     await import('./sentry.server.config');
+
+    const { startMetrics } = await import('@/lib/observability/metrics');
+    startMetrics();
+
+    const { startJobWorker } = await import('@/lib/jobs/worker');
+    startJobWorker();
   }
 
   if (process.env.NEXT_RUNTIME === 'edge') {

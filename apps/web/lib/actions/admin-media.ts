@@ -1,21 +1,20 @@
 'use server';
 
-import { createRepositories, prisma } from '@repo/database';
+import { createRepositories } from '@repo/database';
 import { revalidatePath } from 'next/cache';
 import { requirePermission } from './auth';
-import { unlink } from 'fs/promises';
-import path from 'path';
+import { getStorage } from '@/lib/media/storage-driver';
 
 const repos = createRepositories();
 
-/** Best-effort removal of uploaded files from local disk storage. */
+/** Best-effort removal of uploaded files from the storage driver (local disk or S3). */
 async function deleteFilesFor(urls: (string | null)[]): Promise<void> {
   await Promise.all(
     urls
       .filter((url): url is string => !!url?.startsWith('/uploads/'))
       .map(async (url) => {
         try {
-          await unlink(path.join(process.cwd(), 'public', url));
+          await getStorage().remove(decodeURIComponent(url.slice('/uploads/'.length)));
         } catch {
           // File already gone or unreadable — don't block the DB delete on this.
         }
@@ -23,29 +22,13 @@ async function deleteFilesFor(urls: (string | null)[]): Promise<void> {
   );
 }
 
-/**
- * Count catalog records still pointing at these URLs.
- *
- * Product images, category images, and brand logos all store a bare URL string
- * rather than a foreign key into the media library, so nothing at the database
- * level stops a file that's still on the storefront from being deleted. This
- * is that missing check.
- */
-async function countReferences(urls: string[]): Promise<number> {
-  if (urls.length === 0) return 0;
-
-  const [productImages, categories, brands] = await Promise.all([
-    prisma.productImage.count({ where: { url: { in: urls } } }),
-    prisma.category.count({ where: { imageUrl: { in: urls } } }),
-    prisma.brand.count({ where: { logoUrl: { in: urls } } }),
-  ]);
-
-  return productImages + categories + brands;
+/** Places these files are still used, from the one shared check in the repository. */
+async function countReferences(urls: string[]): Promise<string[]> {
+  return repos.media.findReferences(urls);
 }
 
-function inUseMessage(count: number): string {
-  const noun = count === 1 ? 'place' : 'places';
-  return `Still used in ${count} ${noun} on the storefront. Remove it from those first, or choose "Delete anyway".`;
+function inUseMessage(places: string[]): string {
+  return `Still used in: ${places.join(', ')}. Remove it from those first, or choose "Delete anyway".`;
 }
 
 export async function deleteMediaAction(
@@ -61,8 +44,8 @@ export async function deleteMediaAction(
 
     if (!options.force) {
       const references = await countReferences([record.url]);
-      if (references > 0) {
-        return { success: false, error: inUseMessage(references), inUse: references };
+      if (references.length > 0) {
+        return { success: false, error: inUseMessage(references), inUse: references.length };
       }
     }
 
@@ -93,6 +76,25 @@ export async function moveMediaToFolderAction(
   }
 }
 
+/** Organize existing uploads using the same categories as the product catalog. */
+export async function assignMediaCategoryAction(ids: string[], categoryId: string | null) {
+  await requirePermission('media.write');
+  if (!Array.isArray(ids) || ids.length === 0 || ids.length > 200 || ids.some(id => typeof id !== 'string')) {
+    return { success: false, error: 'Select between 1 and 200 files.' };
+  }
+  try {
+    if (categoryId !== null) {
+      const category = await repos.category.findById(categoryId);
+      if (!category || category.deletedAt) return { success: false, error: 'Category not found.' };
+    }
+    await repos.media.assignCategory(ids, categoryId);
+    revalidatePath('/admin/media');
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Could not assign the category.' };
+  }
+}
+
 export async function bulkDeleteMediaAction(
   ids: string[],
   options: { force?: boolean } = {}
@@ -105,8 +107,8 @@ export async function bulkDeleteMediaAction(
 
     if (!options.force) {
       const references = await countReferences(records.map((record) => record.url));
-      if (references > 0) {
-        return { success: false, error: inUseMessage(references), inUse: references };
+      if (references.length > 0) {
+        return { success: false, error: inUseMessage(references), inUse: references.length };
       }
     }
 

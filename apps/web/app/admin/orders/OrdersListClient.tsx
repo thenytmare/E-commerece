@@ -13,6 +13,7 @@ import { formatDate, formatDateTime, formatPrice } from '@/lib/format';
 import { Eye, XCircle } from 'lucide-react';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
 import { ShipmentForm } from '@/components/admin/ShipmentForm';
+import { deliveryZoneLabel } from '@repo/config/delivery';
 
 const orderStatusBadgeMap: Record<string, StatusType> = {
   PENDING: 'pending',
@@ -115,8 +116,13 @@ export function OrdersListClient({
       header: 'Payment Status',
       cell: (item) => {
         const completedPayment = item.payments.find((p) => p.status === 'COMPLETED');
+        const codPending = item.payments.some(
+          (p) => p.provider === 'CASH_ON_DELIVERY' && p.status === 'PENDING'
+        );
         return completedPayment ? (
           <StatusBadge status="success" label={`PAID (${completedPayment.provider})`} />
+        ) : codPending ? (
+          <StatusBadge status="pending" label="CASH ON DELIVERY" />
         ) : (
           <StatusBadge status="draft" label="UNPAID" />
         );
@@ -335,6 +341,16 @@ export function OrdersListClient({
                 <div>
                   <span className="text-xs text-muted-foreground block">Phone Contact</span>
                   <span className="text-sm font-medium">{selectedOrder.address?.phone || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">Delivery</span>
+                  <span className="text-sm font-medium">
+                    {selectedOrder.deliveryZone
+                      ? `${deliveryZoneLabel(selectedOrder.deliveryZone)}${
+                          selectedOrder.deliveryLocation ? ` · ${selectedOrder.deliveryLocation}` : ''
+                        } · ${Number(selectedOrder.shipping) === 0 ? 'Free' : formatPrice(Number(selectedOrder.shipping))}`
+                      : 'N/A'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-xs text-muted-foreground block">Shipping Address</span>

@@ -1,4 +1,8 @@
 import { BaseRepository } from './base.repository';
+import { enqueueJobs } from './job.repository';
+
+/** Job type for the "it is back in stock" email. Handled in apps/web/lib/jobs. */
+export const BACK_IN_STOCK_EMAIL_JOB = 'back-in-stock.email';
 
 export class BackInStockRepository extends BaseRepository {
   /**
@@ -80,6 +84,7 @@ export class BackInStockRepository extends BaseRepository {
             id: true,
             name: true,
             slug: true,
+            isActive: true,
             variants: { select: { inventory: { select: { quantity: true, reserved: true } } } },
           },
         },
@@ -96,20 +101,53 @@ export class BackInStockRepository extends BaseRepository {
   }
 
   /**
-   * Marks everyone waiting on a product as notified and returns their
-   * contact details so the caller can actually reach them.
+   * Marks everyone waiting on a product as notified, queues an email for each
+   * one we can email, and returns them all so the caller can also reach the
+   * rest (phone only) another way.
    *
-   * Delivery itself is deliberately not done here: this project has no
-   * transactional email provider configured, and WhatsApp sending is
-   * link-based (see admin-whatsapp.ts). The admin queue at
-   * /admin/marketing/back-in-stock consumes these records and opens a
-   * pre-filled message per subscriber, matching how campaigns already work.
+   * Marking and queueing happen in one transaction (outbox), so a subscriber
+   * is never marked "notified" without an email on its way, or the reverse.
+   * Each row is claimed with `notifiedAt: null` in the condition, so two
+   * restocks at the same moment cannot both notify the same person.
    */
   async notifyProductInStock(productId: string) {
-    const subscribers = await this.getActiveForProduct(productId);
-    for (const sub of subscribers) {
-      await this.markNotified(sub.id);
-    }
-    return subscribers;
+    return this.db.$transaction(async (tx) => {
+      // A hidden product cannot be bought, so do not tell people it is back.
+      // Their subscriptions stay waiting until the product is shown again.
+      const visible = await tx.product.count({
+        where: { id: productId, isActive: true, deletedAt: null },
+      });
+      if (visible === 0) return [];
+
+      const waiting = await tx.backInStockNotification.findMany({
+        where: { productId, isActive: true, notifiedAt: null },
+      });
+      if (waiting.length === 0) return [];
+
+      const notifiedAt = new Date();
+      const claimed: typeof waiting = [];
+      for (const sub of waiting) {
+        const result = await tx.backInStockNotification.updateMany({
+          where: { id: sub.id, notifiedAt: null },
+          data: { notifiedAt, isActive: false },
+        });
+        if (result.count === 1) claimed.push(sub);
+      }
+
+      await enqueueJobs(
+        tx,
+        claimed
+          .filter((sub) => sub.email || sub.userId)
+          .map((sub) => ({
+            type: BACK_IN_STOCK_EMAIL_JOB,
+            payload: { subscriptionId: sub.id },
+            // One email per subscriber per restock. A later restock after
+            // they subscribe again gets a new key, because notifiedAt differs.
+            uniqueKey: `back-in-stock:${sub.id}:${notifiedAt.toISOString()}`,
+          }))
+      );
+
+      return claimed;
+    });
   }
 }

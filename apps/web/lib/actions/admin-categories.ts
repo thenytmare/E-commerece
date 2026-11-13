@@ -2,7 +2,7 @@
 
 import { createRepositories } from '@repo/database';
 import { requirePermission } from './auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { categorySchema, parseFormData } from '@/lib/validations/admin';
 
 const repos = createRepositories();
@@ -36,7 +36,7 @@ export async function createCategoryAction(
 
     await repos.category.create({ ...fields, slug, parentId });
 
-    revalidatePath('/admin/catalog/categories');
+    revalidatePath('/admin/catalog/categories'); revalidateTag('catalog');
     return { success: true };
   } catch (error) {
     console.error('Failed to create category:', error);
@@ -77,7 +77,7 @@ export async function updateCategoryAction(
 
     await repos.category.update(id, { ...fields, slug, parentId });
 
-    revalidatePath('/admin/catalog/categories');
+    revalidatePath('/admin/catalog/categories'); revalidateTag('catalog');
     revalidatePath(`/admin/catalog/categories/${id}`);
     return { success: true };
   } catch (error) {
@@ -90,7 +90,7 @@ export async function softDeleteCategoryAction(id: string): Promise<{ success: b
   await requirePermission('categories.delete');
   try {
     await repos.category.softDelete(id);
-    revalidatePath('/admin/catalog/categories');
+    revalidatePath('/admin/catalog/categories'); revalidateTag('catalog');
     return { success: true };
   } catch (error) {
     console.error('Failed to soft-delete category:', error);
@@ -102,7 +102,7 @@ export async function restoreCategoryAction(id: string): Promise<{ success: bool
   await requirePermission('categories.write');
   try {
     await repos.category.restore(id);
-    revalidatePath('/admin/catalog/categories');
+    revalidatePath('/admin/catalog/categories'); revalidateTag('catalog');
     return { success: true };
   } catch (error) {
     console.error('Failed to restore category:', error);
@@ -114,7 +114,7 @@ export async function deleteCategoryAction(id: string): Promise<{ success: boole
   await requirePermission('categories.delete');
   try {
     await repos.category.delete(id);
-    revalidatePath('/admin/catalog/categories');
+    revalidatePath('/admin/catalog/categories'); revalidateTag('catalog');
     return { success: true };
   } catch (error) {
     console.error('Failed to delete category:', error);
@@ -149,7 +149,7 @@ export async function bulkActionCategories(
         count = await repos.category.bulkDelete(ids);
         break;
     }
-    revalidatePath('/admin/catalog/categories');
+    revalidatePath('/admin/catalog/categories'); revalidateTag('catalog');
     return { success: true, count };
   } catch (error) {
     console.error(`Bulk action "${action}" failed:`, error);

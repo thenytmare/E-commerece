@@ -4,7 +4,7 @@
 
 `scripts/backup-db.js` / `scripts/restore-db.js` back up and restore the **Postgres database only** — every table in `packages/database/prisma/schema.prisma` (products, orders, users, coupons, audit log, etc).
 
-**Not covered:** files uploaded to the Media Library, which are stored on local disk at `apps/web/public/uploads`. If you need those preserved too, back that directory up separately (e.g. `rsync`/`rclone` to off-host storage on the same schedule as the DB dump).
+**Uploads too:** files uploaded to the Media Library are archived next to each dump as `<dump name>-uploads.tar.gz`. The folder is `UPLOAD_DIR` (for example `/data/uploads` in Docker), or `apps/web/public/uploads` if that is not set. Sync `backups/` off the server so both files are safe.
 
 ## Manual backup
 
@@ -24,7 +24,11 @@ Old dumps are pruned automatically after `BACKUP_RETENTION_DAYS` (default 14). O
 pnpm db:restore -- backups/<file>.dump --yes
 ```
 
-`--yes` is required — the script refuses to run without it, since restore is destructive (`pg_restore --clean --if-exists` drops existing objects in the target database before restoring).
+Restore is destructive (`pg_restore --clean --if-exists` drops existing objects first). So the script first prints the exact target (database, host, port, user, never the password). Then it asks you to type the database name. Use `--yes` to skip the question in automation.
+
+Add `--with-uploads` to restore the uploads archive that sits next to the dump.
+
+The Docker fallback is only used when the target is the local Docker database. For any other host, install the PostgreSQL client tools. The script refuses to guess, so it cannot hit the wrong database.
 
 To restore into a different database instead of the one in `.env` (e.g. to verify a backup without touching production data):
 
@@ -48,6 +52,16 @@ The README's production target is a Host Africa VPS running the app via Docker. 
 ```
 
 (`rclone` supports S3, Backblaze B2, and most other object storage — pick whichever your host offers, configure it once with `rclone config`, and add this line after the backup line above.)
+
+## Restore drill (do this monthly)
+
+1. Take a fresh backup: `pnpm db:backup`.
+2. Create an empty database, for example `restore_test`, on a machine you do not care about.
+3. Restore into it:
+   `pnpm db:restore -- backups/<file>.dump --target="postgresql://user:pass@host:5432/restore_test" --with-uploads`
+4. Check the printed target is the scratch database. Type its name when asked.
+5. Open it and check real rows: `select count(*) from orders;` and look at a few uploaded files.
+6. Drop the scratch database.
 
 ## Verifying backups actually restore
 

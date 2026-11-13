@@ -10,10 +10,12 @@ import {
   deleteMediaAction,
   bulkDeleteMediaAction,
   moveMediaToFolderAction,
+  assignMediaCategoryAction,
 } from '@/lib/actions/admin-media';
 import { MediaUploader } from '@/components/admin/media/MediaUploader';
 import { formatDate } from '@/lib/format';
 import { usePermissions } from '@/lib/hooks/use-permissions';
+import { optionPath, type MediaOption } from '@/components/admin/media/media-options';
 
 type MediaRow = {
   id: string;
@@ -23,6 +25,7 @@ type MediaRow = {
   size: number;
   alt: string;
   createdAt: string;
+  categoryId: string | null;
 };
 
 function formatSize(bytes: number): string {
@@ -35,10 +38,16 @@ export function MediaListClient({
   initialData,
   initialSearch = '',
   folders = [],
+  categories, categoryId, folderId, page, totalPages,
 }: {
   initialData: MediaRow[];
   initialSearch?: string;
-  folders?: { id: string; name: string }[];
+  folders?: MediaOption[];
+  categories: MediaOption[];
+  categoryId: string;
+  folderId: string;
+  page: number;
+  totalPages: number;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,10 +58,21 @@ export function MediaListClient({
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [folderName, setFolderName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const navigate = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value); else params.delete(key);
+    if (key !== 'page') params.delete('page');
+    setSelectedIds([]); router.replace(`/admin/media?${params}`);
+  };
 
   // Server-rendered results replace local state whenever the query changes.
   useEffect(() => {
     setData(initialData);
+    setSelectedIds([]);
   }, [initialData]);
 
   // Push the search term into the URL (debounced) so filtering runs in SQL
@@ -61,6 +81,7 @@ export function MediaListClient({
     if (searchTerm === initialSearch) return;
     const timer = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
+      params.delete('page');
       if (searchTerm.trim()) params.set('search', searchTerm.trim());
       else params.delete('search');
       router.replace(`/admin/media${params.toString() ? `?${params}` : ''}`);
@@ -70,14 +91,19 @@ export function MediaListClient({
 
   const handleDelete = async () => {
     if (!deletingId) return;
-    await deleteMediaAction(deletingId);
+    const result = await deleteMediaAction(deletingId);
+    if (!result.success) { setError(result.error || 'Delete failed.'); setDeletingId(null); return; }
+    setError('');
     setData(c => c.filter(r => r.id !== deletingId));
     setDeletingId(null);
   };
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    await bulkDeleteMediaAction(selectedIds);
+    const result = await bulkDeleteMediaAction(selectedIds);
+    setBulkConfirm(false);
+    if (!result.success) { setError(result.error || 'Delete failed.'); return; }
+    setError('');
     setData(c => c.filter(r => !selectedIds.includes(r.id)));
     setSelectedIds([]);
   };
@@ -86,6 +112,7 @@ export function MediaListClient({
   const filtered = data;
 
   const columns: ColumnDef<MediaRow>[] = [
+    { key: 'categoryId', header: 'Product category', cell: item => categories.find(c => c.id === item.categoryId)?.name || 'Uncategorized' },
     {
       key: 'url',
       header: 'Preview',
@@ -118,13 +145,20 @@ export function MediaListClient({
     if (selectedIds.length === 0) return;
     const res = await moveMediaToFolderAction(selectedIds, folderId);
     if (res.success) {
+      setError('');
       setSelectedIds([]);
       router.refresh();
-    }
+    } else setError(res.error || 'Could not move files.');
   };
 
   const bulkActions = (
     <div className="flex items-center gap-2">
+      {canWrite && <select aria-label="Assign selected files to category" defaultValue="" className="rounded border bg-background p-2 text-xs" onChange={async e => {
+        const value = e.target.value; e.target.value = ''; if (!value) return;
+        const result = await assignMediaCategoryAction(selectedIds, value === '__none__' ? null : value);
+        if (!result.success) setError(result.error || 'Could not assign category.');
+        else { setError(''); setSelectedIds([]); router.refresh(); }
+      }}><option value="">Assign category…</option><option value="__none__">Uncategorized</option>{categories.map(c => <option key={c.id} value={c.id}>{optionPath(c, categories)}</option>)}</select>}
       {canWrite && folders.length > 0 && (
         <select
           defaultValue=""
@@ -140,32 +174,56 @@ export function MediaListClient({
           <option value="">Move to…</option>
           <option value="__root__">Root (no folder)</option>
           {folders.map((f) => (
-            <option key={f.id} value={f.id}>{f.name}</option>
+            <option key={f.id} value={f.id}>{optionPath(f, folders)}</option>
           ))}
         </select>
       )}
       {canDelete ? (
-        <button type="button" className="px-3 py-1.5 border border-destructive/50 bg-destructive/10 rounded-md text-xs font-medium text-destructive hover:bg-destructive/20" onClick={handleBulkDelete}>Delete Selected</button>
+        <button type="button" className="px-3 py-1.5 border border-destructive/50 bg-destructive/10 rounded-md text-xs font-medium text-destructive hover:bg-destructive/20" onClick={() => setBulkConfirm(true)}>Delete Selected</button>
       ) : null}
     </div>
   );
 
   const handleUploadComplete = () => {
     // Refresh the page to show new uploads
-    window.location.reload();
+    router.refresh();
   };
 
   return (
     <>
+      {error && <p role="alert" className="mb-4 text-destructive">{error}</p>}
+      <div className="mb-4 flex flex-wrap gap-3">
+        <label className="text-sm">Product category<select aria-label="Filter library category" value={categoryId} onChange={e => navigate('categoryId', e.target.value)} className="block rounded border bg-background p-2">
+          <option value="">All categories</option><option value="__none__">Uncategorized</option>{categories.map(c => <option key={c.id} value={c.id}>{optionPath(c, categories)}</option>)}
+        </select></label>
+        <label className="text-sm">Media folder<select aria-label="Filter library folder" value={folderId} onChange={e => navigate('folderId', e.target.value)} className="block rounded border bg-background p-2">
+          <option value="">All folders</option><option value="__root__">No folder</option>{folders.map(f => <option key={f.id} value={f.id}>{optionPath(f, folders)}</option>)}
+        </select></label>
+        {canWrite && <div className="flex self-end gap-2">
+          <input aria-label="New library folder" placeholder="New folder name" maxLength={100} value={folderName} onChange={e => setFolderName(e.target.value)} className="min-w-0 rounded border bg-background p-2 text-sm" />
+          <button type="button" disabled={creating || !folderName.trim()} className="rounded border px-3 text-sm disabled:opacity-50" onClick={async () => {
+            setCreating(true); setError('');
+            try {
+              const res = await fetch('/api/admin/media/folders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: folderName.trim(), parentId: folderId && folderId !== '__root__' ? folderId : null }) });
+              const result = await res.json(); if (!res.ok) throw new Error(result.error);
+              setFolderName(''); navigate('folderId', result.folder.id); router.refresh();
+            } catch { setError('Could not create folder.'); } finally { setCreating(false); }
+          }}>Create folder</button>
+        </div>}
+      </div>
       {canWrite ? (
         <div className="flex justify-end mb-4">
-          <MediaUploader onUploadComplete={handleUploadComplete} />
+          <MediaUploader categoryId={categoryId} folderId={folderId} onUploadComplete={handleUploadComplete} />
         </div>
       ) : null}
       <DataTable
         data={filtered}
         columns={columns}
         onSearch={setSearchTerm}
+        searchValue={searchTerm}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={value => navigate('page', String(value))}
         emptyIcon={ImageIcon}
         emptyTitle={searchTerm ? 'No matching files' : 'No media yet'}
         emptyMessage={
@@ -190,6 +248,7 @@ export function MediaListClient({
         )}
       />
       <ConfirmationDialog isOpen={!!deletingId} title="Delete File" description="Permanently delete this file from the media library?" confirmText="Delete" variant="danger" onConfirm={handleDelete} onCancel={() => setDeletingId(null)} />
+      <ConfirmationDialog isOpen={bulkConfirm} title="Delete selected files" description="Permanently delete these files? Files still used by products or other content will be kept." confirmText="Delete" variant="danger" onConfirm={handleBulkDelete} onCancel={() => setBulkConfirm(false)} />
     </>
   );
 }

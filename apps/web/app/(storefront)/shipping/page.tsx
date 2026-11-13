@@ -1,6 +1,13 @@
 import { PolicyPage } from '@/components/policy-page';
 import { getStoreSettings } from '@/lib/store';
-import { FLAT_SHIPPING_KES, FREE_SHIPPING_THRESHOLD_KES } from '@repo/config';
+import {
+  COUNTRY_LOCATIONS,
+  COUNTY_LOCATIONS,
+  FREE_SHIPPING_THRESHOLD_KES,
+  NAIROBI_LOCATIONS,
+  PICKUP_INFO,
+  type DeliveryLocation,
+} from '@repo/config';
 import { formatPrice } from '@/lib/format';
 import type { Metadata } from 'next';
 
@@ -20,11 +27,19 @@ export default async function ShippingPage() {
       <section className="space-y-3">
         <h2>Delivery charges</h2>
         <p>
-          Delivery is {formatPrice(FLAT_SHIPPING_KES)} on orders below{' '}
-          {formatPrice(FREE_SHIPPING_THRESHOLD_KES)}, and free on orders of{' '}
-          {formatPrice(FREE_SHIPPING_THRESHOLD_KES)} or more. The exact charge is always shown at
-          checkout before you pay.
+          The delivery fee depends on where you are. Pick your area, county or country at checkout
+          and the exact charge is shown before you pay. Delivery is free on orders of{' '}
+          {formatPrice(FREE_SHIPPING_THRESHOLD_KES)} or more.
         </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Shop pickup: free. {PICKUP_INFO.hours}, at {store.address}.
+          </li>
+          <li>Nairobi delivery: {feeRange(NAIROBI_LOCATIONS)}, depending on your area.</li>
+          <li>Outside Nairobi: {feeRange(COUNTY_LOCATIONS)}, depending on your county.</li>
+          <li>Outside Kenya (Uganda and Tanzania): {feeRange(COUNTRY_LOCATIONS)}.</li>
+        </ul>
+        <p>Cash on Delivery is available for Nairobi deliveries.</p>
       </section>
 
       <section className="space-y-3">
@@ -57,4 +72,11 @@ export default async function ShippingPage() {
       </section>
     </PolicyPage>
   );
+}
+
+function feeRange(locations: readonly DeliveryLocation[]): string {
+  const fees = locations.map((entry) => entry.fee);
+  const min = Math.min(...fees);
+  const max = Math.max(...fees);
+  return min === max ? formatPrice(min) : `${formatPrice(min)} to ${formatPrice(max)}`;
 }

@@ -18,6 +18,8 @@ import { FlashSaleRepository } from './flash-sale.repository';
 import { ShipmentRepository } from './shipment.repository';
 import { BackInStockRepository } from './back-in-stock.repository';
 import { WishlistRepository } from './wishlist.repository';
+import { JobRepository } from './job.repository';
+import { RateLimitRepository } from './rate-limit.repository';
 
 /**
  * Factory that wires all repositories to a shared Prisma client.
@@ -44,6 +46,8 @@ export function createRepositories(db = prisma) {
     shipment: new ShipmentRepository(db),
     backInStock: new BackInStockRepository(db),
     wishlist: new WishlistRepository(db),
+    job: new JobRepository(db),
+    rateLimit: new RateLimitRepository(db),
   };
 }
 
@@ -75,3 +79,16 @@ export { AuditLogRepository } from './audit-log.repository';
 export { AnalyticsRepository } from './analytics.repository';
 export { SiteSettingRepository } from './site-setting.repository';
 export { MediaLibraryRepository } from './media.repository';
+export {
+  JobRepository,
+  enqueueJob,
+  enqueueJobs,
+  retryDelayMs,
+  type ClaimedJob,
+  type EnqueueInput,
+  type JobStats,
+  type JobStatus,
+} from './job.repository';
+export { RateLimitRepository, type RateLimitHit } from './rate-limit.repository';
+export { ORDER_CONFIRMATION_JOB } from './order.repository';
+export { BACK_IN_STOCK_EMAIL_JOB } from './back-in-stock.repository';

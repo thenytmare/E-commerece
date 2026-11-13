@@ -1,8 +1,9 @@
 import {
   DEFAULT_CURRENCY,
   DEFAULT_TAX_RATE,
-  FLAT_SHIPPING_KES,
-  FREE_SHIPPING_THRESHOLD_KES,
+  isCashOnDeliveryAvailable,
+  shippingFor,
+  type DeliveryZone,
   // Transition rules are shared with the admin UI so the buttons drawn there
   // and the rules enforced here can't drift apart.
   canTransitionOrderStatus,
@@ -12,6 +13,11 @@ import type { Order, OrderStatus, Prisma } from '@prisma/client';
 import { Prisma as PrismaNamespace } from '@prisma/client';
 import { BaseRepository } from './base.repository';
 import type { CartWithItems } from './cart.repository';
+
+import { enqueueJob } from './job.repository';
+
+/** Job type for the "we have your order" email. Handled in apps/web/lib/jobs. */
+export const ORDER_CONFIRMATION_JOB = 'order.confirmation-email';
 
 const orderDetailInclude = {
   user: { select: { name: true, email: true } },
@@ -49,6 +55,10 @@ export interface CreateOrderInput {
   couponCode?: string;
   /** Contact address for a guest order, where there's no account to read one from. */
   guestEmail?: string;
+  /** Delivery option the customer picked. The fee is priced from this, never from the browser. */
+  deliveryZone: DeliveryZone;
+  /** Area, county or country within the zone. Ignored for shop pickup. */
+  deliveryLocation?: string | null;
 }
 
 /**
@@ -195,9 +205,57 @@ export class OrderRepository extends BaseRepository {
     });
   }
 
-  /** Create an order from a cart, reserve stock, and clear the cart */
+  async findRecoverableCheckouts(input: { userId?: string; guestOrderNumbers: string[]; cartId?: string }) {
+    const owners: Prisma.OrderWhereInput[] = [];
+    if (input.userId) owners.push({ userId: input.userId });
+    if (input.guestOrderNumbers.length) owners.push({ userId: null, orderNumber: { in: input.guestOrderNumbers } });
+    if (input.cartId) owners.push({ userId: null, sourceCartId: input.cartId });
+    if (!owners.length) return [];
+    return this.db.order.findMany({
+      where: { OR: owners, status: { in: ['PENDING', 'CANCELLED'] }, cartRestoredAt: null, payments: { none: { status: { in: ['COMPLETED', 'REFUNDED'] } } } },
+      select: { orderNumber: true, status: true, total: true, createdAt: true, items: { select: { id: true, name: true, quantity: true } } },
+      orderBy: { createdAt: 'desc' }, take: 10,
+    });
+  }
+
+  /** Caller has verified ownership of both order and destination cart. */
+  async restoreUnpaidToCart(orderId: string, cartId: string) {
+    return this.db.$transaction(async tx => {
+      // Payment creation/settlement uses this same order lock. A recovery can
+      // never race a new provider request or a completed payment.
+      await tx.$queryRaw`SELECT id FROM orders WHERE id = ${orderId} FOR UPDATE`;
+      const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true, payments: true } });
+      if (order.cartRestoredAt) return;
+      if (!['PENDING', 'CANCELLED'].includes(order.status) || order.payments.some(p => p.status === 'COMPLETED' || p.status === 'REFUNDED')) {
+        throw new Error('This order cannot be returned to your cart because payment or fulfilment has already progressed.');
+      }
+      if (order.payments.some(p => p.status === 'PENDING')) {
+        throw new Error('Payment is still being checked. Your items are saved below; resume payment to check its status before returning them to the cart.');
+      }
+      await tx.cart.update({ where: { id: cartId }, data: { updatedAt: new Date() } });
+      for (const item of order.items) {
+        const variant = await tx.productVariant.findFirst({ where: { id: item.variantId, product: { isActive: true, deletedAt: null } } });
+        if (!variant) throw new Error(`${item.name} is no longer available. Your saved order has been kept.`);
+        if (order.status === 'PENDING') {
+          const released = await tx.inventory.updateMany({ where: { variantId: item.variantId, reserved: { gte: item.quantity } }, data: { reserved: { decrement: item.quantity } } });
+          if (released.count !== 1) throw new Error('Could not release the stock reservation. Please contact support.');
+        }
+        const inventory = await tx.inventory.findUnique({ where: { variantId: item.variantId } });
+        const existing = await tx.cartItem.findUnique({ where: { cartId_variantId: { cartId, variantId: item.variantId } } });
+        if (!inventory || (existing?.quantity ?? 0) + item.quantity > inventory.quantity - inventory.reserved) {
+          throw new Error(`Not enough stock to restore ${item.name}. Your saved order has been kept.`);
+        }
+        await tx.cartItem.upsert({ where: { cartId_variantId: { cartId, variantId: item.variantId } }, create: { cartId, variantId: item.variantId, quantity: item.quantity }, update: { quantity: { increment: item.quantity } } });
+      }
+      await tx.order.update({ where: { id: orderId }, data: { status: 'CANCELLED', cartRestoredAt: new Date() } });
+      await tx.orderStatusHistory.create({ data: { orderId, status: 'CANCELLED', note: 'Customer returned unpaid items to cart' } });
+    }, { maxWait: 10_000, timeout: 20_000 });
+  }
+
+  /** Create an order from a cart; retain its source so unpaid items stay recoverable. */
   async createFromCart(input: CreateOrderInput): Promise<OrderDetail> {
-    const { cart, userId, addressId, notes, couponCode, guestEmail } = input;
+    const { cart, userId, addressId, notes, couponCode, guestEmail, deliveryZone } = input;
+    const deliveryLocation = deliveryZone === 'PICKUP' ? null : (input.deliveryLocation ?? null);
 
     if (cart.items.length === 0) {
       throw new Error('Cart is empty');
@@ -215,6 +273,28 @@ export class OrderRepository extends BaseRepository {
     }
 
     return this.db.$transaction(async (tx) => {
+      // Claim the cart first. Deleting the exact lines we read, and insisting
+      // that every one of them was still there, means a double click or a
+      // replayed request can only ever turn one cart into one order. The second
+      // transaction deletes zero rows and stops here, before it reserves stock.
+      const claimed = await tx.cartItem.deleteMany({
+        where: { cartId: cart.id, id: { in: cart.items.map((item) => item.id) } },
+      });
+      if (claimed.count !== cart.items.length) {
+        throw new Error('Your cart has changed. Please review it and try again');
+      }
+
+      // Only products the shop is currently selling can be ordered. The cart
+      // may hold a product that was hidden or deleted after it was added.
+      const productIds = [...new Set(cart.items.map((item) => item.variant.productId))];
+      const sellable = await tx.product.findMany({
+        where: { id: { in: productIds }, isActive: true, deletedAt: null },
+        select: { id: true },
+      });
+      if (sellable.length !== productIds.length) {
+        throw new Error('An item in your cart is no longer available');
+      }
+
       // Resolve what each line actually costs, taking any running flash sale
       // into account. Previously the sale price was only ever read on the
       // product page, so a customer saw the discount, added to cart, and was
@@ -224,7 +304,12 @@ export class OrderRepository extends BaseRepository {
         (total, item) => total + unitPrices.get(item.variantId)! * item.quantity,
         0
       );
-      const shipping = this.calculateShipping(subtotal);
+      // Priced from the shared delivery table, so the amount charged always
+      // matches what the checkout form showed for that location.
+      const shipping = shippingFor(subtotal, deliveryZone, deliveryLocation);
+      if (shipping === null) {
+        throw new Error('Please choose a delivery location from the list');
+      }
       // Named constant rather than a bare 0: Kenyan VAT isn't charged yet,
       // which is a pending business decision, not something left out by
       // accident. See its definition in packages/config for the full reason.
@@ -382,10 +467,13 @@ export class OrderRepository extends BaseRepository {
       const order = await tx.order.create({
         data: {
           orderNumber,
+          sourceCartId: cart.id,
           userId,
           guestEmail: userId ? null : (guestEmail ?? null),
           addressId,
           couponId,
+          deliveryZone,
+          deliveryLocation,
           status: 'PENDING',
           subtotal: new PrismaNamespace.Decimal(subtotal),
           // Already Decimal instances — see above.
@@ -428,7 +516,16 @@ export class OrderRepository extends BaseRepository {
         });
       }
 
-      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+      // Anything added after we read the cart stays for the next order.
+
+      // Outbox: the confirmation email is queued in this same transaction, so
+      // it exists exactly when the order does. The worker sends it later; a
+      // slow or broken mail server can no longer hold up checkout.
+      await enqueueJob(tx, {
+        type: ORDER_CONFIRMATION_JOB,
+        payload: { orderId: order.id },
+        uniqueKey: `order-confirmation:${order.id}`,
+      });
 
       return tx.order.findUniqueOrThrow({
         where: { id: order.id },
@@ -453,6 +550,54 @@ export class OrderRepository extends BaseRepository {
    * These are holding reserved stock for a checkout that was never finished,
    * so they're the input to the cleanup job that releases it.
    */
+  /**
+   * Customer chose Cash on Delivery. Confirms the order straight away (so the
+   * 24-hour unpaid-order sweep won't cancel it and release its stock) and
+   * records a PENDING cash payment, completed when the order is delivered.
+   */
+  async placeCashOnDelivery(orderId: string): Promise<void> {
+    await this.db.$transaction(async (tx) => {
+      const order = await tx.order.findUniqueOrThrow({ where: { id: orderId } });
+
+      if (!isCashOnDeliveryAvailable(order.deliveryZone)) {
+        throw new Error('Cash on Delivery is only available for Nairobi deliveries');
+      }
+      if (order.status !== 'PENDING') {
+        throw new Error('This order is not awaiting payment');
+      }
+
+      // Drop any unfinished card / M-Pesa attempt so only one method is live.
+      await tx.payment.updateMany({
+        where: { orderId, status: 'PENDING', provider: { not: 'CASH_ON_DELIVERY' } },
+        data: { status: 'FAILED', failureReason: 'Customer switched to Cash on Delivery' },
+      });
+
+      const existing = await tx.payment.findFirst({
+        where: { orderId, provider: 'CASH_ON_DELIVERY', status: 'PENDING' },
+      });
+      if (!existing) {
+        await tx.payment.create({
+          data: {
+            orderId,
+            provider: 'CASH_ON_DELIVERY',
+            method: 'cash',
+            amount: order.total,
+            status: 'PENDING',
+          },
+        });
+      }
+
+      await tx.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } });
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId,
+          status: 'CONFIRMED',
+          note: 'Cash on Delivery: pay the rider on delivery',
+        },
+      });
+    });
+  }
+
   findAbandoned(olderThan: Date): Promise<{ id: string; orderNumber: string }[]> {
     return this.db.order.findMany({
       where: {
@@ -497,6 +642,17 @@ export class OrderRepository extends BaseRepository {
         );
       }
 
+      // Claim the transition first, conditional on the status we just read.
+      // Two admins acting at once (or a double click) can't both pass this, so
+      // stock below is only ever changed once per transition.
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, status: order.status },
+        data: { status: 'CANCELLED' },
+      });
+      if (claimed.count !== 1) {
+        throw new Error('This order was just changed by someone else. Refresh and try again');
+      }
+
       // Safe unconditionally: CANCELLED is only reachable from a
       // pre-fulfilment status, so these units never left the warehouse.
       for (const item of order.items) {
@@ -511,9 +667,10 @@ export class OrderRepository extends BaseRepository {
         data: { status: 'REFUNDED' },
       });
 
-      await tx.order.update({
-        where: { id: orderId },
-        data: { status: 'CANCELLED' },
+      // Cash on Delivery money was never collected, so there is nothing to refund.
+      await tx.payment.updateMany({
+        where: { orderId, provider: 'CASH_ON_DELIVERY', status: 'PENDING' },
+        data: { status: 'FAILED', failureReason: 'Order cancelled before delivery' },
       });
 
       await tx.orderStatusHistory.create({
@@ -572,6 +729,17 @@ export class OrderRepository extends BaseRepository {
         throw transitionError(order.status, status);
       }
 
+      // Claim the transition first, conditional on the status we just read.
+      // Two admins acting at once (or a double click) can't both pass this, so
+      // stock below is only ever changed once per transition.
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, status: order.status },
+        data: { status: status },
+      });
+      if (claimed.count !== 1) {
+        throw new Error('This order was just changed by someone else. Refresh and try again');
+      }
+
       // Dispatch is the point stock physically leaves. Until this existed,
       // `quantity` was never decremented by a sale at all — `reserved` was
       // silently doing double duty as both "held for a pending order" and
@@ -600,10 +768,14 @@ export class OrderRepository extends BaseRepository {
         }
       }
 
-      await tx.order.update({
-        where: { id: orderId },
-        data: { status },
-      });
+      // Cash on Delivery: the rider collects the money at the door, so the
+      // cash payment counts as received once the order is marked delivered.
+      if (status === 'DELIVERED') {
+        await tx.payment.updateMany({
+          where: { orderId, provider: 'CASH_ON_DELIVERY', status: 'PENDING' },
+          data: { status: 'COMPLETED', paidAt: new Date() },
+        });
+      }
 
       await tx.orderStatusHistory.create({
         data: {
@@ -648,12 +820,21 @@ export class OrderRepository extends BaseRepository {
         throw transitionError(order.status, 'REFUNDED');
       }
 
+      // Claim the transition first, conditional on the status we just read.
+      // Two admins acting at once (or a double click) can't both pass this, so
+      // stock below is only ever changed once per transition.
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, status: order.status },
+        data: { status: 'REFUNDED' },
+      });
+      if (claimed.count !== 1) {
+        throw new Error('This order was just changed by someone else. Refresh and try again');
+      }
+
       await tx.payment.updateMany({
         where: { orderId, status: 'COMPLETED' },
         data: { status: 'REFUNDED' },
       });
-
-      await tx.order.update({ where: { id: orderId }, data: { status: 'REFUNDED' } });
 
       await tx.orderStatusHistory.create({
         data: { orderId, status: 'REFUNDED', note, createdBy: actorId ?? null },
@@ -718,10 +899,6 @@ export class OrderRepository extends BaseRepository {
     }
 
     return unitPrices;
-  }
-
-  private calculateShipping(subtotal: number): number {
-    return subtotal >= FREE_SHIPPING_THRESHOLD_KES ? 0 : FLAT_SHIPPING_KES;
   }
 }
 

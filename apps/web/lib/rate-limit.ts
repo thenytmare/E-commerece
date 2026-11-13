@@ -1,12 +1,18 @@
+import { createHash } from 'crypto';
 import { headers } from 'next/headers';
+import { createRepositories } from '@repo/database';
 
 /**
- * Minimal fixed-window rate limiter.
+ * Fixed-window rate limiter.
  *
- * Deliberately process-local: this app runs as a single Node server, so a Map
- * is enough to stop credential stuffing and signup spam from one client. If it
- * is ever scaled horizontally, swap the store here for Redis — the call sites
- * won't need to change.
+ * By default the counts live in Postgres (`rate_limit_buckets`), so every app
+ * instance shares them. Two servers no longer each allow the full limit.
+ * Set RATE_LIMIT_STORE=memory to keep counts in this process only (the old
+ * behaviour, fine for a single server).
+ *
+ * If the database cannot be reached, the limiter falls back to the in-memory
+ * counts for that request, so a database blip never locks everyone out of
+ * signing in, and the limit still applies on this server.
  */
 interface Bucket {
   count: number;
@@ -28,13 +34,23 @@ function pruneExpired(now: number): void {
   }
 }
 
-export function rateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
+/** Process-local counts. Used when RATE_LIMIT_STORE=memory and as the fallback. */
+export function rateLimitInMemory(key: string, limit: number, windowMs: number): RateLimitResult {
   const now = Date.now();
   const bucket = buckets.get(key);
 
   if (!bucket || now >= bucket.resetAt) {
     // Keep the map from growing without bound under a spray of unique keys.
-    if (buckets.size > MAX_TRACKED_KEYS) pruneExpired(now);
+    if (buckets.size >= MAX_TRACKED_KEYS) {
+      pruneExpired(now);
+      // Still full of live keys: drop the oldest, so the map has a hard cap.
+      // Map keeps insertion order, so the first key is the oldest.
+      while (buckets.size >= MAX_TRACKED_KEYS) {
+        const oldest = buckets.keys().next().value;
+        if (oldest === undefined) break;
+        buckets.delete(oldest);
+      }
+    }
     buckets.set(key, { count: 1, resetAt: now + windowMs });
     return { allowed: true, retryAfterSeconds: 0 };
   }
@@ -48,6 +64,50 @@ export function rateLimit(key: string, limit: number, windowMs: number): RateLim
   }
 
   return { allowed: true, retryAfterSeconds: 0 };
+}
+
+/**
+ * Keys can hold an email address or an IP. The shared table stores a hash
+ * instead, keeping only the readable prefix ("login", "auth-account"), so the
+ * table holds no personal data and every key has the same small size.
+ */
+export function storedKey(key: string): string {
+  const colon = key.indexOf(':');
+  const prefix = colon > 0 && colon <= 40 ? key.slice(0, colon) : 'key';
+  return `${prefix}:${createHash('sha256').update(key).digest('base64url')}`;
+}
+
+let repos: ReturnType<typeof createRepositories> | null = null;
+let lastFallbackLog = 0;
+/** Clear finished windows on about 1 in 200 calls, on top of the worker's hourly clean-up. */
+const PRUNE_CHANCE = 1 / 200;
+
+export async function rateLimit(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
+  if (process.env.RATE_LIMIT_STORE === 'memory') {
+    return rateLimitInMemory(key, limit, windowMs);
+  }
+  try {
+    repos ??= createRepositories();
+    const result = await repos.rateLimit.hit(storedKey(key), limit, windowMs);
+    if (Math.random() < PRUNE_CHANCE) {
+      void repos.rateLimit.pruneExpired().catch(() => undefined);
+    }
+    return result;
+  } catch (error) {
+    const now = Date.now();
+    if (now - lastFallbackLog > 60_000) {
+      lastFallbackLog = now;
+      console.warn(
+        JSON.stringify({
+          type: 'rate-limit.fallback',
+          at: new Date(now).toISOString(),
+          message: 'Shared rate limit store unavailable; using this server\'s own counts.',
+          error: error instanceof Error ? error.message : String(error),
+        })
+      );
+    }
+    return rateLimitInMemory(key, limit, windowMs);
+  }
 }
 
 /**

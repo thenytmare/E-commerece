@@ -1,4 +1,5 @@
 import { constructStripeEvent } from '@/lib/payments/stripe';
+import { checkStripeSession } from '@repo/config';
 import { createRepositories } from '@repo/database';
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
@@ -51,6 +52,22 @@ export async function POST(request: Request) {
       // the money having settled — for delayed payment methods it can arrive
       // while payment_status is still 'unpaid'. Only 'paid' confirms an order.
       if (session.payment_status !== 'paid') {
+        break;
+      }
+
+      // A valid signature only proves the event came from Stripe. Confirm it is
+      // the right session, currency and amount for this payment before any
+      // order is confirmed.
+      const payment = await repos.payment.findById(paymentId);
+      if (!payment) break;
+      const check = checkStripeSession(payment, session);
+      if (!check.ok) {
+        console.error('Stripe session failed verification', { paymentId, reason: check.reason });
+        await repos.payment.recordMismatch(paymentId, {
+          reason: check.reason,
+          provider: 'STRIPE',
+          externalId: session.id,
+        });
         break;
       }
 

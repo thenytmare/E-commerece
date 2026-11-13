@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   // is keyed on the client address instead. Without it a trivial loop could
   // grow analytics_events without bound and skew the traffic figures the store
   // owner relies on.
-  const limit = rateLimit(`analytics:${await clientIdentifier()}`, 120, 60_000);
+  const limit = await rateLimit(`analytics:${await clientIdentifier()}`, 120, 60_000);
   if (!limit.allowed) {
     return NextResponse.json(
       { error: 'Too many events' },

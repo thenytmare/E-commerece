@@ -10,6 +10,7 @@ describe('OrderRepository', () => {
       findUniqueOrThrow: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       count: vi.fn(),
     },
     inventory: { findUnique: vi.fn(), update: vi.fn() },
@@ -19,12 +20,21 @@ describe('OrderRepository', () => {
     orderStatusHistory: { create: vi.fn() },
     coupon: { findFirst: vi.fn(), updateMany: vi.fn() },
     flashSale: { findMany: vi.fn() },
+    product: { findMany: vi.fn() },
+    job: { createMany: vi.fn() },
     $executeRaw: vi.fn(),
     $queryRaw: vi.fn(),
     $transaction: vi.fn((fn: (tx: typeof mockDb) => Promise<unknown>) => fn(mockDb)),
   };
 
   const repo = new OrderRepository(mockDb as never);
+
+  // These tests are about stock, coupons and the cart, not delivery, so
+  // default to pickup (free, no location needed) unless a test says otherwise.
+  type OrderInput = Parameters<OrderRepository['createFromCart']>[0];
+  type TestOrderInput = Omit<OrderInput, 'deliveryZone'> & { deliveryZone?: OrderInput['deliveryZone'] };
+  const createOrder = (input: TestOrderInput) =>
+    repo.createFromCart({ ...input, deliveryZone: input.deliveryZone ?? 'PICKUP' } as OrderInput);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,11 +54,13 @@ describe('OrderRepository', () => {
   function stubHappyPath() {
     mockDb.address.findFirst.mockResolvedValue({ id: 'addr-1', userId: 'user-1' });
     mockDb.flashSale.findMany.mockResolvedValue([]);
+    mockDb.product.findMany.mockResolvedValue([{ id: 'p1' }]);
     mockDb.$executeRaw.mockResolvedValue(1);
     mockDb.$queryRaw.mockResolvedValue([{}]);
     mockDb.inventoryLog.create.mockResolvedValue({});
     mockDb.cartItem.deleteMany.mockResolvedValue({ count: 1 });
     mockDb.order.create.mockResolvedValue({ id: 'order-1' });
+    mockDb.job.createMany.mockResolvedValue({ count: 1 });
     mockDb.order.findUniqueOrThrow.mockResolvedValue({ id: 'order-1', orderNumber: 'TV-1' });
   }
 
@@ -57,6 +69,7 @@ describe('OrderRepository', () => {
       id: 'cart-1',
       items: [
         {
+          id: 'ci-1',
           variantId: 'v1',
           quantity: overrides?.quantity ?? 1,
           variant: {
@@ -73,7 +86,7 @@ describe('OrderRepository', () => {
 
   it('createFromCart throws when cart is empty', async () => {
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart: emptyCart as never,
         userId: 'user-1',
         addressId: 'addr-1',
@@ -85,7 +98,7 @@ describe('OrderRepository', () => {
     mockDb.address.findFirst.mockResolvedValue(null);
 
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart: {
           id: 'cart-1',
           items: [
@@ -125,7 +138,7 @@ describe('OrderRepository', () => {
     });
     mockDb.inventory.update.mockResolvedValue({});
     mockDb.payment.updateMany.mockResolvedValue({ count: 0 });
-    mockDb.order.update.mockResolvedValue({});
+    mockDb.order.updateMany.mockResolvedValue({ count: 1 });
     mockDb.orderStatusHistory.create.mockResolvedValue({});
 
     await repo.cancelOrder('order-1');
@@ -134,10 +147,34 @@ describe('OrderRepository', () => {
       where: { variantId: 'v1' },
       data: { reserved: { decrement: 2 } },
     });
-    expect(mockDb.order.update).toHaveBeenCalledWith({
-      where: { id: 'order-1' },
+    expect(mockDb.order.updateMany).toHaveBeenCalledWith({
+      where: { id: 'order-1', status: 'PENDING' },
       data: { status: 'CANCELLED' },
     });
+  });
+
+  it('cancelOrder does not touch stock when another request already changed the order', async () => {
+    mockDb.order.findUniqueOrThrow.mockResolvedValue({
+      id: 'order-1',
+      status: 'PENDING',
+      items: [{ variantId: 'v1', quantity: 2 }],
+    });
+    mockDb.order.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(repo.cancelOrder('order-1')).rejects.toThrow('changed by someone else');
+    expect(mockDb.inventory.update).not.toHaveBeenCalled();
+  });
+
+  it('updateStatus to SHIPPED does not take stock out twice when the claim is lost', async () => {
+    mockDb.order.findUniqueOrThrow.mockResolvedValue({
+      id: 'order-1',
+      status: 'CONFIRMED',
+      items: [{ variantId: 'v1', quantity: 2 }],
+    });
+    mockDb.order.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(repo.updateStatus('order-1', 'SHIPPED')).rejects.toThrow('changed by someone else');
+    expect(mockDb.inventory.update).not.toHaveBeenCalled();
   });
 
   // --- createFromCart: atomic stock reservation & coupon redemption -------
@@ -156,7 +193,7 @@ describe('OrderRepository', () => {
   it('createFromCart reserves stock and creates an order on the happy path', async () => {
     stubHappyPath();
 
-    const order = await repo.createFromCart({
+    const order = await createOrder({
       cart: makeCart({ quantity: 2, price: 1000 }) as never,
       userId: 'user-1',
       addressId: 'addr-1',
@@ -171,11 +208,46 @@ describe('OrderRepository', () => {
     const createArgs = mockDb.order.create.mock.calls[0]![0];
     expect(createArgs.data.subtotal.toString()).toBe('2000');
     expect(createArgs.data.discount.toString()).toBe('0');
-    // Below the free-shipping threshold, so the flat rate applies.
-    expect(createArgs.data.shipping.toString()).toBe('500');
+    // Pickup, so no delivery fee.
+    expect(createArgs.data.shipping.toString()).toBe('0');
     expect(createArgs.data.tax.toString()).toBe('0');
-    expect(createArgs.data.total.toString()).toBe('2500');
-    expect(mockDb.cartItem.deleteMany).toHaveBeenCalledWith({ where: { cartId: 'cart-1' } });
+    expect(createArgs.data.total.toString()).toBe('2000');
+
+    // The confirmation email is queued inside the same transaction (outbox),
+    // keyed on the order so it can never be queued twice.
+    expect(mockDb.job.createMany).toHaveBeenCalledTimes(1);
+    const jobArgs = mockDb.job.createMany.mock.calls[0]![0];
+    expect(jobArgs.skipDuplicates).toBe(true);
+    expect(jobArgs.data[0]).toMatchObject({
+      type: 'order.confirmation-email',
+      payload: { orderId: 'order-1' },
+      uniqueKey: 'order-confirmation:order-1',
+    });
+    // The cart is claimed by deleting exactly the lines that were read.
+    expect(mockDb.cartItem.deleteMany).toHaveBeenCalledWith({
+      where: { cartId: 'cart-1', id: { in: ['ci-1'] } },
+    });
+  });
+
+  it('createFromCart refuses a cart that another request already turned into an order', async () => {
+    stubHappyPath();
+    mockDb.cartItem.deleteMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      createOrder({ cart: makeCart() as never, userId: 'user-1', addressId: 'addr-1' })
+    ).rejects.toThrow('Your cart has changed');
+    expect(mockDb.$executeRaw).not.toHaveBeenCalled();
+    expect(mockDb.order.create).not.toHaveBeenCalled();
+  });
+
+  it('createFromCart refuses a product that was hidden or deleted after it was added', async () => {
+    stubHappyPath();
+    mockDb.product.findMany.mockResolvedValue([]);
+
+    await expect(
+      createOrder({ cart: makeCart() as never, userId: 'user-1', addressId: 'addr-1' })
+    ).rejects.toThrow('no longer available');
+    expect(mockDb.order.create).not.toHaveBeenCalled();
   });
 
   it('createFromCart rejects cleanly when the atomic reservation finds no stock left', async () => {
@@ -186,7 +258,7 @@ describe('OrderRepository', () => {
     mockDb.$executeRaw.mockResolvedValue(0);
 
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart: makeCart({ quantity: 1 }) as never,
         userId: 'user-1',
         addressId: 'addr-1',
@@ -206,11 +278,11 @@ describe('OrderRepository', () => {
 
     const cart = makeCart({ quantity: 1 }) as never;
     await expect(
-      repo.createFromCart({ cart, userId: 'user-1', addressId: 'addr-1' })
+      createOrder({ cart, userId: 'user-1', addressId: 'addr-1' })
     ).resolves.toMatchObject({ id: 'order-1' });
 
     await expect(
-      repo.createFromCart({ cart, userId: 'user-1', addressId: 'addr-1' })
+      createOrder({ cart, userId: 'user-1', addressId: 'addr-1' })
     ).rejects.toThrow('Insufficient stock for Test Product');
   });
 
@@ -227,7 +299,7 @@ describe('OrderRepository', () => {
     });
     mockDb.coupon.updateMany.mockResolvedValue({ count: 1 });
 
-    await repo.createFromCart({
+    await createOrder({
       cart: makeCart({ quantity: 1, price: 1000 }) as never,
       userId: 'user-1',
       addressId: 'addr-1',
@@ -243,7 +315,7 @@ describe('OrderRepository', () => {
     expect(createArgs.data.couponId).toBe('coupon-1');
     // 10% of a 1000 subtotal.
     expect(createArgs.data.discount.toString()).toBe('100');
-    expect(createArgs.data.total.toString()).toBe('1400'); // 1000 + 500 shipping - 100 discount
+    expect(createArgs.data.total.toString()).toBe('900'); // 1000 + 0 pickup - 100 discount
   });
 
   it('createFromCart rejects an unknown or expired coupon code', async () => {
@@ -251,7 +323,7 @@ describe('OrderRepository', () => {
     mockDb.coupon.findFirst.mockResolvedValue(null);
 
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart: makeCart() as never,
         userId: 'user-1',
         addressId: 'addr-1',
@@ -281,7 +353,7 @@ describe('OrderRepository', () => {
     mockDb.coupon.updateMany.mockResolvedValue({ count: 0 });
 
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart: makeCart() as never,
         userId: 'user-1',
         addressId: 'addr-1',
@@ -311,7 +383,7 @@ describe('OrderRepository', () => {
 
     const cart = makeCart() as never;
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart,
         userId: 'user-1',
         addressId: 'addr-1',
@@ -320,7 +392,7 @@ describe('OrderRepository', () => {
     ).resolves.toMatchObject({ id: 'order-1' });
 
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart,
         userId: 'user-2',
         addressId: 'addr-1',
@@ -343,7 +415,7 @@ describe('OrderRepository', () => {
     mockDb.order.count.mockResolvedValue(1);
 
     await expect(
-      repo.createFromCart({
+      createOrder({
         cart: makeCart() as never,
         userId: 'user-1',
         addressId: 'addr-1',
@@ -376,7 +448,7 @@ describe('OrderRepository', () => {
     mockDb.coupon.updateMany.mockResolvedValue({ count: 1 });
     mockDb.address.findFirst.mockResolvedValue({ id: 'addr-1', userId: null });
 
-    await repo.createFromCart({
+    await createOrder({
       cart: makeCart() as never,
       userId: null,
       addressId: 'addr-1',

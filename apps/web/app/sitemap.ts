@@ -22,11 +22,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [categories, products] = await Promise.all([
-      repos.category.findRootCategories(),
-      // MAX_PAGE_SIZE caps this; large catalogues would need a sitemap index.
-      repos.product.findMany({ isActive: true, limit: 100 }),
-    ]);
+    const categories = await repos.category.findRootCategories();
+
+    // The repository caps each page at 100, so walk every page. A sitemap file
+    // holds up to 50,000 URLs, far more than this shop will have.
+    const productItems: Awaited<ReturnType<typeof repos.product.findMany>>['items'] = [];
+    for (let page = 1; page <= 500; page++) {
+      const result = await repos.product.findMany({ isActive: true, limit: 100, page });
+      productItems.push(...result.items);
+      if (page >= result.totalPages) break;
+    }
 
     return [
       ...staticRoutes,
@@ -35,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly' as const,
         priority: 0.7,
       })),
-      ...products.items.map((product) => ({
+      ...productItems.map((product) => ({
         url: `${baseUrl}/products/${product.slug}`,
         lastModified: product.updatedAt,
         changeFrequency: 'weekly' as const,

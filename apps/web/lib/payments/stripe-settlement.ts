@@ -1,5 +1,6 @@
 import { createRepositories, type Payment } from '@repo/database';
 import { retrieveStripeCheckoutSession } from '@/lib/payments/stripe';
+import { checkStripeSession } from '@repo/config';
 
 export type SettlementOutcome = 'completed' | 'failed' | 'pending' | 'noop';
 
@@ -46,6 +47,17 @@ export async function settleStripePayment(payment: Payment): Promise<SettlementO
   // Mirrors checkout.session.completed / async_payment_succeeded: `paid` is
   // the only payment_status that confirms money actually settled.
   if (session.payment_status === 'paid') {
+    // Same verification as the webhook: right session, currency and amount.
+    const check = checkStripeSession(payment, session);
+    if (!check.ok) {
+      console.error('Stripe session failed verification', { paymentId: payment.id, reason: check.reason });
+      await repos.payment.recordMismatch(payment.id, {
+        reason: check.reason,
+        provider: 'STRIPE',
+        externalId: session.id,
+      });
+      return 'pending';
+    }
     await repos.payment.completePayment(payment.id, session.id, {
       stripeSessionId: session.id,
       paymentStatus: session.payment_status,

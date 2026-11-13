@@ -25,7 +25,7 @@ import { z } from 'zod';
 
 const requiredEnvSchema = z.object({
   DATABASE_URL: z
-    .string({ required_error: 'DATABASE_URL is not set.' })
+    .string({ error: 'DATABASE_URL is not set.' })
     .min(1, 'DATABASE_URL is not set.')
     .startsWith('postgresql://', 'DATABASE_URL must be a postgresql:// connection string.'),
 });
@@ -37,6 +37,8 @@ interface OptionalFeatureGroup {
   label: string;
   /** Env vars that together configure this feature. */
   vars: readonly string[];
+  /** Any one of these set means the feature is configured another way. */
+  satisfiedBy?: readonly string[];
 }
 
 /**
@@ -56,7 +58,9 @@ const OPTIONAL_FEATURE_GROUPS: readonly OptionalFeatureGroup[] = [
   },
   {
     label: 'Outbound email (SMTP)',
-    vars: ['SMTP_URL'],
+    vars: ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'],
+    // The older single connection string covers all three.
+    satisfiedBy: ['SMTP_URL'],
   },
   {
     label: 'Scheduled payment reconciliation (POST /api/cron/reconcile)',
@@ -87,11 +91,34 @@ function checkRequiredVars(): string[] {
     errors.push(`AUTH_SECRET (or NEXTAUTH_SECRET) must be at least ${MIN_AUTH_SECRET_LENGTH} characters.`);
   }
 
+  // Server Actions are encrypted with a key that `next build` creates and
+  // stores in the build output (Next.js 15.5). Instances started from the same
+  // build share it. Instances built separately do not, unless every build sets
+  // the same NEXT_SERVER_ACTIONS_ENCRYPTION_KEY. So the key is only required
+  // once APP_INSTANCES says more than one copy is running.
+  const instances = Number(process.env.APP_INSTANCES ?? 1);
+  if (
+    process.env.NODE_ENV === 'production' &&
+    instances > 1 &&
+    !process.env.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+  ) {
+    errors.push(
+      'NEXT_SERVER_ACTIONS_ENCRYPTION_KEY is not set, but APP_INSTANCES is more than 1. Create one with "openssl rand -base64 32" and set the same value when you build and on every instance.'
+    );
+  }
+
+  if (process.env.STORAGE_DRIVER === 's3') {
+    for (const name of ['S3_BUCKET'] as const) {
+      if (!process.env[name]) errors.push(`${name} is required when STORAGE_DRIVER=s3.`);
+    }
+  }
+
   return errors;
 }
 
 function warnOnOptionalFeatureGaps(): void {
   for (const group of OPTIONAL_FEATURE_GROUPS) {
+    if (group.satisfiedBy?.some((name) => process.env[name])) continue;
     const missing = group.vars.filter((name) => !process.env[name]);
 
     if (missing.length === 0) {
@@ -110,6 +137,16 @@ function warnOnOptionalFeatureGaps(): void {
     console.warn(
       `[env] ${group.label} is partially configured — missing: ${missing.join(', ')}. ` +
         'This feature will not work correctly until all of its variables are set.'
+    );
+  }
+
+  // Providers such as Brevo only send from an address on a domain you have
+  // verified with them. The fallback (no-reply@<site host>) is rarely that.
+  const mailSetUp = process.env.SMTP_URL || (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  if (process.env.NODE_ENV === 'production' && mailSetUp && !process.env.MAIL_FROM?.trim()) {
+    console.warn(
+      '[env] MAIL_FROM is not set. Set it to a sender on your verified domain, ' +
+        'for example "Prime Accessories Kenya <orders@yourdomain.co.ke>", or the mail provider may refuse every email.'
     );
   }
 }

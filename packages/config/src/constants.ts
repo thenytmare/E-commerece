@@ -10,10 +10,13 @@ export const DEFAULT_CURRENCY = 'KES';
 /** Low stock threshold default when not set per variant */
 export const DEFAULT_LOW_STOCK_THRESHOLD = 5;
 
-/** Flat-rate shipping in KES */
+/**
+ * Old flat-rate shipping in KES. No longer used by checkout: delivery is now
+ * priced per location (see ./delivery.ts). Kept only so nothing importing it breaks.
+ */
 export const FLAT_SHIPPING_KES = 500;
 
-/** Orders at or above this subtotal qualify for free shipping */
+/** Orders at or above this subtotal get free delivery, whatever the location */
 export const FREE_SHIPPING_THRESHOLD_KES = 10_000;
 
 /**

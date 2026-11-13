@@ -3,13 +3,11 @@
 import { ProductImage } from '@/components/catalog/product-image';
 import { removeCartItemAction, updateCartItemAction } from '@/lib/actions/cart';
 import { formatPrice } from '@/lib/format';
-import type { Serialized } from '@/lib/serialize';
-import type { CartWithItems } from '@repo/database';
 import { Button, Text } from '@repo/ui';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 
-type CartItem = Serialized<CartWithItems['items'][number]>;
+import type { CartItem } from '@/lib/cart-view';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -32,8 +30,8 @@ function formatVariantAttributes(attributes: unknown): string {
 export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const product = item.variant.product;
-  const image = product.images[0];
+  const product = item.product;
+  const image = item.image;
   const variantLabel = formatVariantAttributes(item.variant.attributes);
   const lineTotal = unitPrice * item.quantity;
   const isDiscounted = unitPrice < item.variant.price;
@@ -98,7 +96,12 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
       </Link>
 
       <div className="flex items-center justify-between gap-4 sm:justify-end">
-        <div className="flex items-center gap-2">
+        {!item.available ? (
+          <Text className="text-sm font-medium text-destructive" role="alert">
+            No longer available
+          </Text>
+        ) : null}
+        <div className={item.available ? 'flex items-center gap-2' : 'hidden'}>
           <Button
             type="button"
             variant="outline"

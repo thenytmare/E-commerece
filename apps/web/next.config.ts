@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@repo/ui', '@repo/utils', '@repo/database', '@repo/config'],
   images: {
     formats: ['image/avif', 'image/webp'],
+    // Optimised images are re-checked after a day, not every minute.
+    minimumCacheTTL: 86400,
   },
   poweredByHeader: false,
   env: {
@@ -63,6 +65,8 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Content-Security-Policy', value: "default-src 'none'; img-src 'self'; sandbox" },
+          // Upload file names are unique (timestamp + random), so they can be cached for a month.
+          { key: 'Cache-Control', value: 'public, max-age=2592000' },
         ],
       },
     ];

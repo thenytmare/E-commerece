@@ -60,7 +60,15 @@ async function darajaFetch(url: string, init: RequestInit): Promise<Response> {
   }
 }
 
+// Daraja tokens last about an hour. Keep one in memory and reuse it, instead of
+// asking for a new one on every single STK query.
+let cachedToken: { value: string; expiresAt: number } | null = null;
+const TOKEN_SAFETY_MS = 60_000;
+
 async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.value;
+  }
   const { mpesaConsumerKey, mpesaConsumerSecret } = getCredentials();
   const auth = Buffer.from(`${mpesaConsumerKey}:${mpesaConsumerSecret}`).toString('base64');
 
@@ -74,10 +82,15 @@ async function getAccessToken(): Promise<string> {
     throw new Error('Failed to authenticate with M-Pesa');
   }
 
-  const data = (await response.json()) as { access_token?: string };
+  const data = (await response.json()) as { access_token?: string; expires_in?: string | number };
   if (!data.access_token) {
     throw new Error('Failed to authenticate with M-Pesa');
   }
+  const lifetimeMs = (Number(data.expires_in) || 3599) * 1000;
+  cachedToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + Math.max(0, lifetimeMs - TOKEN_SAFETY_MS),
+  };
   return data.access_token;
 }
 
@@ -100,6 +113,11 @@ export interface StkPushResult {
   phone: string;
 }
 
+/** A definite rejection can be retried/restored; a network timeout is uncertain. */
+export class MpesaInitiationError extends Error {
+  constructor(message: string) { super(message); this.name = 'MpesaInitiationError'; }
+}
+
 /** Initiate M-Pesa STK push (Lipa na M-Pesa Online) */
 export async function initiateStkPush(params: {
   phone: string;
@@ -108,7 +126,7 @@ export async function initiateStkPush(params: {
   callbackUrl: string;
 }): Promise<StkPushResult> {
   const { mpesaShortcode, mpesaPasskey } = getCredentials();
-  const token = await getAccessToken();
+  const token = await getAccessToken().catch(() => { throw new MpesaInitiationError('Could not connect to M-Pesa. No prompt was sent. Please try again.'); });
   const { password, timestamp } = buildPassword(mpesaShortcode!, mpesaPasskey!);
   const phone = normalizeMpesaPhone(params.phone);
   const { amount } = toMpesaAmount(params.amount);
@@ -139,18 +157,19 @@ export async function initiateStkPush(params: {
     MerchantRequestID?: string;
     errorMessage?: string;
     ResponseDescription?: string;
+    ResponseCode?: string | number;
   };
 
-  if (!response.ok || !data.CheckoutRequestID) {
+  if (!response.ok || String(data.ResponseCode) !== '0' || !data.CheckoutRequestID) {
     // Log the provider detail server-side; return a safe message to the user.
     console.error('M-Pesa STK push failed', {
       status: response.status,
       errorMessage: data.errorMessage,
       responseDescription: data.ResponseDescription,
     });
-    throw new Error(
-      data.errorMessage ?? 'Could not reach M-Pesa right now. Please try again.'
-    );
+    const message = 'M-Pesa could not start the payment. Your items are saved. Please try again.';
+    if (response.status < 500 && !data.CheckoutRequestID) throw new MpesaInitiationError(message);
+    throw new Error('M-Pesa has not confirmed whether the prompt was sent. Check your phone and payment status before retrying.');
   }
 
   return {
@@ -220,14 +239,35 @@ export async function queryStkStatus(checkoutRequestId: string): Promise<StkQuer
   if (resultCode === 0) {
     return { state: 'success', resultCode, resultDesc };
   }
+
+  // Some Daraja responses describe a transaction that hasn't actually
+  // concluded yet — e.g. ResultDesc "The transaction is still under
+  // processing" — but arrive as an ordinary 200 response with a non-zero
+  // ResultCode, not the 500.001.1001 HTTP-error shape handled above. Marking
+  // that terminal-failed tells the customer "payment not completed" in the
+  // same breath as text saying it's still in progress. Recognise the same
+  // not-yet-decided language here too, so it stays 'pending' — the caller
+  // (settleMpesaPayment) already checks every outstanding prompt again on
+  // the next reconciliation pass, and the storefront poller already has a
+  // dedicated "still waiting" state for exactly this case.
+  if (/\bstill\b[\s\S]*?\bprocess|being\s+processed/i.test(resultDesc)) {
+    return { state: 'pending', resultDesc: resultDesc || 'Awaiting M-Pesa confirmation' };
+  }
+
   return { state: 'failed', resultCode, resultDesc };
 }
 
 /** Path Safaricom posts results to, including the shared path secret. */
 export function buildCallbackUrl(): string {
-  const { appUrl, mpesaCallbackSecret } = getPaymentConfig();
+  const { appUrl, mpesaCallbackSecret, mpesaCallbackBaseUrl } = getPaymentConfig();
   if (!mpesaCallbackSecret) {
     throw new Error('MPESA_CALLBACK_SECRET is not configured');
   }
-  return `${appUrl.replace(/\/$/, '')}/api/webhooks/mpesa/${mpesaCallbackSecret}`;
+  let base: URL;
+  try { base = new URL(mpesaCallbackBaseUrl || appUrl); }
+  catch { throw new Error('M-Pesa is temporarily unavailable. The store needs a public HTTPS callback address.'); }
+  if (base.protocol !== 'https:' || base.hostname === 'localhost' || base.hostname.endsWith('.localhost') || /^(127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/.test(base.hostname) || base.hostname.includes(':') || base.username || base.password) {
+    throw new Error('M-Pesa is temporarily unavailable. The store needs a public HTTPS callback address.');
+  }
+  return `${base.origin}/api/webhooks/mpesa/${encodeURIComponent(mpesaCallbackSecret)}`;
 }

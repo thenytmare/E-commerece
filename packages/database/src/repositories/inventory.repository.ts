@@ -66,10 +66,18 @@ export class InventoryRepository extends BaseRepository {
     referenceId?: string
   ): Promise<Inventory> {
     return this.db.$transaction(async (tx) => {
-      const inventory = await tx.inventory.update({
-        where: { variantId },
-        data: { quantity: { increment: change } },
-      });
+      // One conditional statement: stock can never be taken below what is
+      // already reserved for open orders, even when two adjustments race.
+      const changed = await tx.$executeRaw`
+        UPDATE "inventory"
+        SET "quantity" = "quantity" + ${change}
+        WHERE "variant_id" = ${variantId}
+          AND "quantity" + ${change} >= "reserved"
+      `;
+      if (changed === 0) {
+        throw new Error('Stock cannot go below the amount reserved for open orders');
+      }
+      const inventory = await tx.inventory.findUniqueOrThrow({ where: { variantId } });
 
       await tx.inventoryLog.create({
         data: { variantId, change, reason, referenceId },

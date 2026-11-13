@@ -1,10 +1,10 @@
 import { getStoreSettings } from '@/lib/store';
-import { createRepositories } from '@repo/database';
 import { Container } from '@repo/ui';
 import { buildWhatsAppLink } from '@repo/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Mail, MapPin, Phone } from 'lucide-react';
+import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedRootCategories } from '@/lib/catalog-cache';
 
 /**
  * Storefront footer.
@@ -16,7 +16,7 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 export async function SiteFooter() {
   const [store, categories] = await Promise.all([
     getStoreSettings(),
-    createRepositories().category.findRootCategories(),
+    getCachedRootCategories(),
   ]);
 
   const year = new Date().getFullYear();

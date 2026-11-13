@@ -68,7 +68,7 @@ export async function rememberGuestOrder(orderNumber: string): Promise<void> {
     value: next.map((value) => `${value}~${sign(value)}`).join('.'),
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && process.env.AUTH_INSECURE_COOKIES !== 'true',
     path: '/',
     maxAge: COOKIE_MAX_AGE_SECONDS,
   });

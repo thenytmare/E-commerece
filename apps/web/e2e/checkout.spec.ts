@@ -56,11 +56,15 @@ test('guest can add a product to cart and complete checkout with simulated payme
 
   await test.step('fill the guest checkout form and place the order', async () => {
     await page.getByLabel('Email address').fill(guestEmail);
+
+    // Delivery option and location (see @repo/config delivery.ts).
+    await page.getByLabel('Nairobi Delivery').check();
+    await page.getByLabel('Select location *').fill('Westlands');
+    await page.getByRole('option', { name: /Westlands/ }).click();
+
     await page.getByLabel('Full name').fill('Playwright Test');
     await page.getByLabel('Phone').fill('0712345678');
-    await page.getByLabel('County').fill('Nairobi');
-    await page.getByLabel('City / Town').fill('Nairobi');
-    await page.getByLabel('Street address').fill('123 Test Street');
+    await page.getByLabel('Building, estate or landmark').fill('123 Test Street');
 
     await page.getByRole('button', { name: 'Continue to payment' }).click();
 

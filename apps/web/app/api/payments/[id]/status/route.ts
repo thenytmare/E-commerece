@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { loadViewableOrder } from '@/lib/order-access';
 import { createRepositories } from '@repo/database';
 import { settleMpesaPayment } from '@/lib/payments/mpesa-settlement';
-import { canAccessGuestOrder } from '@/lib/guest-orders';
 
 /**
  * Payment status for the checkout page to poll after an STK push.
@@ -20,6 +19,9 @@ import { canAccessGuestOrder } from '@/lib/guest-orders';
 /** Give the customer time to enter their PIN before querying Daraja. */
 const RECONCILE_AFTER_MS = 10_000;
 
+/** Minimum gap between provider queries for the same payment. */
+const QUERY_COOLDOWN_MS = 15_000;
+
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const repos = createRepositories();
@@ -36,18 +38,21 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   // Ownership check: the order behind this payment must belong to the logged-in
   // user or to a guest holding the signed cookie for this specific order.
-  const session = await auth();
-  const isOwnedByUser = Boolean(session?.user?.id && order.userId === session.user.id);
-  const isGuestWithCookie = order.userId === null && (await canAccessGuestOrder(order.orderNumber));
-
-  if (!isOwnedByUser && !isGuestWithCookie) {
+  if (!await loadViewableOrder(order.orderNumber)) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
   let current = payment;
 
   const isStale = Date.now() - payment.createdAt.getTime() > RECONCILE_AFTER_MS;
-  if (payment.status === 'PENDING' && payment.provider === 'MPESA' && isStale) {
+  // Only one caller per cooldown window may ask Daraja. However many tabs are
+  // polling, the provider sees one query per payment per window.
+  if (
+    payment.status === 'PENDING' &&
+    payment.provider === 'MPESA' &&
+    isStale &&
+    (await repos.payment.claimProviderQuery(payment.id, QUERY_COOLDOWN_MS))
+  ) {
     try {
       const outcome = await settleMpesaPayment(payment);
       if (outcome === 'completed' || outcome === 'failed') {
@@ -62,7 +67,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     }
   }
 
-  const terminal = current.status === 'COMPLETED' || current.status === 'FAILED';
+  const terminal =
+    current.status === 'COMPLETED' ||
+    current.status === 'FAILED' ||
+    current.status === 'REFUNDED';
 
   return NextResponse.json({
     id: current.id,

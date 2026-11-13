@@ -9,13 +9,32 @@ describe('InventoryRepository', () => {
       update: vi.fn(),
       create: vi.fn(),
       findMany: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
     },
     inventoryLog: { create: vi.fn() },
     $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
     $transaction: vi.fn((fn: (tx: typeof mockDb) => Promise<unknown>) => fn(mockDb)),
   };
 
   const repo = new InventoryRepository(mockDb as never);
+
+  it('adjustStock refuses to take stock below what is reserved', async () => {
+    mockDb.$executeRaw.mockResolvedValue(0);
+    mockDb.inventoryLog.create.mockClear();
+
+    await expect(repo.adjustStock('variant-1', -50, 'manual')).rejects.toThrow('reserved');
+    expect(mockDb.inventoryLog.create).not.toHaveBeenCalled();
+  });
+
+  it('adjustStock applies a valid change and logs it', async () => {
+    mockDb.$executeRaw.mockResolvedValue(1);
+    mockDb.inventory.findUniqueOrThrow.mockResolvedValue({ variantId: 'variant-1', quantity: 5 });
+
+    const result = await repo.adjustStock('variant-1', 5, 'restock');
+    expect(result.quantity).toBe(5);
+    expect(mockDb.inventoryLog.create).toHaveBeenCalled();
+  });
 
   it('checkAvailability returns unavailable when no inventory exists', async () => {
     mockDb.inventory.findUnique.mockResolvedValue(null);

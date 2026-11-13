@@ -25,7 +25,19 @@ export default async function ProductsPage({
   const statusFilter = typeof resolvedSearchParams.status === 'string' ? resolvedSearchParams.status : undefined;
   const featuredFilter = typeof resolvedSearchParams.featured === 'string' ? resolvedSearchParams.featured : undefined;
 
-  const isActive = statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined;
+  // The Visible / Hidden tabs use ?visibility=. Older links used ?status=active
+  // and ?status=inactive, so those still work.
+  const visibilityParam = typeof resolvedSearchParams.visibility === 'string' ? resolvedSearchParams.visibility : undefined;
+  const visibility: 'visible' | 'hidden' | undefined =
+    visibilityParam === 'visible' || statusFilter === 'active'
+      ? 'visible'
+      : visibilityParam === 'hidden' || statusFilter === 'inactive'
+        ? 'hidden'
+        : undefined;
+  // The Trash tab lists deleted products, which are always inactive, so the
+  // visibility filter does not apply there.
+  const isActive =
+    statusFilter === 'archived' ? undefined : visibility === 'visible' ? true : visibility === 'hidden' ? false : undefined;
   const isFeatured = featuredFilter === 'true' ? true : featuredFilter === 'false' ? false : undefined;
 
   const sortKeyParam = typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : undefined;
@@ -36,7 +48,7 @@ export default async function ProductsPage({
 
   const productsData = await repos.product.adminFindMany({
     page,
-    limit: 10,
+    limit: 25,
     search,
     brandId,
     categoryId,
@@ -47,10 +59,12 @@ export default async function ProductsPage({
     sortDirection,
   });
 
-  // Get filter options
-  const [brands, categories] = await Promise.all([
+  // Filter options, tab counts and stock for the rows on this page.
+  const [brands, categories, counts, stockByProduct] = await Promise.all([
     repos.brand.findAllActive(),
     repos.category.adminFindMany({ isActive: true, limit: 100 }),
+    repos.product.getVisibilityCounts({ search, brandId, categoryId, isFeatured }),
+    repos.product.getAvailableStockByProduct(productsData.items.map((product) => product.id)),
   ]);
 
   const initialData = {
@@ -62,6 +76,7 @@ export default async function ProductsPage({
       basePrice: Number(product.basePrice),
       isActive: product.isActive,
       isFeatured: product.isFeatured,
+      availableStock: stockByProduct.get(product.id) ?? 0,
       status: (product as { status?: string }).status ?? (product.isActive ? 'active' : 'draft'),
       brand: product.brand,
       category: product.category,
@@ -91,6 +106,8 @@ export default async function ProductsPage({
       <ProductListClient
         initialData={initialData}
         initialSearch={search || ''}
+        counts={counts}
+        visibility={visibility ?? 'all'}
         sortKey={sortKey}
         sortDirection={sortDirection}
         filterOptions={{

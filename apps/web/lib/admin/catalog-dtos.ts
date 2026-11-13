@@ -19,7 +19,9 @@ export type ProductFormData = {
   images: { url: string; variantIndex: number | null }[];
   features: string[];
   hasVariants: boolean;
-  variants: { id: string; name: string; hex: string; price: number }[];
+  stock: number;
+  reserved: number;
+  variants: { id: string; name: string; hex: string; price: number; stock: number; reserved: number }[];
 };
 
 export function toProductFormData(product: ProductDetail | null): ProductFormData | null {
@@ -40,6 +42,8 @@ export function toProductFormData(product: ProductDetail | null): ProductFormDat
       name: attrs.color ?? '',
       hex: attrs.hex ?? '#000000',
       price: Number(v.price),
+      stock: v.inventory?.quantity ?? 0,
+      reserved: v.inventory?.reserved ?? 0,
     };
   });
 
@@ -74,7 +78,9 @@ export function toProductFormData(product: ProductDetail | null): ProductFormDat
     images,
     features: product.features.map((f) => f.text),
     hasVariants,
-    variants: hasVariants ? variants : [],
+    stock: orderedVariants[0]?.inventory?.quantity ?? 0,
+    reserved: orderedVariants[0]?.inventory?.reserved ?? 0,
+    variants,
   };
 }
 

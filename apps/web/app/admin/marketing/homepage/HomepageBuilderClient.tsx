@@ -53,10 +53,10 @@ export function HomepageBuilderClient({ initialSections }: { initialSections: Ho
           <label className="flex items-center gap-3"><input type="checkbox" checked={sections.hero.enabled} onChange={() => toggle('hero')} className="h-4 w-4 rounded border-border" /><span className="text-sm font-medium">Enabled</span></label>
           {sections.hero.enabled && <>
             <div className="grid gap-4">
-              <input type="text" placeholder="Title" value={sections.hero.title} onChange={e => updateHero('title', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-              <input type="text" placeholder="Subtitle" value={sections.hero.subtitle} onChange={e => updateHero('subtitle', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-              <input type="text" placeholder="CTA Button Text" value={sections.hero.ctaText} onChange={e => updateHero('ctaText', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
-              <input type="text" placeholder="CTA Link" value={sections.hero.ctaLink} onChange={e => updateHero('ctaLink', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+              <input type="text" aria-label="Title" placeholder="Title" value={sections.hero.title} onChange={e => updateHero('title', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+              <input type="text" aria-label="Subtitle" placeholder="Subtitle" value={sections.hero.subtitle} onChange={e => updateHero('subtitle', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+              <input type="text" aria-label="CTA Button Text" placeholder="CTA Button Text" value={sections.hero.ctaText} onChange={e => updateHero('ctaText', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
+              <input type="text" aria-label="CTA Link" placeholder="CTA Link" value={sections.hero.ctaLink} onChange={e => updateHero('ctaLink', e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />
               <ImageUrlField
                 value={sections.hero.imageUrl}
                 onChange={(url) => updateHero('imageUrl', url)}
@@ -81,7 +81,7 @@ export function HomepageBuilderClient({ initialSections }: { initialSections: Ho
       <FormSection title="Announcement Bar" description="Top-of-page announcement banner.">
         <div className="grid gap-4">
           <label className="flex items-center gap-3"><input type="checkbox" checked={sections.announcements.enabled} onChange={() => toggle('announcements')} className="h-4 w-4 rounded border-border" /><span className="text-sm font-medium">Enabled</span></label>
-          {sections.announcements.enabled && <input type="text" placeholder="Announcement message" value={sections.announcements.message} onChange={e => updateAnnouncements(e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />}
+          {sections.announcements.enabled && <input type="text" aria-label="Announcement message" placeholder="Announcement message" value={sections.announcements.message} onChange={e => updateAnnouncements(e.target.value)} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm" />}
         </div>
       </FormSection>
 

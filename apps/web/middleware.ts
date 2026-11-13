@@ -77,6 +77,8 @@ export const config = {
   //    nonce to protect, and /uploads keeps the separate, stricter CSP
   //    next.config.ts already sets for it (left alone to avoid the two
   //    colliding).
+  //  - robots.txt and sitemap.xml are excluded too: they need no nonce, and
+  //    running auth on them set cookies on a public, cacheable response.
   //  - `/api` is excluded wholesale, same as it was implicitly before (the
   //    original matcher never touched non-admin API routes either). API
   //    responses are never rendered as HTML, so they don't need the CSP/
@@ -86,5 +88,5 @@ export const config = {
   //    rather than risking an interaction with their own request handling.
   // /api/admin/:path* is re-added explicitly afterwards so it keeps exactly
   // the protection it already had.
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|uploads).*)', '/api/admin/:path*'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|uploads).*)', '/api/admin/:path*'],
 };

@@ -17,6 +17,11 @@ if (!secret) {
   );
 }
 
+// AUTH_INSECURE_COOKIES=true is only for testing a production build over plain
+// http://localhost. Never set it on a real server.
+const isProduction =
+  process.env.NODE_ENV === 'production' && process.env.AUTH_INSECURE_COOKIES !== 'true';
+
 export const authConfig = {
   trustHost: true,
   secret,
@@ -25,6 +30,27 @@ export const authConfig = {
   },
   session: {
     strategy: 'jwt',
+  },
+  // Pin the session-token cookie name so it is consistent whether the app is
+  // reached via http://localhost (dev) or an https:// tunnel (ngrok).
+  // Without this, Auth.js switches between `authjs.session-token` and
+  // `__Secure-authjs.session-token` based on the request scheme, which causes
+  // the middleware to read a different cookie than the one that was set and
+  // the user appears logged out immediately after signing in.
+  //
+  // In production the cookie is HTTPS-only and uses the __Secure- prefix, so a
+  // browser never sends it over plain HTTP. Local development keeps the plain
+  // name and no Secure flag, because http://localhost cannot set Secure cookies.
+  cookies: {
+    sessionToken: {
+      name: isProduction ? '__Secure-authjs.session-token' : 'authjs.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        secure: isProduction,
+      },
+    },
   },
   callbacks: {
     // Expose roles from the JWT token into the session so the middleware

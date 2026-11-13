@@ -30,7 +30,10 @@ export async function listBackInStockSubscribers(): Promise<BackInStockSubscribe
     email: row.email,
     phone: row.phone,
     createdAt: row.createdAt.toISOString(),
-    inStock: row.product.variants.some(
+    // A hidden product is never "in stock" for customers.
+    inStock:
+      row.product.isActive &&
+      row.product.variants.some(
       (v) => (v.inventory?.quantity ?? 0) - (v.inventory?.reserved ?? 0) > 0
     ),
   }));

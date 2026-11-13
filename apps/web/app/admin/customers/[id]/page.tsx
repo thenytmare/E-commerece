@@ -61,7 +61,9 @@ export default async function CustomerDetailPage({
                   <li key={order.id} className="flex items-center justify-between gap-4 py-3">
                     <div className="min-w-0">
                       <Link
-                        href={`/orders/${order.orderNumber}`}
+                        // The storefront order page is owner-only, so admins go to the
+                        // admin order list filtered to this order.
+                        href={`/admin/orders?search=${encodeURIComponent(order.orderNumber)}`}
                         className="font-medium hover:text-primary"
                       >
                         {order.orderNumber}

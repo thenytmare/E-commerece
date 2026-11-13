@@ -7,6 +7,7 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
 import { loginSchema } from './lib/validations/auth';
+import { rateLimit } from './lib/rate-limit';
 
 const repos = createRepositories();
 
@@ -20,9 +21,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) {
+          return null;
+        }
+
+        // Limit at the verification boundary, so the direct Auth.js callback
+        // URL gets the same protection as the login form. One bucket per
+        // account and one per address, so guessing many passwords for one
+        // account, or many accounts from one address, are both slowed down.
+        // The reply is the same as a wrong password, so it reveals nothing.
+        const forwarded = request?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim();
+        const address = forwarded || request?.headers?.get('x-real-ip') || 'unknown';
+        const byAccount = await rateLimit(`auth-account:${parsed.data.email.toLowerCase()}`, 10, 5 * 60_000);
+        const byAddress = await rateLimit(`auth-ip:${address}`, 30, 5 * 60_000);
+        if (!byAccount.allowed || !byAddress.allowed) {
           return null;
         }
 
@@ -91,9 +105,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub ?? '';
-        session.user.roles = (token.roles as RoleName[] | undefined) ?? [];
         session.user.disabled = token.disabled === true;
+        // A deactivated account keeps no usable identity. Every action that
+        // checks `session.user.id` (wishlist, reviews, checkout, order access)
+        // then treats it as signed out, without each one needing its own check.
+        session.user.id = session.user.disabled ? '' : (token.sub ?? '');
+        session.user.roles = session.user.disabled
+          ? []
+          : ((token.roles as RoleName[] | undefined) ?? []);
       }
       return session;
     },

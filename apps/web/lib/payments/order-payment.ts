@@ -18,12 +18,7 @@ export async function getOrCreatePendingPayment(
     throw new Error('Order is already paid');
   }
 
-  const pending = await repos.payment.findByOrderId(order.id);
-  const existing = pending.find((p) => p.provider === provider && p.status === 'PENDING');
-  if (existing) {
-    return existing;
-  }
-
+  // Repository checks the order again under its lock, including on retries.
   return repos.payment.createPending({
     orderId: order.id,
     provider,

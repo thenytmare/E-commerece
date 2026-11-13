@@ -57,6 +57,14 @@ export class WishlistRepository extends BaseRepository {
    * exact variant" are different intents.
    */
   async add(userId: string, productId: string, variantId?: string | null): Promise<void> {
+    // Hidden or deleted products cannot be saved.
+    const visible = await this.db.product.count({
+      where: { id: productId, isActive: true, deletedAt: null },
+    });
+    if (visible === 0) {
+      throw new Error('This product is no longer available');
+    }
+
     // find-then-create rather than upsert: `variantId` is nullable, and Prisma
     // won't accept null in a compound unique `where`.
     const existing = await this.db.wishlistItem.findFirst({

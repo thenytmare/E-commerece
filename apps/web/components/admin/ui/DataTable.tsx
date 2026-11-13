@@ -51,6 +51,12 @@ export interface DataTableProps<T> {
   
   // Actions
   rowActions?: (item: T) => React.ReactNode;
+  /**
+   * Optional card layout for phones. When given, screens narrower than 640px
+   * show one card per row instead of the wide table. The card gets the row's
+   * selection checkbox as `checkbox`.
+   */
+  mobileCard?: (item: T, checkbox: React.ReactNode) => React.ReactNode;
   bulkActions?: React.ReactNode;
   
   // Search & Filter
@@ -85,6 +91,7 @@ export function DataTable<T extends { id: string | number }>({
   onSelect,
   getRowLabel,
   rowActions,
+  mobileCard,
   bulkActions,
   onSearch,
   searchValue,
@@ -247,8 +254,43 @@ export function DataTable<T extends { id: string | number }>({
         </div>
       </div>
 
+      {/* Phone layout: one card per row */}
+      {mobileCard ? (
+        <ul className="divide-y divide-border sm:hidden">
+          {isLoading ? (
+            <li className="p-4"><LoadingSkeleton className="h-16 w-full" /></li>
+          ) : data.length === 0 ? (
+            <li className="p-4">
+              <EmptyState
+                icon={emptyIcon ?? Inbox}
+                title={emptyTitle ?? 'Nothing here yet'}
+                description={emptyMessage}
+                action={emptyAction}
+              />
+            </li>
+          ) : (
+            data.map((item) => (
+              <li key={String(item.id)} className="p-4">
+                {mobileCard(
+                  item,
+                  selectable ? (
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
+                      checked={activeSelectedIds.includes(String(item.id))}
+                      onChange={(e) => handleSelectRow(String(item.id), e.target.checked)}
+                      aria-label={`Select ${getRowLabel ? getRowLabel(item) : `row ${item.id}`}`}
+                    />
+                  ) : null
+                )}
+              </li>
+            ))
+          )}
+        </ul>
+      ) : null}
+
       {/* Table Container */}
-      <div className="overflow-x-auto">
+      <div className={mobileCard ? 'hidden overflow-x-auto sm:block' : 'overflow-x-auto'}>
         <table className="w-full text-sm text-left">
           <thead className="bg-muted/50 text-muted-foreground text-xs uppercase border-b border-border">
             <tr>

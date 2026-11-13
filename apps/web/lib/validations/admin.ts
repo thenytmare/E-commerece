@@ -51,6 +51,8 @@ const integerDefaultingToZero = z
   .refine((n) => Number.isInteger(n), 'Enter a whole number');
 
 export const productSchema = z.object({
+  stock: optionalNumber.refine(n => n === null || (Number.isInteger(n) && n >= 0 && n <= 1_000_000), 'Stock must be a whole number between 0 and 1,000,000'),
+  expectedStock: optionalNumber.refine(n => n === null || (Number.isInteger(n) && n >= 0 && n <= 1_000_000), 'Invalid previous stock quantity'),
   name: z.string().trim().min(2, 'Product name is required'),
   brandId: z.string().trim().min(1, 'Select a brand'),
   categoryId: z.string().trim().min(1, 'Select a category'),
@@ -101,9 +103,7 @@ export const couponSchema = z
       .min(3, 'Coupon code must be at least 3 characters')
       // Spaces and punctuation make a code easy to mistype at checkout.
       .regex(/^[A-Za-z0-9_-]+$/, 'Use only letters, numbers, hyphens and underscores'),
-    type: z.enum(['PERCENTAGE', 'FIXED'], {
-      errorMap: () => ({ message: 'Select a discount type' }),
-    }),
+    type: z.enum(['PERCENTAGE', 'FIXED'], { error: 'Select a discount type' }),
     value: requiredNumber('Enter a valid discount value').refine(
       (n) => n > 0,
       'Discount must be greater than zero'

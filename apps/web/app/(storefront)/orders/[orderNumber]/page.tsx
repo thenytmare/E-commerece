@@ -2,6 +2,7 @@ import { loadViewableOrder } from '@/lib/order-access';
 import { formatDate, formatPrice } from '@/lib/format';
 import { createRepositories } from '@repo/database';
 import { getStoreSettings } from '@/lib/store';
+import { deliveryZoneLabel } from '@repo/config';
 import { DigitalReceipt } from '@/components/order/DigitalReceipt';
 import { Badge, Button, Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
@@ -10,7 +11,7 @@ import { notFound } from 'next/navigation';
 
 interface OrderPageProps {
   params: Promise<{ orderNumber: string }>;
-  searchParams: Promise<{ paid?: string }>;
+  searchParams: Promise<{ paid?: string; cod?: string }>;
 }
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'outline'> = {
@@ -42,7 +43,16 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
 
   const settings = await getStoreSettings();
   const completedPayment = order.payments.find((payment) => payment.status === 'COMPLETED');
-  const isPaid = order.status === 'CONFIRMED' || Boolean(completedPayment);
+  // Cash on Delivery orders are confirmed before any money changes hands.
+  const codPayment = order.payments.find(
+    (payment) => payment.provider === 'CASH_ON_DELIVERY' && payment.status === 'PENDING'
+  );
+  // Paid only when a payment record says so. An admin marking an order
+  // CONFIRMED does not mean money arrived.
+  const isPaid = !codPayment && Boolean(completedPayment);
+  const deliverySummary = order.deliveryZone
+    ? `${deliveryZoneLabel(order.deliveryZone)}${order.deliveryLocation ? ` · ${order.deliveryLocation}` : ''}`
+    : null;
   const awaitingPayment = order.status === 'PENDING' && !completedPayment;
 
   const receiptProps = {
@@ -67,18 +77,22 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
     shipping: formatPrice(order.shipping),
     discount: formatPrice(order.discount),
     total: formatPrice(order.total),
-    paymentMethod: completedPayment ? `${completedPayment.provider} (${completedPayment.status})` : 'Pending',
+    paymentMethod: codPayment
+      ? 'Cash on Delivery (pay the rider)'
+      : completedPayment
+        ? `${completedPayment.provider} (${completedPayment.status})`
+        : 'Pending',
   };
 
   return (
     <main>
       <Section spacing="md" className="border-b border-border bg-card">
         <Container>
-          <Badge variant={isPaid ? 'success' : 'secondary'} className="mb-4">
-            {isPaid ? 'Payment received' : 'Awaiting payment'}
+          <Badge variant={isPaid || codPayment ? 'success' : 'secondary'} className="mb-4">
+            {codPayment ? 'Cash on Delivery' : isPaid ? 'Payment received' : 'Awaiting payment'}
           </Badge>
           <Heading as="h1" size="lg" className="mb-2">
-            {isPaid ? 'Thank you for your order' : 'Order placed'}
+            {isPaid || codPayment ? 'Thank you for your order' : 'Order placed'}
           </Heading>
           <Text variant="muted">
             Order <span className="font-mono font-medium text-foreground">{order.orderNumber}</span>
@@ -86,6 +100,12 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
           {query.paid === '1' && isPaid ? (
             <Text className="mt-3 text-sm text-green-600">
               Your payment was successful. We&apos;ll process your order shortly.
+            </Text>
+          ) : null}
+          {codPayment ? (
+            <Text className="mt-3 text-sm text-green-600">
+              Your order is confirmed. Please have {formatPrice(order.total)} ready to pay the rider
+              on delivery.
             </Text>
           ) : null}
           {awaitingPayment ? (
@@ -102,7 +122,12 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
         <Container className="space-y-8">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-6">
-              <Text className="mb-4 font-semibold">Shipping to</Text>
+              <Text className="mb-4 font-semibold">
+                {order.deliveryZone === 'PICKUP' ? 'Shop pickup' : 'Shipping to'}
+              </Text>
+              {deliverySummary ? (
+                <Text className="mb-2 text-sm font-medium">{deliverySummary}</Text>
+              ) : null}
               {order.address ? (
                 <address className="not-italic text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">{order.address.name}</p>
@@ -128,7 +153,12 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
                     </Badge>
                   </dd>
                 </div>
-                {completedPayment ? (
+                {codPayment ? (
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Payment</dt>
+                    <dd>Cash on Delivery</dd>
+                  </div>
+                ) : completedPayment ? (
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Payment</dt>
                     <dd>
@@ -145,8 +175,8 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
                   <dd>{formatPrice(order.subtotal)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Shipping</dt>
-                  <dd>{formatPrice(order.shipping)}</dd>
+                  <dt className="text-muted-foreground">Delivery</dt>
+                  <dd>{Number(order.shipping) === 0 ? 'Free' : formatPrice(order.shipping)}</dd>
                 </div>
                 <div className="flex justify-between border-t border-border pt-2 font-semibold">
                   <dt>Total</dt>

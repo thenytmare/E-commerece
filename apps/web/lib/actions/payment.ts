@@ -2,11 +2,16 @@
 
 import { loadViewableOrder } from '@/lib/order-access';
 import { getOrCreatePendingPayment } from '@/lib/payments/order-payment';
-import { buildCallbackUrl, initiateStkPush, normalizeMpesaPhone } from '@/lib/payments/mpesa';
+import { buildCallbackUrl, initiateStkPush, normalizeMpesaPhone, MpesaInitiationError } from '@/lib/payments/mpesa';
 import { createStripeCheckoutSession } from '@/lib/payments/stripe';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { createRepositories, type OrderDetail } from '@repo/database';
-import { isMpesaConfigured, isPaymentDevMode, isStripeConfigured } from '@repo/config';
+import {
+  isCashOnDeliveryAvailable,
+  isMpesaConfigured,
+  isPaymentDevMode,
+  isStripeConfigured,
+} from '@repo/config';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -44,7 +49,7 @@ export async function initiateStripePaymentAction(
 ): Promise<PaymentActionState> {
   // Defense in depth — bounded by provider-side limits already, but nothing
   // stopped a script from hammering this action directly.
-  const limit = rateLimit(`stripe-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  const limit = await rateLimit(`stripe-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -54,7 +59,6 @@ export async function initiateStripePaymentAction(
   try {
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
-    const payment = await getOrCreatePendingPayment(order, 'STRIPE', 'card');
 
     if (!isStripeConfigured()) {
       if (isPaymentDevMode()) {
@@ -62,6 +66,8 @@ export async function initiateStripePaymentAction(
       }
       return { error: 'Card payments are not available right now' };
     }
+
+    const payment = await getOrCreatePendingPayment(order, 'STRIPE', 'card');
 
     const checkoutSession = await createStripeCheckoutSession(order, payment.id);
     if (!checkoutSession.url) {
@@ -97,7 +103,7 @@ export async function initiateMpesaPaymentAction(
 
   // Defense in depth — bounded by provider-side limits already, but nothing
   // stopped a script from hammering this action directly.
-  const limit = rateLimit(`mpesa-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  const limit = await rateLimit(`mpesa-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
   if (!limit.allowed) {
     return { error: retryMessage(limit.retryAfterSeconds) };
   }
@@ -120,6 +126,9 @@ export async function initiateMpesaPaymentAction(
 
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
+    const callbackUrl = buildCallbackUrl();
+    const promptLimit = await rateLimit(`mpesa-prompt:${order.id}`, 1, 90_000);
+    if (!promptLimit.allowed) return { error: 'A prompt was recently requested for this order. Check your phone or wait 90 seconds before trying again.' };
     const payment = await getOrCreatePendingPayment(order, 'MPESA', 'stk_push');
 
     // Amount always comes from the persisted order, never the browser.
@@ -132,7 +141,14 @@ export async function initiateMpesaPaymentAction(
       phone,
       amount: total,
       orderNumber: order.orderNumber,
-      callbackUrl: buildCallbackUrl(),
+      callbackUrl,
+    }).catch(async (error) => {
+      // Never mark an earlier, possibly accepted prompt failed when a retry
+      // is rejected, or when the network result is ambiguous.
+      if (error instanceof MpesaInitiationError && !payment.externalId) {
+        await repos.payment.markFailed(payment.id, undefined, error.message);
+      }
+      throw error;
     });
 
     await repos.payment.recordStkRequest(payment.id, {
@@ -161,6 +177,35 @@ export async function initiateMpesaPaymentAction(
     const message = error instanceof Error ? error.message : 'M-Pesa payment failed';
     return { error: message };
   }
+}
+
+/**
+ * Customer chose to pay the rider in cash. Nairobi deliveries only: the
+ * repository re-checks that and confirms the order so its stock stays held.
+ */
+export async function chooseCashOnDeliveryAction(
+  orderNumber: string
+): Promise<PaymentActionState> {
+  const limit = await rateLimit(`cod-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
+  try {
+    const order = await loadPayableOrder(orderNumber);
+    if (!isCashOnDeliveryAvailable(order.deliveryZone)) {
+      return { error: 'Cash on Delivery is only available for Nairobi deliveries' };
+    }
+    await createRepositories().order.placeCashOnDelivery(order.id);
+
+    revalidatePath(`/orders/${orderNumber}`);
+    revalidatePath('/account/orders');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not confirm Cash on Delivery';
+    return { error: message };
+  }
+
+  redirect(`/orders/${orderNumber}?cod=1`);
 }
 
 export async function simulatePaymentAction(
