@@ -1,18 +1,44 @@
-import { calculateOrderTotals } from '@/lib/checkout';
-import { formatPrice } from '@/lib/format';
-import type { CartWithItems } from '@repo/database';
-import { Text } from '@repo/ui';
+'use client';
 
-interface CheckoutSummaryProps {
-  cart: CartWithItems;
+import { formatPrice } from '@/lib/format';
+import { Text } from '@repo/ui';
+import type { DeliveryZone } from '@repo/config/delivery';
+import type { AppliedCoupon } from './CheckoutClient';
+
+/** One order line, pre-serialized on the server (no Prisma Decimals). */
+export interface CheckoutSummaryLine {
+  id: string;
+  name: string;
+  quantity: number;
+  lineTotal: number;
 }
 
-export function CheckoutSummary({ cart }: CheckoutSummaryProps) {
-  const { subtotal, shipping, total } = calculateOrderTotals(cart);
-  const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+interface CheckoutSummaryProps {
+  subtotal: number;
+  /** null until the customer has chosen a delivery option and location. */
+  shipping: number | null;
+  deliveryZone: DeliveryZone | null;
+  itemCount: number;
+  lines: CheckoutSummaryLine[];
+  appliedCoupon?: AppliedCoupon | null;
+}
+
+export function CheckoutSummary({
+  subtotal,
+  shipping,
+  deliveryZone,
+  itemCount,
+  lines,
+  appliedCoupon,
+}: CheckoutSummaryProps) {
+  const discount = appliedCoupon?.discount ?? 0;
+  const total = Math.max(0, subtotal + (shipping ?? 0) - discount);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-soft">
+    // On mobile this renders before the address form (order-1) so the total
+    // is visible before a shopper commits to "Continue to payment" — on
+    // desktop it reverts to its natural place in the right-hand column.
+    <div className="order-1 rounded-xl border border-border bg-card p-6 shadow-soft lg:order-none">
       <Text className="mb-4 font-semibold">Order Summary</Text>
       <dl className="space-y-3 text-sm">
         <div className="flex justify-between">
@@ -22,25 +48,33 @@ export function CheckoutSummary({ cart }: CheckoutSummaryProps) {
           <dd className="font-medium">{formatPrice(subtotal)}</dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Shipping</dt>
+          <dt className="text-muted-foreground">
+            {deliveryZone === 'PICKUP' ? 'Shop pickup' : 'Delivery fee'}
+          </dt>
           <dd className="font-medium">
-            {shipping === 0 ? 'Free' : formatPrice(shipping)}
+            {shipping === null ? (
+              <span className="text-muted-foreground">Select location</span>
+            ) : shipping === 0 ? (
+              'Free'
+            ) : (
+              formatPrice(shipping)
+            )}
           </dd>
         </div>
+        {appliedCoupon ? (
+          <div className="flex justify-between text-primary">
+            <dt>Coupon ({appliedCoupon.code})</dt>
+            <dd className="font-medium">-{formatPrice(discount)}</dd>
+          </div>
+        ) : null}
       </dl>
       <div className="mt-4 space-y-3 border-t border-border pt-4">
-        {cart.items.map((item) => (
-          <div key={item.id} className="flex justify-between gap-4 text-sm">
+        {lines.map((line) => (
+          <div key={line.id} className="flex justify-between gap-4 text-sm">
             <span className="line-clamp-1 text-muted-foreground">
-              {item.variant.product.name} × {item.quantity}
+              {line.name} × {line.quantity}
             </span>
-            <span className="shrink-0 font-medium">
-              {formatPrice(
-                (typeof item.variant.price === 'object' && 'toNumber' in item.variant.price
-                  ? item.variant.price.toNumber()
-                  : Number(item.variant.price)) * item.quantity
-              )}
-            </span>
+            <span className="shrink-0 font-medium">{formatPrice(line.lineTotal)}</span>
           </div>
         ))}
       </div>

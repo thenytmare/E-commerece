@@ -10,13 +10,27 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
     "db:generate": "pnpm --filter @repo/database db:generate",
     "db:migrate": "pnpm --filter @repo/database db:migrate",
+    "db:deploy": "pnpm --filter @repo/database db:deploy",
     "db:push": "pnpm --filter @repo/database db:push",
     "db:seed": "pnpm --filter @repo/database db:seed",
     "db:studio": "pnpm --filter @repo/database db:studio",
+    "db:backup": "node scripts/backup-db.js",
+    "db:restore": "node scripts/restore-db.js",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "clean": "turbo clean",
-    "rebuild": "turbo clean && turbo build"
+    "rebuild": "turbo clean && turbo build",
+    "test:scripts": "pnpm --filter @repo/config exec vitest run --root ../../scripts",
+    "test:web": "pnpm --filter @repo/config exec vitest run --root ../../apps/web",
+    "test:cache": "node tests/cache/cache-test.mjs",
+    "test:load:smoke": "k6 run -e SHAPE=smoke tests/load/storefront.js",
+    "test:load:baseline": "k6 run -e SHAPE=baseline tests/load/storefront.js",
+    "test:load:load": "k6 run -e SHAPE=load tests/load/storefront.js",
+    "test:load:stress": "k6 run -e SHAPE=stress tests/load/storefront.js",
+    "test:load:spike": "k6 run -e SHAPE=spike tests/load/storefront.js",
+    "test:load:soak": "k6 run -e SHAPE=soak tests/load/storefront.js",
+    "test:load:oversell": "k6 run tests/load/oversell.js",
+    "test:load:isolation": "k6 run tests/load/cart-isolation.js"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
@@ -26,5 +40,18 @@
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20"
+  },
+  "pnpm": {
+    "overrides": {
+      "sharp": "^0.35.4",
+      "postcss": "^8.5.23",
+      "nanoid": "^3.3.18",
+      "deepmerge-ts": "^8.0.0"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "nodemailer": "10"
+      }
+    }
   }
 }

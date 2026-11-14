@@ -1,14 +1,31 @@
 'use client';
 
 import React from 'react';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import {
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  DollarSign,
+  Loader2,
+  ShieldAlert,
+} from 'lucide-react';
 import { Permission, hasPermission } from '@/lib/auth/permissions';
 import { useSession } from 'next-auth/react';
 import { RoleName } from '@repo/database';
 
+const WIDGET_ICONS = {
+  activity: Activity,
+  'bar-chart': BarChart3,
+  'dollar-sign': DollarSign,
+  'shield-alert': ShieldAlert,
+} as const;
+
+export type DashboardWidgetIcon = keyof typeof WIDGET_ICONS;
+
 export interface DashboardWidgetProps {
   title: string;
-  icon?: React.ElementType;
+  /** A serializable icon key. The icon component is resolved in this client component. */
+  icon?: DashboardWidgetIcon;
   body: React.ReactNode;
   footer?: React.ReactNode;
   actions?: React.ReactNode;
@@ -21,7 +38,7 @@ export interface DashboardWidgetProps {
 
 export function DashboardWidget({
   title,
-  icon: Icon,
+  icon,
   body,
   footer,
   actions,
@@ -31,6 +48,7 @@ export function DashboardWidget({
   emptyMessage = "No data available",
   requiredPermission
 }: DashboardWidgetProps) {
+  const Icon = icon ? WIDGET_ICONS[icon] : undefined;
   const { data: session } = useSession();
   const userRoles = (session?.user?.roles as RoleName[]) || [];
 

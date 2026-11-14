@@ -1,8 +1,10 @@
-import { Permission } from '@/lib/auth/permissions';
+import type { Permission } from '@/lib/auth/permissions';
+import type { ComponentType, ReactNode } from 'react';
 
 export interface DashboardWidgetConfig {
   id: string;
-  component: React.ComponentType;
+  /** Supports client components and async Server Components */
+  component: ComponentType | (() => Promise<ReactNode> | ReactNode);
   permission: Permission;
   order: number;
   span?: {
@@ -15,8 +17,10 @@ export interface DashboardWidgetConfig {
 export const registeredWidgets: DashboardWidgetConfig[] = [];
 
 export function registerDashboardWidget(widget: DashboardWidgetConfig) {
+  if (registeredWidgets.some((w) => w.id === widget.id)) {
+    return;
+  }
   registeredWidgets.push(widget);
-  // Keep them sorted by order
   registeredWidgets.sort((a, b) => a.order - b.order);
 }
 

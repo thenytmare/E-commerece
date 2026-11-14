@@ -1,6 +1,6 @@
 'use server';
 
-import { getOrCreateActiveCart } from '@/lib/cart';
+import { resolveCart, getOrCreateActiveCart } from '@/lib/cart';
 import { createRepositories } from '@repo/database';
 import { revalidatePath } from 'next/cache';
 
@@ -49,8 +49,12 @@ export async function updateCartItemAction(
   }
 
   try {
+    const { cart } = await resolveCart();
+    if (!cart) {
+      return { error: 'Invalid cart item' };
+    }
     const repos = createRepositories();
-    await repos.cart.updateItemQuantity(cartItemId, quantity);
+    await repos.cart.updateItemQuantity(cart.id, cartItemId, quantity);
     revalidateCartPaths();
     return { success: true };
   } catch (error) {
@@ -65,8 +69,12 @@ export async function removeCartItemAction(cartItemId: string): Promise<CartActi
   }
 
   try {
+    const { cart } = await resolveCart();
+    if (!cart) {
+      return { error: 'Invalid cart item' };
+    }
     const repos = createRepositories();
-    await repos.cart.removeItem(cartItemId);
+    await repos.cart.removeItem(cart.id, cartItemId);
     revalidateCartPaths();
     return { success: true };
   } catch (error) {

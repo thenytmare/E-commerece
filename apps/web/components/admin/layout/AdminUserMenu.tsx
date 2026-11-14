@@ -38,8 +38,8 @@ export function AdminUserMenu() {
               Profile
             </Link>
             
-            <Link 
-              href="/admin/settings" 
+            <Link
+              href="/admin/settings/store"
               className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={() => setIsOpen(false)}
             >

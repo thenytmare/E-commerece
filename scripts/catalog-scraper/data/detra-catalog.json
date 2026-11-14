@@ -1,0 +1,3087 @@
+{
+  "scrapedAt": "2026-11-07T08:57:26.803Z",
+  "source": "https://www.detraaccessories.com",
+  "categories": [
+    {
+      "slug": "bluetooth-speakers",
+      "name": "Bluetooth Speakers",
+      "sortOrder": 1
+    },
+    {
+      "slug": "smart-watches",
+      "name": "Smart Watches",
+      "sortOrder": 2
+    },
+    {
+      "slug": "power-banks",
+      "name": "Power Banks",
+      "sortOrder": 3
+    },
+    {
+      "slug": "oraimo-powergan",
+      "name": "Oraimo Powergan",
+      "sortOrder": 4
+    },
+    {
+      "slug": "earpods",
+      "name": "Earpods",
+      "sortOrder": 5
+    },
+    {
+      "slug": "charging-solutions",
+      "name": "Charging Solutions",
+      "sortOrder": 6
+    },
+    {
+      "slug": "oraimo-home-appliances",
+      "name": "Oraimo Home Appliances",
+      "sortOrder": 7
+    },
+    {
+      "slug": "gaming-equipment",
+      "name": "Gaming Equipment",
+      "sortOrder": 8
+    },
+    {
+      "slug": "headphones",
+      "name": "Headphones",
+      "sortOrder": 9
+    },
+    {
+      "slug": "router-power-solutions",
+      "name": "Router Power Solutions",
+      "sortOrder": 10
+    },
+    {
+      "slug": "earbuds",
+      "name": "Earbuds",
+      "sortOrder": 11
+    },
+    {
+      "slug": "cables-adapters",
+      "name": "Cables Adapters",
+      "sortOrder": 12
+    },
+    {
+      "slug": "xiaomi-redmi-mi",
+      "name": "Xiaomi Redmi Mi",
+      "sortOrder": 13
+    },
+    {
+      "slug": "soundcore-anker",
+      "name": "Soundcore Anker",
+      "sortOrder": 14
+    },
+    {
+      "slug": "wireless-powerbanks",
+      "name": "Wireless Powerbanks",
+      "sortOrder": 15
+    },
+    {
+      "slug": "open-ear-clip-buds",
+      "name": "Open Ear Clip Buds",
+      "sortOrder": 16
+    },
+    {
+      "slug": "budi",
+      "name": "Budi",
+      "sortOrder": 17
+    },
+    {
+      "slug": "neck-bands",
+      "name": "Neck Bands",
+      "sortOrder": 18
+    },
+    {
+      "slug": "trimmers",
+      "name": "Trimmers",
+      "sortOrder": 19
+    }
+  ],
+  "products": [
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebox-active-25w-portable-bluetooth-speaker",
+      "slug": "oraimo-spacebox-active-25w-portable-bluetooth-speaker",
+      "name": "Oraimo SpaceBox Active 25W Portable Bluetooth Speaker",
+      "brand": "Oraimo",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 4400,
+      "compareAtPrice": 5400,
+      "inStock": true,
+      "shortDescription": "A compact and rugged 25W portable Bluetooth speaker designed for powerful outdoor sound, deep bass, customizable audio settings, and all-day entertainment with Bluetooth, FM radio, and memory card playback.",
+      "description": "A compact and rugged 25W portable Bluetooth speaker designed for powerful outdoor sound, deep bass, customizable audio settings, and all-day entertainment with Bluetooth, FM radio, and memory card playback.",
+      "features": [
+        "25W Powerful Sound Loud, clear audio with enhanced HavyBass™ technology.",
+        "Up to 14-Hour Playtime",
+        "Built-in FM tuner with automatic station search.",
+        "Connect two SpaceBox Active speakers for immersive stereo sound.",
+        "IP55 Water & Dust Resistance",
+        "Portable Design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/5ad976874fa0729c0a158c8e27b15dda5ae6899e-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebox-active-25w-portable-bluetooth-speaker-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-muse-2-amoled-cute-ladies-smart-watch",
+      "slug": "oraimo-watch-muse-2-amoled-cute-ladies-smart-watch",
+      "name": "Oraimo Watch Muse 2 AMOLED Cute Ladies Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 3900,
+      "compareAtPrice": 5000,
+      "inStock": true,
+      "shortDescription": "A stylish premium-looking smartwatch that blends elegance with practical health and fitness features. Designed with a diamond-cut metal frame and a vibrant 1.32-inch AMOLED display and features multiple straps.",
+      "description": "A stylish premium-looking smartwatch that blends elegance with practical health and fitness features. Designed with a diamond-cut metal frame and a vibrant 1.32-inch AMOLED display and features multiple straps.",
+      "features": [
+        "IP68 water and dust resistance",
+        "Elegant diamond-cut metal design",
+        "1.32\" AMOLED HD display",
+        "24/7 heart rate monitoring",
+        "Bluetooth HD calling from the watch",
+        "AI-generated customizable watch faces",
+        "Female health tracking",
+        "Compatible with Android and iOS via the Oraimo Health app"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/b43724306edeeb739cdf2955ef1bdc56fab6cd5b-1254x1254.png"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-muse-2-amoled-cute-ladies-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/xiaomi-power-bank-20000mah-with-integrated-usb-c-cable-22-5w-fast-charging",
+      "slug": "xiaomi-power-bank-20000mah-with-integrated-usb-c-cable-22-5w-fast-charging",
+      "name": "Xiaomi Power Bank 20000mAh with Integrated USB-C Cable – 22.5W Fast Charging",
+      "brand": "Xiaomi",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2750,
+      "compareAtPrice": 3000,
+      "inStock": true,
+      "shortDescription": "Stay powered throughout the day with the Xiaomi Power Bank 20000mAh, designed for reliable, high-capacity portable charging. Featuring a built-in USB-C cable, up to 22.5W fast charging, and support for charging up to three devices simultaneously.",
+      "description": "Stay powered throughout the day with the Xiaomi Power Bank 20000mAh, designed for reliable, high-capacity portable charging. Featuring a built-in USB-C cable, up to 22.5W fast charging, and support for charging up to three devices simultaneously.",
+      "features": [
+        "20,000mAh High Capacity",
+        "22.5W Fast Charging",
+        "Built-in USB-C Cable",
+        "Multiple Charging Ports",
+        "Two-Way Fast Charging",
+        "Charge 3 Devices Simultaneously",
+        "Intelligent Power Adjustment"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/14094fd121797e6f037183736dc98e3f5ddfc3dc-800x800.png",
+        "https://cdn.sanity.io/images/mvk7xrnt/production/2a7a1e5695a827ed49e2fef8eca8e07f26d569dc-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/xiaomi-power-bank-20000mah-with-integrated-usb-c-cable-22-5w-fast-charging-1.webp",
+        "/images/products/detra/xiaomi-power-bank-20000mah-with-integrated-usb-c-cable-22-5w-fast-charging-2.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-hypergan-701-70w-ultra-gan-charger",
+      "slug": "oraimo-hypergan-701-70w-ultra-gan-charger",
+      "name": "Oraimo Hypergan 701 (70W Ultra-Gan charger)",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-powergan",
+      "categoryName": "Oraimo Powergan",
+      "price": 3500,
+      "compareAtPrice": 4000,
+      "inStock": true,
+      "shortDescription": "Power up your devices faster with the Oraimo HyperGaN 701 70W Fast Charger. Designed for efficient charging in a compact form, this high-performance charger is ideal for everyday use at home, in the office, or while travelling.",
+      "description": "Power up your devices faster with the Oraimo HyperGaN 701 70W Fast Charger. Designed for efficient charging in a compact form, this high-performance charger is ideal for everyday use at home, in the office, or while travelling.",
+      "features": [
+        "two USB-C ports and one USB-A port",
+        "fast-charging protocol support",
+        "70W Ultra fast charging",
+        "Free 100W 1m long cable",
+        "Xiaomi hyper charge,apple & samsung hyper charge support",
+        "P.d.3.0 & Q.c.4.0 compatible"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0f760ceb14aa355e456f6637c9d2c7a3c15f58d8-6048x6048.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-hypergan-701-70w-ultra-gan-charger-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-lite-2-true-wireless-earbuds",
+      "slug": "oraimo-spacebuds-lite-2-true-wireless-earbuds",
+      "name": "Oraimo SpaceBuds Lite 2 True Wireless Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 1899,
+      "compareAtPrice": 2200,
+      "inStock": true,
+      "shortDescription": "Compact wireless earbuds with immersive Spatial Audio, powerful HavyBass™, AI-enhanced calls, and up to 50 hours of battery life.",
+      "description": "Compact wireless earbuds with immersive Spatial Audio, powerful HavyBass™, AI-enhanced calls, and up to 50 hours of battery life.",
+      "features": [
+        "10mm dynamic drivers with HavyBass™",
+        "Up to 50 hours playtime",
+        "Sound360 Spatial Audio",
+        "Ultra-low latency gaming mode",
+        "IPX4 water resistance"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/c463befa987b3364b4dad1906bcc55d057a58ec3-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-lite-2-true-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-r50i-bass-up-tech",
+      "slug": "soundcore-r50i-bass-up-tech",
+      "name": "Soundcore r50i (Bass up Tech)",
+      "brand": "Soundcore",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 2800,
+      "compareAtPrice": 3000,
+      "inStock": true,
+      "shortDescription": "Experience quality sound with original Soundcore accessories. Come with 18 months reliable warranty",
+      "description": "Experience quality sound with original Soundcore accessories. Come with 18 months reliable warranty",
+      "features": [
+        "30 Hours playtime",
+        "Powerful sound via 10mm drivers",
+        "Customized experience via soundcore app",
+        "18 months reliable warranty",
+        "Ipx5 water resistant",
+        "22 preset EQs+ Havy bass tech"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/d638e28e8d0a2dcf55a00814150bcc17d7411836-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-r50i-bass-up-tech-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-soundcore-r50i-nc-true-wireless-noise-cancelling-earbuds",
+      "slug": "anker-soundcore-r50i-nc-true-wireless-noise-cancelling-earbuds",
+      "name": "Anker Soundcore R50i NC True Wireless Noise Cancelling Earbuds",
+      "brand": "Soundcore",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 3800,
+      "compareAtPrice": 4009,
+      "inStock": true,
+      "shortDescription": "Soundcore R50i NC true wireless earbuds designed to deliver immersive audio, effective active noise cancellation, and long battery life at an affordable price. Featuring adaptive ANC, AI-enhanced calling, and customizable sound through the Soundcore app.",
+      "description": "Soundcore R50i NC true wireless earbuds designed to deliver immersive audio, effective active noise cancellation, and long battery life at an affordable price. Featuring adaptive ANC, AI-enhanced calling, and customizable sound through the Soundcore app.",
+      "features": [
+        "Adaptive Active Noise Cancellation (ANC) with up to 42 dB noise reduction",
+        "10 mm dynamic drivers for rich, powerful sound.",
+        "BassUp™ technology for enhanced bass performance",
+        "4 AI-powered microphones for clear voice calls",
+        "Up to 45 hours total battery life with the charging case",
+        "Fast charging: Around 10 minutes of charging provides up to 2 hours of playback",
+        "Charging case doubles as a phone stand for convenient hands-free viewing",
+        "IP54 water and dust resistance for workouts and light rain"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/9336f16a40cb2d04ab1b3792231dde92aab0b0b2-1000x1000.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-soundcore-r50i-nc-true-wireless-noise-cancelling-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-safevolt-fridge-tv-guard-ows-301uu",
+      "slug": "oraimo-safevolt-fridge-tv-guard-ows-301uu",
+      "name": "Oraimo SafeVolt Fridge/TV Guard OWS-301UU",
+      "brand": "Oraimo",
+      "categorySlug": "charging-solutions",
+      "categoryName": "Charging Solutions",
+      "price": 999,
+      "compareAtPrice": 1200,
+      "inStock": true,
+      "shortDescription": "Smart power protection for your home appliances Helps protect electronics from unstable power Suitable for a wide range of household electronic equipment",
+      "description": "Smart power protection for your home appliances Helps protect electronics from unstable power Suitable for a wide range of household electronic equipment",
+      "features": [
+        "⚡ 13A current capacity",
+        "⏱️ 6-second power delay",
+        "🛡️ Protects against power fluctuations",
+        "✅ Authentic Oraimo product",
+        "🔌 Compatible with most electronic equipment"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a0efdf0459383fb5abad3bdb02a9e5d8993bc307-600x600.png"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-safevolt-fridge-tv-guard-ows-301uu-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-omniblend-2-5-in-1-blender-21-000-rpm-high-speed-performance",
+      "slug": "oraimo-omniblend-2-5-in-1-blender-21-000-rpm-high-speed-performance",
+      "name": "Oraimo OmniBlend 2 5-in-1 Blender – 21,000 RPM High-Speed Performance",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 10500,
+      "compareAtPrice": 11500,
+      "inStock": true,
+      "shortDescription": "Make food preparation faster and easier with the Oraimo OmniBlend 2 5-in-1 Blender. Featuring powerful high-speed performance of up to 21,000 RPM, it is designed to handle a variety of kitchen tasks with ease. Its durable, anti-corrosion materials and intelligent one-touch controls combine convenience, versatility, and reliable performance for everyday use.",
+      "description": "Make food preparation faster and easier with the Oraimo OmniBlend 2 5-in-1 Blender. Featuring powerful high-speed performance of up to 21,000 RPM, it is designed to handle a variety of kitchen tasks with ease. Its durable, anti-corrosion materials and intelligent one-touch controls combine convenience, versatility, and reliable performance for everyday use.",
+      "features": [
+        "Up to 21,000 RPM Speed",
+        "5-in-1 Versatility",
+        "Intelligent Control",
+        "One-Touch Operation",
+        "Anti-Corrosion Materials",
+        "Efficient Food Preparation",
+        "Convenient Everyday Use"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/30bd60bd16e5fd6720304836877775cf58737855-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-omniblend-2-5-in-1-blender-21-000-rpm-high-speed-performance-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-smart-blender-1-5l-with-2-speed-control-and-grinder-mill",
+      "slug": "oraimo-smart-blender-1-5l-with-2-speed-control-and-grinder-mill",
+      "name": "Oraimo Smart Blender 1.5L with 2-Speed Control & Grinder Mill",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 4500,
+      "compareAtPrice": 5500,
+      "inStock": true,
+      "shortDescription": "Make your kitchen tasks easier with the Oraimo Smart Blender 1.5L. Designed for everyday blending, mixing, and grinding, it features a spacious glass jar, a dedicated grinder mill, and hardened stainless-steel blades for efficient performance. With two speed settings, ice-crushing capability, and a stable non-slip design, it is a convenient choice for preparing fresh juices, smoothies, sauces, and more.",
+      "description": "Make your kitchen tasks easier with the Oraimo Smart Blender 1.5L. Designed for everyday blending, mixing, and grinding, it features a spacious glass jar, a dedicated grinder mill, and hardened stainless-steel blades for efficient performance. With two speed settings, ice-crushing capability, and a stable non-slip design, it is a convenient choice for preparing fresh juices, smoothies, sauces, and more.",
+      "features": [
+        "5L Glass Jar",
+        "1 Grinder Mill Included",
+        "Ice-Crushing Capability",
+        "Hardened Stainless-Steel Blades",
+        "2-Speed Control",
+        "Non-Slip Base",
+        "Versatile Kitchen Performance"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/38512e9d422357c772d24f65e9a0561cce1c78bd-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-smart-blender-1-5l-with-2-speed-control-and-grinder-mill-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-nutrifry-s1-ultra-1500w-6l-smart-air-fryer-wifi-app-control-and-full-touchscreen",
+      "slug": "oraimo-nutrifry-s1-ultra-1500w-6l-smart-air-fryer-wifi-app-control-and-full-touchscreen",
+      "name": "Oraimo NutriFry S1 Ultra 1500W 6L Smart Air Fryer – WiFi App Control & Full Touchscreen",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 9700,
+      "compareAtPrice": 10500,
+      "inStock": true,
+      "shortDescription": "Upgrade your cooking experience with the Oraimo NutriFry S1 Ultra 6L Smart Air Fryer. Combining powerful 1500W performance, smart WiFi app control, and a full touchscreen interface, it makes preparing delicious, crispy meals easier and more convenient.",
+      "description": "Upgrade your cooking experience with the Oraimo NutriFry S1 Ultra 6L Smart Air Fryer. Combining powerful 1500W performance, smart WiFi app control, and a full touchscreen interface, it makes preparing delicious, crispy meals easier and more convenient.",
+      "features": [
+        "1500W Powerful Heating",
+        "6L Large Capacity",
+        "WiFi App Control – Launch and manage",
+        "Full Touchscreen Control",
+        "2-Hour Power-Outage Memory",
+        "LFGB-Certified Materials",
+        "2-Year Warranty",
+        "Precise Temperature Control",
+        "Transparent Viewing Window"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/79ada62d7c333d6dd33912b939d0eb843efc5c5c-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-nutrifry-s1-ultra-1500w-6l-smart-air-fryer-wifi-app-control-and-full-touchscreen-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-smartkettle-byte-2000w-1-7l-stainless-steel-electric-kettle",
+      "slug": "oraimo-smartkettle-byte-2000w-1-7l-stainless-steel-electric-kettle",
+      "name": "Oraimo SmartKettle Byte 2000W 1.7L Stainless Steel Electric Kettle",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 4500,
+      "compareAtPrice": 5000,
+      "inStock": true,
+      "shortDescription": "Enjoy fast, convenient, and reliable hot water with the Oraimo SmartKettle Byte 2000W Electric Kettle. Built with food-grade 304 stainless steel and a powerful 2000W heating system, it boils water quickly while helping preserve its clean, natural taste. With a generous 1.7L capacity, intelligent heat preservation, and visible water temperature.",
+      "description": "Enjoy fast, convenient, and reliable hot water with the Oraimo SmartKettle Byte 2000W Electric Kettle. Built with food-grade 304 stainless steel and a powerful 2000W heating system, it boils water quickly while helping preserve its clean, natural taste. With a generous 1.7L capacity, intelligent heat preservation, and visible water temperature.",
+      "features": [
+        "2000W Quick Boil",
+        "Food-Grade 304 Stainless Steel",
+        "7L Large Capacity",
+        "Intelligent Heat Preservation",
+        "Visible Water Temperature",
+        "One-Touch Boil Button",
+        "Clean, Odor-Free Water",
+        "Versatile Everyday Use"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/23645d2b99a31a8008a68b35949d0d787bb0c908-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-smartkettle-byte-2000w-1-7l-stainless-steel-electric-kettle-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-brewdrip-1-5l-drip-coffee-maker-programmable-timer-and-keep-warm",
+      "slug": "oraimo-brewdrip-1-5l-drip-coffee-maker-programmable-timer-and-keep-warm",
+      "name": "Oraimo BrewDrip 1.5L Drip Coffee Maker – Programmable Timer & Keep Warm",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 5999,
+      "compareAtPrice": 6500,
+      "inStock": true,
+      "shortDescription": "Enjoy fresh, flavorful coffee at your convenience with the Oraimo BrewDrip 1.5L Drip Coffee Maker. Designed for easy everyday brewing, it features a spacious glass carafe, a programmable timer, and a keep-warm function to keep your coffee ready when you need it.",
+      "description": "Enjoy fresh, flavorful coffee at your convenience with the Oraimo BrewDrip 1.5L Drip Coffee Maker. Designed for easy everyday brewing, it features a spacious glass carafe, a programmable timer, and a keep-warm function to keep your coffee ready when you need it.",
+      "features": [
+        "1.5L Large Capacity",
+        "Programmable Timer",
+        "Keep-Warm Function",
+        "LED Control Panel",
+        "3 Aroma & Strength Settings",
+        "Pure Flavor, Steady Heat",
+        "Compact Design",
+        "5L Glass Carafe"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/dbde76036dcbb83474182c708c046e5450389234-1080x1080.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-brewdrip-1-5l-drip-coffee-maker-programmable-timer-and-keep-warm-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-nutrifry-s1-6l-1500w-high-temperature-air-fryer",
+      "slug": "oraimo-nutrifry-s1-6l-1500w-high-temperature-air-fryer",
+      "name": "Oraimo NutriFry S1 6L 1500W High-Temperature Air Fryer",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 9000,
+      "compareAtPrice": 9500,
+      "inStock": true,
+      "shortDescription": "Enjoy healthier, crispier, and delicious family meals with the Oraimo NutriFry S1 6L Air Fryer. Featuring powerful 1500W performance and temperatures of up to 230°C, it delivers faster cooking with less oil.",
+      "description": "Enjoy healthier, crispier, and delicious family meals with the Oraimo NutriFry S1 6L Air Fryer. Featuring powerful 1500W performance and temperatures of up to 230°C, it delivers faster cooking with less oil.",
+      "features": [
+        "6L Large Capacity",
+        "1500W Powerful Performance",
+        "230°C High-Temperature Roasting",
+        "Faster, Healthier Cooking",
+        "Auto Shut-Off Function",
+        "Triple-Layer Insulated Window",
+        "Ultra-Wide Temperature Range",
+        "Smart Touch Control Panel",
+        "Certified PTFE Nonstick Coating",
+        "Ridged Base Plate Design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/46cba43124fc3b799b20993f6131d3350ef89a1e-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-nutrifry-s1-6l-1500w-high-temperature-air-fryer-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-smartiron-1740w-portable-electric-iron",
+      "slug": "oraimo-smartiron-1740w-portable-electric-iron",
+      "name": "Oraimo SmartIron 1740W Portable Electric Iron",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 4999,
+      "compareAtPrice": 6000,
+      "inStock": true,
+      "shortDescription": "Achieve smooth, wrinkle-free clothes wherever you go with the Oraimo SmartIron 1740W Portable Electric Iron. Designed for powerful performance and everyday convenience, it combines deep wrinkle removal with dry and steam ironing options for professional garment care.",
+      "description": "Achieve smooth, wrinkle-free clothes wherever you go with the Oraimo SmartIron 1740W Portable Electric Iron. Designed for powerful performance and everyday convenience, it combines deep wrinkle removal with dry and steam ironing options for professional garment care.",
+      "features": [
+        "1740W Strong Power",
+        "Deep Wrinkle Removal",
+        "6 Variable Steam Levels",
+        "Professional Garment Care",
+        "Dry & Steam Ironing",
+        "180° Foldable Handle",
+        "Perfect Travel Companion",
+        "Lightweight & Portable Design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/fb647cd0d36f05213ce30a5ece62a807e02caf8c-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-smartiron-1740w-portable-electric-iron-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-smartsteamer-1500w-handheld-garment-steamer",
+      "slug": "oraimo-smartsteamer-1500w-handheld-garment-steamer",
+      "name": "Oraimo SmartSteamer 1500W Handheld Garment Steamer",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 4000,
+      "compareAtPrice": 5000,
+      "inStock": true,
+      "shortDescription": "Keep your clothes looking fresh, smooth, and wrinkle-free with the Oraimo SmartSteamer 1500W. Designed for quick and convenient garment care.",
+      "description": "Keep your clothes looking fresh, smooth, and wrinkle-free with the Oraimo SmartSteamer 1500W. Designed for quick and convenient garment care.",
+      "features": [
+        "1500W Powerful Performance",
+        "35-Second Rapid Heating",
+        "Continuous Steam Output",
+        "Powerful De-Wrinkling",
+        "LED Heating Indicator",
+        "Detachable Water Tank",
+        "Compact & Travel-Friendly Design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/7c74dc2728ec6b73818e23a2f6b52ac40297699e-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-smartsteamer-1500w-handheld-garment-steamer-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-ultra-cleaner-scrubber-cordless-electric-spin-brush",
+      "slug": "oraimo-ultra-cleaner-scrubber-cordless-electric-spin-brush",
+      "name": "Oraimo Ultra Cleaner Scrubber – Cordless Electric Spin Brush",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 3400,
+      "compareAtPrice": 4000,
+      "inStock": true,
+      "shortDescription": "Make cleaning easier with the Oraimo Ultra Cleaner Scrubber, a powerful cordless electric spin brush designed to tackle stubborn stains, soap scum, grout, and everyday dirt.",
+      "description": "Make cleaning easier with the Oraimo Ultra Cleaner Scrubber, a powerful cordless electric spin brush designed to tackle stubborn stains, soap scum, grout, and everyday dirt.",
+      "features": [
+        "3 Adjustable Spin Speeds",
+        "5 Replacement Brush Heads",
+        "Sturdy, Anti-Scratch Bristles",
+        "Upto 5-Hour Runtime",
+        "IPX7 Waterproof Design",
+        "Powerful Stain Removal",
+        "Cordless Convenience",
+        "Multi-Purpose Cleaning"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a0b3ac865a46e05849ac8d3318cc1f8181c0d811-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-ultra-cleaner-scrubber-cordless-electric-spin-brush-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-omniblend-1500w-4-in-1-multifunctional-blender",
+      "slug": "oraimo-omniblend-1500w-4-in-1-multifunctional-blender",
+      "name": "Oraimo OmniBlend 1500W 4-In-1 Multifunctional Blender",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-home-appliances",
+      "categoryName": "Oraimo Home Appliances",
+      "price": 9500,
+      "compareAtPrice": 10500,
+      "inStock": true,
+      "shortDescription": "The Oraimo OmniBlend is a powerful 1500W 4-in-1 multifunctional blender designed to handle a variety of kitchen tasks. Featuring a durable pure copper motor, efficient stainless-steel blades and dual-speed knob control, it helps you blend, juice, grind and process ingredients with ease",
+      "description": "The Oraimo OmniBlend is a powerful 1500W 4-in-1 multifunctional blender designed to handle a variety of kitchen tasks. Featuring a durable pure copper motor, efficient stainless-steel blades and dual-speed knob control, it helps you blend, juice, grind and process ingredients with ease",
+      "features": [
+        "1500W high-power pure copper motor",
+        "4-in-1 multifunctional design",
+        "Efficient S-shaped and cross blade system",
+        "Handles tough ingredients with ease",
+        "Dual-speed knob control for different ingredients",
+        "Anti-slip feet for improved stability",
+        "Detachable accessories for easier cleaning",
+        "Large-capacity design for convenient food and drink preparation",
+        "Durable motor designed to resist overheating and rust"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/c0046d6401768c63d412cbf2e71abf88ec9ded47-600x600.png"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-omniblend-1500w-4-in-1-multifunctional-blender-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-2-ai-smart-45hrs-playtime-true-wireless-earbuds",
+      "slug": "oraimo-spacebuds-2-ai-smart-45hrs-playtime-true-wireless-earbuds",
+      "name": "oraimo SpaceBuds 2 AI Smart 45hrs Playtime True Wireless Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 4800,
+      "compareAtPrice": 5000,
+      "inStock": true,
+      "shortDescription": "• Upgraded version of the former Oraimo SpaceBuds. • Enhanced with improved noise cancellation, longer battery life, Bluetooth 6.0, and a refined design for a superior listening experience.",
+      "description": "• Upgraded version of the former Oraimo SpaceBuds. • Enhanced with improved noise cancellation, longer battery life, Bluetooth 6.0, and a refined design for a superior listening experience.",
+      "features": [
+        "52dB Hybrid Active Noise Cancellation (ANC)",
+        "AI Language Translation with voice prompts",
+        "Infinite light effect",
+        "Smartphone camera remote control via the charging case",
+        "Improved ergonomic design",
+        "Up to 45 hours of playtime (ANC Off)",
+        "Up to 35 hours of playtime (ANC On)",
+        "Immersive Spatial Sound Hear in Every Direction"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/46c606bec0c6f73700b4193d949ac144ff9831dc-3024x4032.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-2-ai-smart-45hrs-playtime-true-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-5-lite-rose-gold-2-01-hd-ip68-smart-watch",
+      "slug": "oraimo-watch-5-lite-rose-gold-2-01-hd-ip68-smart-watch",
+      "name": "oraimo Watch 5 Lite (rose gold)2.01\" HD IP68 Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 2200,
+      "compareAtPrice": 2600,
+      "inStock": true,
+      "shortDescription": "Most affordable Oraimo smartwatch – IP68 water & dust resistant, BT calling, all backed by a 1-year warranty.",
+      "description": "Most affordable Oraimo smartwatch – IP68 water & dust resistant, BT calling, all backed by a 1-year warranty.",
+      "features": [
+        "2.01 Inch HD Tft display",
+        "IP68 water and dust resistivity",
+        "240*296 pixel density",
+        "10.8mm Slim design",
+        "Make and receive BT calls",
+        "7 Days battery",
+        "Custom watch faces"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/7b4f1b95d5352cb1682447f868fcc11ac128f1e3-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-5-lite-rose-gold-2-01-hd-ip68-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-5-max",
+      "slug": "oraimo-watch-5-max",
+      "name": "Oraimo watch 5 max",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 1900,
+      "compareAtPrice": 2200,
+      "inStock": true,
+      "shortDescription": "Oraimo Watch 5 Max boasts a long-lasting 300mAh battery (around 7 days use), a slim 10.8mm design with an aluminum alloy case, and 1ATM water resistance, making it a durable fitness companion with wireless music control",
+      "description": "Oraimo Watch 5 Max boasts a long-lasting 300mAh battery (around 7 days use), a slim 10.8mm design with an aluminum alloy case, and 1ATM water resistance, making it a durable fitness companion with wireless music control",
+      "features": [
+        "Upto 7 days Battery",
+        "ip68 Waterproof",
+        "Bluetooth calls & notifications",
+        "Health monitoring",
+        "Workout functions",
+        "1 Year warranty"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/422e95bbbcd65e4a3a23c3c4dae06c9863a22ec3-3024x4032.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-5-max-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/gamenote-g158bt-pro-dual-shock-controller",
+      "slug": "gamenote-g158bt-pro-dual-shock-controller",
+      "name": "Gamenote G158BT Pro (Dual-shock-controller)",
+      "brand": "Generic",
+      "categorySlug": "gaming-equipment",
+      "categoryName": "Gaming Equipment",
+      "price": 3800,
+      "compareAtPrice": 4000,
+      "inStock": true,
+      "shortDescription": "Level up your gameplay with the Havit G158BT Pro Transparent RGB Bluetooth Vibration Gamepad. Featuring a sleek transparent design, vibrant RGB lighting, TURBO function, and multi-platform compatibility including Android, iOS devices.",
+      "description": "Level up your gameplay with the Havit G158BT Pro Transparent RGB Bluetooth Vibration Gamepad. Featuring a sleek transparent design, vibrant RGB lighting, TURBO function, and multi-platform compatibility including Android, iOS devices.",
+      "features": [
+        "Adjustable Vibration Intensity",
+        "8-Direction D-Pad",
+        "Ergonomic Design",
+        "RGB Lighting",
+        "Android, iOS 13.0+, PS3, PS4, Nintendo Switch, Windows 7/8/10, PC Steam",
+        "Vibration Motors",
+        "360-degree joysticks with quick response and tactile feedback"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/38a657a690ea3725a1a4020499fcaeb668f552f4-3024x4032.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/gamenote-g158bt-pro-dual-shock-controller-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-coolsnap-cooling-fan",
+      "slug": "oraimo-coolsnap-cooling-fan",
+      "name": "Oraimo Coolsnap (Cooling fan)",
+      "brand": "Oraimo",
+      "categorySlug": "gaming-equipment",
+      "categoryName": "Gaming Equipment",
+      "price": 1650,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "An Ai smart hand held cooling mobile fan keeping your phone cool giving you the best gaming experience.",
+      "description": "An Ai smart hand held cooling mobile fan keeping your phone cool giving you the best gaming experience.",
+      "features": [
+        "Smart Speed For Smooth Performance",
+        "Glow Up Your Gaming Setup",
+        "Fits More Devices，Easy To Carry",
+        "Magnetic Ring + Phone Clip",
+        "16 RGB Flowing Lights",
+        "Al Smart Cooling, Handheld Light Show"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a156c85e6602d117dd892be58c96825f5943e709-600x600.webp"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-coolsnap-cooling-fan-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-nova-2r-lite-1-43-amoled-30-day-standby-smart-watch",
+      "slug": "oraimo-watch-nova-2r-lite-1-43-amoled-30-day-standby-smart-watch",
+      "name": "oraimo Watch Nova 2R Lite 1.43\" AMOLED 30-Day Standby Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 3600,
+      "compareAtPrice": 4000,
+      "inStock": true,
+      "shortDescription": "Stylish smartwatch with a vibrant 1.43-inch AMOLED display for crisp visuals. Supports Bluetooth HD calling, making it easy to answer calls directly from your wrist.",
+      "description": "Stylish smartwatch with a vibrant 1.43-inch AMOLED display for crisp visuals. Supports Bluetooth HD calling, making it easy to answer calls directly from your wrist.",
+      "features": [
+        "1.43-inch AMOLED display",
+        "Anti-scratch Panda Glass protection",
+        "IP68 water and dust resistance",
+        "Wireless HD Bluetooth calling",
+        "Up to 30 days standby and around 10 days of normal use",
+        "AI-generated watch faces",
+        "Compatible with Android and iOS devices"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/fba63cfe6eff523974e51b6b225ca2f5ce74ad42-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-nova-2r-lite-1-43-amoled-30-day-standby-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-hypergan-65-65w-gan-wall-charger-kit-with-100w-cc-cable",
+      "slug": "oraimo-hypergan-65-65w-gan-wall-charger-kit-with-100w-cc-cable",
+      "name": "oraimo HyperGaN 65 65W GaN Wall Charger Kit with 100W CC Cable",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-powergan",
+      "categoryName": "Oraimo Powergan",
+      "price": 3300,
+      "compareAtPrice": 3400,
+      "inStock": true,
+      "shortDescription": "Compact 65W GaN wall charger designed for ultra-fast charging of smartphones, tablets, laptops, and other USB-powered devices. Equipped with advanced GaN (Gallium Nitride) technology for higher efficiency, lower heat generation, and a smaller, travel-friendly design.",
+      "description": "Compact 65W GaN wall charger designed for ultra-fast charging of smartphones, tablets, laptops, and other USB-powered devices. Equipped with advanced GaN (Gallium Nitride) technology for higher efficiency, lower heat generation, and a smaller, travel-friendly design.",
+      "features": [
+        "65W maximum fast charging for phones, tablets, and USB-C laptops",
+        "GaN technology delivers faster charging with improved efficiency and reduced heat.",
+        "Three charging ports: 2 × USB-C and 1 × USB-A.",
+        "100W USB-C to USB-C cable included for high-speed charging and data transfer.",
+        "Supports laptop charging, including compatible USB-C laptops",
+        "Smart power distribution automatically optimizes charging speed for connected devices."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/ffda485735af3be6e30093e5ace4ace8acf89de0-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-hypergan-65-65w-gan-wall-charger-kit-with-100w-cc-cable-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powergan-251-free-c-c-cable-25w-gan-charger",
+      "slug": "oraimo-powergan-251-free-c-c-cable-25w-gan-charger",
+      "name": "Oraimo Powergan 251 (Free C-c cable) 25W GaN Charger",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-powergan",
+      "categoryName": "Oraimo Powergan",
+      "price": 1000,
+      "compareAtPrice": 1150,
+      "inStock": true,
+      "shortDescription": "Fast charging original 25W Charger from Oraimo, type C out. GaN for increased efficiency. Free C to C Cable",
+      "description": "Fast charging original 25W Charger from Oraimo, type C out. GaN for increased efficiency. Free C to C Cable",
+      "features": [
+        "25W GaN Charger",
+        "GaN product, increased efficiency",
+        "Pd 3.0 and QC 3.0 Compatible",
+        "Perfect for iPhone and Samsung devices"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/547071d0a3399eab313e70366db1f908fd17bbb8-6048x6048.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powergan-251-free-c-c-cable-25w-gan-charger-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powergan-351-free-c-c-cable-35w-gan-charger",
+      "slug": "oraimo-powergan-351-free-c-c-cable-35w-gan-charger",
+      "name": "Oraimo PowerGaN 351 (Free C-c cable) 35W GaN Charger",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-powergan",
+      "categoryName": "Oraimo Powergan",
+      "price": 1400,
+      "compareAtPrice": 1600,
+      "inStock": true,
+      "shortDescription": "Fast charging original 35W Charger from Oraimo, type C out. GaN for increased efficiency. Free C to C Cable",
+      "description": "Fast charging original 35W Charger from Oraimo, type C out. GaN for increased efficiency. Free C to C Cable",
+      "features": [
+        "35W Ultra fast Gan Charger",
+        "GaN product, increased efficiency",
+        "Pd 3.0 and QC 3.0 Compatible",
+        "Perfect for iPhone and Samsung devices"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/ae58f6717eabbc31965287e9f3caa70b6424ed52-6048x6048.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powergan-351-free-c-c-cable-35w-gan-charger-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powergan-451-free-c-c-cable-45w-gan-charger",
+      "slug": "oraimo-powergan-451-free-c-c-cable-45w-gan-charger",
+      "name": "Oraimo PowerGaN 451 (Free C-c Cable) 45W GaN Charger",
+      "brand": "Oraimo",
+      "categorySlug": "oraimo-powergan",
+      "categoryName": "Oraimo Powergan",
+      "price": 1650,
+      "compareAtPrice": 1800,
+      "inStock": true,
+      "shortDescription": "Fast charging original 45W Charger from Oraimo, type C out. GaN for increased efficiency. Free C to C Cable",
+      "description": "Fast charging original 45W Charger from Oraimo, type C out. GaN for increased efficiency. Free C to C Cable",
+      "features": [
+        "45 Ultra fast Charger",
+        "GaN product, increased efficiency",
+        "Pd 3.0 and QC 4.0 Compatible",
+        "Perfect for iPhone and Samsung devices"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/e47defc0e26eee7c10445af28a114125b119135f-6048x6048.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powergan-451-free-c-c-cable-45w-gan-charger-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-boompop-lite-wireless-headphones",
+      "slug": "oraimo-boompop-lite-wireless-headphones",
+      "name": "Oraimo boompop lite headphones",
+      "brand": "Oraimo",
+      "categorySlug": "headphones",
+      "categoryName": "Headphones",
+      "price": 2500,
+      "compareAtPrice": 2800,
+      "inStock": true,
+      "shortDescription": "Most affordable oraimo headphones featuring wired/wireless connection.Unmatched sound quality with havy bass technology. One of Oraimo's bestseller headphones.",
+      "description": "Most affordable oraimo headphones featuring wired/wireless connection.Unmatched sound quality with havy bass technology. One of Oraimo's bestseller headphones.",
+      "features": [
+        "🔋 Up to 65 Hours Playtime",
+        "🔊 360° Spatial Audio",
+        "🎙️ ENC Clear Voice Calls",
+        "🔗 Dual-Device Connectivity",
+        "📱 Oraimo Sound App Control",
+        "Foldable & Retractable Design",
+        "🛡️ 365-Day Warranty"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/1bd359017b5a2581fdd6f5ff0678acb7d2d2f419-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-boompop-lite-wireless-headphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/dc-converter-oraimo-85w-50-000mah-powerbank",
+      "slug": "dc-converter-oraimo-85w-50-000mah-powerbank",
+      "name": "Dc converter+Oraimo 85W 50,000mAh Powerbank",
+      "brand": "Oraimo",
+      "categorySlug": "router-power-solutions",
+      "categoryName": "Router Power Solutions",
+      "price": 7300,
+      "compareAtPrice": 7800,
+      "inStock": true,
+      "shortDescription": "With this set power your wifi router with the powerbank. Perfect during blackouts",
+      "description": "With this set power your wifi router with the powerbank. Perfect during blackouts",
+      "features": [
+        "Oraimo powerjet 501 (50,000mAh"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/e8493cc0af44ad32044e1af8b95bf2c976efbc22-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/dc-converter-oraimo-85w-50-000mah-powerbank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-buds-go-havy-bass",
+      "slug": "itel-buds-go-havy-bass",
+      "name": "Itel Buds Go (Havy Bass)",
+      "brand": "Itel",
+      "categorySlug": "earbuds",
+      "categoryName": "Earbuds",
+      "price": 1200,
+      "compareAtPrice": 1500,
+      "inStock": true,
+      "shortDescription": "Experience premium sound at a budget with the new itel buds Go.",
+      "description": "Experience premium sound at a budget with the new itel buds Go.",
+      "features": [
+        "13mm large bass drivers",
+        "Ai powered calls",
+        "Comfortable in ear fit",
+        "30 Hours Playtime",
+        "1 Year Warranty"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/85afdc0570364a5287314e9b55a43b920c43b7cb-6048x6048.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-buds-go-havy-bass-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-magcable-60w-cable-ocd-710cc",
+      "slug": "oraimo-magcable-60w-cable-ocd-710cc",
+      "name": "Oraimo magcable 60W Cable (OCD-710CC)",
+      "brand": "Oraimo",
+      "categorySlug": "cables-adapters",
+      "categoryName": "Cables Adapters",
+      "price": 750,
+      "compareAtPrice": 900,
+      "inStock": true,
+      "shortDescription": "Say goodbye to messy cables and port fumbling with the innovative Oraimo MagCable OCD-710CC. Designed for fast charging and seamless data transfer, this magnetic Type-C to Type-C cable makes powering up and syncing your devices effortless.",
+      "description": "Say goodbye to messy cables and port fumbling with the innovative Oraimo MagCable OCD-710CC. Designed for fast charging and seamless data transfer, this magnetic Type-C to Type-C cable makes powering up and syncing your devices effortless.",
+      "features": [
+        "60W fast charging",
+        "Data transfer cable",
+        "Wide compatibility",
+        "Stain & Wear Resistance",
+        "Magnetic Self Aligning"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/39affe24f1ed8c6fb477c8324eb0d0bfbe0f3619-6048x6048.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-magcable-60w-cable-ocd-710cc-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/utarudi-portable-powerbank-10-000mah-with-inbuilt-cables",
+      "slug": "utarudi-portable-powerbank-10-000mah-with-inbuilt-cables",
+      "name": "Utarudi portable powerbank 10,000mAh with inbuilt cables",
+      "brand": "Utarudi",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 1800,
+      "compareAtPrice": 2000,
+      "inStock": true,
+      "shortDescription": "Affordable portable powerbank with inbuilt iphone(lightning) and type-c cable.",
+      "description": "Affordable portable powerbank with inbuilt iphone(lightning) and type-c cable.",
+      "features": [
+        "10,000mAh capacity (Recharge 2 times)",
+        "22.5W super fast charging",
+        "Type c input/ output",
+        "Digital power display",
+        "Inbuilt charging cables",
+        "Pocket size design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/36767af2774f47b4c856cc92d2168e70bdb7d906-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/utarudi-portable-powerbank-10-000mah-with-inbuilt-cables-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-easy-10-10-000mah-pocket-powerbank-with-inbuilt-cables",
+      "slug": "itel-easy-10-10-000mah-pocket-powerbank-with-inbuilt-cables",
+      "name": "Itel Easy 10 (10,000mAh pocket powerbank) With Inbuilt cables",
+      "brand": "Itel",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 1900,
+      "compareAtPrice": 2100,
+      "inStock": true,
+      "shortDescription": "Perfect day to day powerbank, portable, huge capacity and fast charging.Features inbuilt iphone and type-c cables.",
+      "description": "Perfect day to day powerbank, portable, huge capacity and fast charging.Features inbuilt iphone and type-c cables.",
+      "features": [
+        "Charge upto 2 times",
+        "22.5W fast recharge",
+        "Attached iphone/type-c cables",
+        "LED power display",
+        "1 Year Warranty",
+        "Pocket sized"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/fcd88f91fc7c7c930f53f0a54cd727f2e12242e4-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-easy-10-10-000mah-pocket-powerbank-with-inbuilt-cables-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-speedline-4-4-in-1-65w-cable",
+      "slug": "oraimo-speedline-4-4-in-1-65w-cable",
+      "name": "Oraimo speedline 4 (4-in-1) 65W Cable",
+      "brand": "Oraimo",
+      "categorySlug": "cables-adapters",
+      "categoryName": "Cables Adapters",
+      "price": 599,
+      "compareAtPrice": 750,
+      "inStock": true,
+      "shortDescription": "One cable for all your devices",
+      "description": "One cable for all your devices",
+      "features": [
+        "65W Fast charging on C to C",
+        "Elegant metal plug with electroplating",
+        "Data transfer cable",
+        "Upto 1m Long"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a759f940e7ec9d2104c6dce17225cfc2fc05d86b-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-speedline-4-4-in-1-65w-cable-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-speedline-4-2-in-1-mag-cable",
+      "slug": "oraimo-speedline-4-2-in-1-mag-cable",
+      "name": "Oraimo speedline 4 (2-in-1) Mag Cable",
+      "brand": "Oraimo",
+      "categorySlug": "cables-adapters",
+      "categoryName": "Cables Adapters",
+      "price": 999,
+      "compareAtPrice": 1200,
+      "inStock": true,
+      "shortDescription": "Oraimo SpeedLine 4 is a durable 1-meter 2-in-1 charging and data cable featuring Type-C and Lightning compatibility. With up to 60W fast charging, a braided flat design, and zinc-alloy connectors, it’s built for reliable everyday use",
+      "description": "Oraimo SpeedLine 4 is a durable 1-meter 2-in-1 charging and data cable featuring Type-C and Lightning compatibility. With up to 60W fast charging, a braided flat design, and zinc-alloy connectors, it’s built for reliable everyday use",
+      "features": [
+        "60W Fast Charging",
+        "in-1 Design Type-C to Type-C and Type-C to Lightning",
+        "Magnetic Connector Design",
+        "480Mbps Data Transfer",
+        "Auto-Coiling Design",
+        "Zinc-Alloy Connectors"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/7982c9bcdb121d193a0e6b32f5a9d89edffb5b0e-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-speedline-4-2-in-1-mag-cable-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/xiaomi-type-c-wired-earphones",
+      "slug": "xiaomi-type-c-wired-earphones",
+      "name": "Xiaomi Type-c Wired Earphones",
+      "brand": "Xiaomi",
+      "categorySlug": "xiaomi-redmi-mi",
+      "categoryName": "Xiaomi Redmi Mi",
+      "price": 800,
+      "compareAtPrice": 1000,
+      "inStock": true,
+      "shortDescription": "Best selling wired type-C earphones with a super bass equipped with large bass drivers of upto 12.4 mm.",
+      "description": "Best selling wired type-C earphones with a super bass equipped with large bass drivers of upto 12.4 mm.",
+      "features": [
+        "Havy bass",
+        "Clear calls",
+        "3 button inline control for convenient operation",
+        "Ergonomically designed for comfortable wear",
+        "With extra ear tips"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/436826ae4399e0bce7b81f5092c5b06e7539ea77-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/xiaomi-type-c-wired-earphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-traveler-15-20-000mah-power-bank",
+      "slug": "oraimo-traveler-15-20-000mah-power-bank",
+      "name": "Oraimo Traveler 15 20,000mAh Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2150,
+      "compareAtPrice": 2750,
+      "inStock": true,
+      "shortDescription": "The Oraimo Traveler Link 20 is a high-capacity 20,000mAh portable power bank (Recharge phone upto 4 times) on the go. It features inbuilt cables, multiple charging ports, a durable design, and smart protection systems.",
+      "description": "The Oraimo Traveler Link 20 is a high-capacity 20,000mAh portable power bank (Recharge phone upto 4 times) on the go. It features inbuilt cables, multiple charging ports, a durable design, and smart protection systems.",
+      "features": [
+        "20,000 mAh Capacity",
+        "15W max fast Charge speed",
+        "Inbuilt power cable (Iphone,micro-usb & type-c)",
+        "2 inputs3 power outputs",
+        "One year warranty",
+        "Bring torch"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/04dbbfcf088445bbe57ec975b58d3997fa793b2d-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-traveler-15-20-000mah-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-boompop-pro-hybrid-anc-headphones",
+      "slug": "oraimo-boompop-pro-hybrid-anc-headphones",
+      "name": "Oraimo BoomPop Pro Hybrid ANC Headphones",
+      "brand": "Oraimo",
+      "categorySlug": "headphones",
+      "categoryName": "Headphones",
+      "price": 5450,
+      "compareAtPrice": 5800,
+      "inStock": true,
+      "shortDescription": "Premium over-ear headphones with Hybrid Active Noise Cancellation, up to 83 hours of playtime, immersive sound, and all-day comfort.",
+      "description": "Premium over-ear headphones with Hybrid Active Noise Cancellation, up to 83 hours of playtime, immersive sound, and all-day comfort.",
+      "features": [
+        "80Hours long playtime",
+        "Hybrid Active Noise Cancellation (ANC)",
+        "Sound360 enhanced bass",
+        "Swipe gesture controls",
+        "Dual device connection",
+        "Lightweight, comfortable design",
+        "Low-latency gaming mode"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/54d96fb12f96e9f20a9d4a752e50e0d9de34c8a6-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-boompop-pro-hybrid-anc-headphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powerjet-501-50000mah-85w-fast-charging-power-bank",
+      "slug": "oraimo-powerjet-501-50000mah-85w-fast-charging-power-bank",
+      "name": "oraimo PowerJet 501 50000mAh 85W Fast Charging Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 6800,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "The Oraimo PowerJet 501 is a high-capacity 50,000mAh power bank designed to keep your smartphones, tablets, laptops, and other USB-powered devices charged for extended periods. With up to 85W fast charging output, it supports simultaneous charging of multiple devices while delivering reliable performance",
+      "description": "The Oraimo PowerJet 501 is a high-capacity 50,000mAh power bank designed to keep your smartphones, tablets, laptops, and other USB-powered devices charged for extended periods. With up to 85W fast charging output, it supports simultaneous charging of multiple devices while delivering reliable performance",
+      "features": [
+        "Massive 50,000mAh (185Wh) battery capacity",
+        "85W maximum fast charging output",
+        "Charges laptops, smartphones, tablets, and more",
+        "Smart LED display showing battery level, input, and output",
+        "Can fully charge a typical smartphone up to 11 times",
+        "Multi-layer safety protection against overcharging, overheating, overcurrent, overvoltage, and short circuits"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/477a14bbf34d76d281d94cb87655599b9175e072-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powerjet-501-50000mah-85w-fast-charging-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-nano-45w-type-c-super-fast-charger",
+      "slug": "anker-nano-45w-type-c-super-fast-charger",
+      "name": "Anker Nano 45W Type C Super Fast Charger",
+      "brand": "Anker",
+      "categorySlug": "soundcore-anker",
+      "categoryName": "Soundcore Anker",
+      "price": 2999,
+      "compareAtPrice": 3500,
+      "inStock": true,
+      "shortDescription": "Super fast type C 45W charger from Anker with foldable plug",
+      "description": "Super fast type C 45W charger from Anker with foldable plug",
+      "features": [
+        "Anker, The World’s No. 1 Mobile Charging Brand",
+        "Compact design",
+        "45W Total output",
+        "For Apple, Samsung and laptops",
+        "Activeshield 3.0 Anker tech"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/01054eb6f5507a0af4acd739c950732591974e74-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-nano-45w-type-c-super-fast-charger-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-zolo-slim-power-bank-10k-22-5w-built-in-usb-c-cable",
+      "slug": "anker-zolo-slim-power-bank-10k-22-5w-built-in-usb-c-cable",
+      "name": "Anker Zolo Slim Power Bank (10K, 22.5W, Built in USB-C Cable)",
+      "brand": "Anker",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2999,
+      "compareAtPrice": 3500,
+      "inStock": true,
+      "shortDescription": "Slim Powerbank with built in 90 degree cable",
+      "description": "Slim Powerbank with built in 90 degree cable",
+      "features": [
+        "Anker, World’s no. 1 mobile charging brrand",
+        "For Apple, Samsung and more",
+        "Practical and stylish charging",
+        "Built in 90 degree cable",
+        "10,000mAh Capacity",
+        "22.5W Fast charging",
+        "Extra USB C and USB A ports",
+        "Charge 3 devices at once"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/2574c0d2bf7684b65b609934077d9944a0f84762-750x750.png"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-zolo-slim-power-bank-10k-22-5w-built-in-usb-c-cable-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-liberty-5-or-noise-cancelling-earbuds-with-dolby-audio",
+      "slug": "soundcore-liberty-5-or-noise-cancelling-earbuds-with-dolby-audio",
+      "name": "soundcore Liberty 5 | Noise-Cancelling Earbuds with Dolby Audio",
+      "brand": "Soundcore",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 11500,
+      "compareAtPrice": 12500,
+      "inStock": true,
+      "shortDescription": "Enjoy Dolby Audio, HiRes Audio via LDAC, ANC 3.0 for long-lasting noise cancellation, and an immersive audio journey.",
+      "description": "Enjoy Dolby Audio, HiRes Audio via LDAC, ANC 3.0 for long-lasting noise cancellation, and an immersive audio journey.",
+      "features": [
+        "Immersive Dolby Audio",
+        "True awareness of your sorrounding via transparency mode",
+        "Adaptive ANC 3.0",
+        "HiRes Audio support wirelessly via LDAC",
+        "Dual device connection support",
+        "Google fast pairing support",
+        "48Hrs long battery",
+        "Crystal clear calls courtesy of 6 mics, AI and wind resistant diaphragm",
+        "IP55 water and dust resistant"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/5eda9d6703ef90bda051ec65521ee748def94a51-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-liberty-5-or-noise-cancelling-earbuds-with-dolby-audio-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-high-speed-65w-3-in-1-charger-3-ports-gan",
+      "slug": "anker-high-speed-65w-3-in-1-charger-3-ports-gan",
+      "name": "Anker High Speed 65W 3 in 1 Charger 3 Ports GaN",
+      "brand": "Anker",
+      "categorySlug": "soundcore-anker",
+      "categoryName": "Soundcore Anker",
+      "price": 4500,
+      "compareAtPrice": 5000,
+      "inStock": true,
+      "shortDescription": "A high speed 65W charger from Anker with 3 ports made for laptops and smartphones",
+      "description": "A high speed 65W charger from Anker with 3 ports made for laptops and smartphones",
+      "features": [
+        "65W Total output",
+        "GaN product for efficient recharging",
+        "Charge laptop and smartphone simultaneously",
+        "Upto 18 months warranty"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/4f66e3d60d4d1c4a9850eac45d41d1aa4e426c97-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-high-speed-65w-3-in-1-charger-3-ports-gan-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-maggo-ultra-slim-10-000mah-powerbank-qi2",
+      "slug": "anker-maggo-ultra-slim-10-000mah-powerbank-qi2",
+      "name": "Anker MagGo Ultra Slim 10,000mAh Powerbank Qi2",
+      "brand": "Anker",
+      "categorySlug": "wireless-powerbanks",
+      "categoryName": "Wireless Powerbanks",
+      "price": 8900,
+      "compareAtPrice": 9999,
+      "inStock": true,
+      "shortDescription": "Ultra Slim premium magnetic powerbank from Anker with Qi2 certification and upto 30W super fast charging",
+      "description": "Ultra Slim premium magnetic powerbank from Anker with Qi2 certification and upto 30W super fast charging",
+      "features": [
+        "Anker, the world’s number one mobile charging brand",
+        "10,000mAh real capacity",
+        "Ultra slim design",
+        "Official Qi2 certification",
+        "15W magsafe compatibility15W magsafe compatibility",
+        "Space grade thermal insulation for overheart protection",
+        "Wired 30W super fast charging",
+        "Comfort grip with curved edges"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/ba70bcee7b7042bf2d16c0484b66d3da2a82138a-800x800.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-maggo-ultra-slim-10-000mah-powerbank-qi2-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-v20i-open-ear-wireless-earbuds",
+      "slug": "soundcore-v20i-open-ear-wireless-earbuds",
+      "name": "Soundcore V20i Open-Ear Wireless Earbuds",
+      "brand": "Soundcore",
+      "categorySlug": "open-ear-clip-buds",
+      "categoryName": "Open Ear Clip Buds",
+      "price": 3499,
+      "compareAtPrice": 3800,
+      "inStock": true,
+      "shortDescription": "Soundcore V20i is an open-ear wireless earbud designed for all-day comfort, allowing you to enjoy your audio while staying aware of your surroundings. Featuring adjustable ear hooks, powerful 16mm drivers with BassUp™ technology, AI-enhanced call clarity, customizable LED lights, and long battery life, it's ideal for workouts, commuting, and everyday use",
+      "description": "Soundcore V20i is an open-ear wireless earbud designed for all-day comfort, allowing you to enjoy your audio while staying aware of your surroundings. Featuring adjustable ear hooks, powerful 16mm drivers with BassUp™ technology, AI-enhanced call clarity, customizable LED lights, and long battery life, it's ideal for workouts, commuting, and everyday use",
+      "features": [
+        "Open-ear true wireless earbuds with an ergonomic, adjustable ear-hook design",
+        "Equipped with 16mm dynamic drivers featuring titanium-coated domes.",
+        "BassUp™ technology enhances low-frequency performance for deeper bass",
+        "Supports AAC and SBC audio codecs",
+        "Delivers up to 36 hours of total playtime with the charging case",
+        "Features 4 AI-enhanced microphones for clear voice calls",
+        "Supports multipoint connection for connecting to two devices simultaneously",
+        "Compatible with the Soundcore app for EQ customization and touch control settings",
+        "Rated IP55 for water and dust resistance, making the earbuds suitable for workouts and outdoor use"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/b65df9dd366b256d0687315ee4b2daf0c8c9f390-800x800.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-v20i-open-ear-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-boom-2-or-portable-bluetooth-speaker-for-bass",
+      "slug": "soundcore-boom-2-or-portable-bluetooth-speaker-for-bass",
+      "name": "Soundcore Boom 2 | Portable Bluetooth Speaker for Bass",
+      "brand": "Soundcore",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 16999,
+      "compareAtPrice": 18500,
+      "inStock": true,
+      "shortDescription": "Bluetooth speaker (60W standard, boosted to 80W with BassUp™ 2.0) featuring a dedicated 50W subwoofer and dual 15W tweeters for rich 2.1-channel audio. It is IPX7 waterproof, floatable, offers up to 24 hours of battery life, includes a built-in power bank, and supports customizable EQ and synchronized RGB lighting through the Soundcore app",
+      "description": "Bluetooth speaker (60W standard, boosted to 80W with BassUp™ 2.0) featuring a dedicated 50W subwoofer and dual 15W tweeters for rich 2.1-channel audio. It is IPX7 waterproof, floatable, offers up to 24 hours of battery life, includes a built-in power bank, and supports customizable EQ and synchronized RGB lighting through the Soundcore app",
+      "features": [
+        "BassUp™ 2.0 for deeper, more powerful bass",
+        "80W Max Output with BassUp™ 2.0 (60W standard)",
+        "2.1-channel audio system with: 50W racetrack subwoofer Dual 15W silk tweeters",
+        "Up to 24 hours of playtime",
+        "IPX7 waterproof and floatable",
+        "Built-in microphone for hands-free calls",
+        "Built-in 5W USB power bank to charge your phone",
+        "Customizable Pro EQ via the Soundcore app",
+        "Beat-synced RGB light show with multiple lighting effects",
+        "True Wireless Stereo (TWS) pairing for two Boom 2 speakers",
+        "Integrated carrying handle"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/ae725a129a587e32c7ecdfc39304ba68a66ee997-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-boom-2-or-portable-bluetooth-speaker-for-bass-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-liberty-4-pro-or-noise-cancelling-true-wireless-earbuds",
+      "slug": "soundcore-liberty-4-pro-or-noise-cancelling-true-wireless-earbuds",
+      "name": "Soundcore Liberty 4 Pro | Noise Cancelling True-Wireless Earbuds",
+      "brand": "Soundcore",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 15999,
+      "compareAtPrice": 17000,
+      "inStock": true,
+      "shortDescription": "Soundcore Liberty 4 Pro delivers studio-level Hi‑Fi sound with dual drivers, powerful adaptive noise cancellation, crystal-clear 6‑mic AI calls, and up to 40 hours total battery life. The smart touch-display charging case lets you adjust ANC and check battery status instantly, while fast charging gives 4 hours of playback from just 5 minutes of charging",
+      "description": "Soundcore Liberty 4 Pro delivers studio-level Hi‑Fi sound with dual drivers, powerful adaptive noise cancellation, crystal-clear 6‑mic AI calls, and up to 40 hours total battery life. The smart touch-display charging case lets you adjust ANC and check battery status instantly, while fast charging gives 4 hours of playback from just 5 minutes of charging",
+      "features": [
+        "Dual-driver Hi-Fi sound for rich bass and clear highs",
+        "Adaptive ANC 3.0 reduces surrounding noise automatically",
+        "6 AI-powered microphones deliver crystal-clear calls",
+        "Up to 10 hours of playtime on a single charge",
+        "Up to 40 hours of total battery life with the charging case",
+        "LDAC support delivers high-resolution wireless audio",
+        "Bluetooth 5.3 ensures a fast and stable connection",
+        "Connect to two devices at the same time with multipoint pairing",
+        "IPX5 water resistance protects against sweat and splashes",
+        "Smart charging case with touch display for easy controls"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/d531353e43c861718113fd798c7dc5ac21f3cf13-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-liberty-4-pro-or-noise-cancelling-true-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-glow-mini-table-speaker",
+      "slug": "anker-glow-mini-table-speaker",
+      "name": "Anker glow mini table speaker",
+      "brand": "Anker",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 6200,
+      "compareAtPrice": 6500,
+      "inStock": true,
+      "shortDescription": "Soundcore Glow Mini is a compact Bluetooth speaker that delivers 360° immersive sound, vibrant synchronized lighting, and an IP67 waterproof design. Perfect for travel, outdoor adventures, and small gatherings, it offers impressive sound in a pocket-sized package",
+      "description": "Soundcore Glow Mini is a compact Bluetooth speaker that delivers 360° immersive sound, vibrant synchronized lighting, and an IP67 waterproof design. Perfect for travel, outdoor adventures, and small gatherings, it offers impressive sound in a pocket-sized package",
+      "features": [
+        "360° immersive sound with powerful bass",
+        "8W full-range speaker with passive bass radiator",
+        "BassUp™ technology for enhanced low frequencies",
+        "Dynamic LED light show that syncs with music",
+        "Up to 12 hours of battery life",
+        "IP67 waterproof, dustproof, and floatable",
+        "Bluetooth 5.3 for fast and stable connectivity",
+        "PartyCast 2.0 to connect with 100+ compatible speakers",
+        "TWS pairing for true stereo sound with a second Glow Mini",
+        "Custom EQ and lighting effects via the Soundcore app"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/1bbbdb0db5511deac7275449325a3fa192fe9617-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-glow-mini-table-speaker-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-622-magnetic-battery-maggo-5000mah",
+      "slug": "anker-622-magnetic-battery-maggo-5000mah",
+      "name": "Anker 622 Magnetic Battery (MagGo) 5000mAh",
+      "brand": "Anker",
+      "categorySlug": "wireless-powerbanks",
+      "categoryName": "Wireless Powerbanks",
+      "price": 5300,
+      "compareAtPrice": 6000,
+      "inStock": true,
+      "shortDescription": "Power your iPhone wirelessly with the Anker 622 Magnetic Battery (MagGo). Its slim magnetic design, foldable kickstand, and USB-C charging make it the perfect everyday companion for travel, work, and on-the-go charging",
+      "description": "Power your iPhone wirelessly with the Anker 622 Magnetic Battery (MagGo). Its slim magnetic design, foldable kickstand, and USB-C charging make it the perfect everyday companion for travel, work, and on-the-go charging",
+      "features": [
+        "Strong magnetic attachment for MagSafe-compatible iPhones",
+        "5,000mAh battery capacity",
+        "Up to 7.5W wireless charging",
+        "Foldable kickstand for portrait or landscape viewing",
+        "USB-C input and output",
+        "Slim, lightweight, pocket-friendly design",
+        "Charge while using the phone hands-free",
+        "Advanced safety protection against overheating and overcharging"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/15eb5cf121d416cffcdc059e4871cf22d0e41d36-800x800.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-622-magnetic-battery-maggo-5000mah-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-c50i-or-comfortable-clip-on-earbuds-with-powerful-bass",
+      "slug": "soundcore-c50i-or-comfortable-clip-on-earbuds-with-powerful-bass",
+      "name": "Soundcore C50i | Comfortable Clip on Earbuds with Powerful Bass",
+      "brand": "Soundcore",
+      "categorySlug": "open-ear-clip-buds",
+      "categoryName": "Open Ear Clip Buds",
+      "price": 7200,
+      "compareAtPrice": 7800,
+      "inStock": true,
+      "shortDescription": "Enjoy comfortable, open-ear listening with the Soundcore C50i. Equipped with flexible clip-on ear hooks, deep bass, AI-powered clear calls, and an IP55 water-resistant design, they're built for active lifestyles without blocking your awareness of the world around you",
+      "description": "Enjoy comfortable, open-ear listening with the Soundcore C50i. Equipped with flexible clip-on ear hooks, deep bass, AI-powered clear calls, and an IP55 water-resistant design, they're built for active lifestyles without blocking your awareness of the world around you",
+      "features": [
+        "Button controls and Soundcore app support with customizable EQ and AI features",
+        "Up to 28 hours total battery life with the charging case",
+        "Open-ear clip-on design for breathable, pressure-free comfort",
+        "Flexible FlexiClip with memory titanium for a secure fit",
+        "12mm custom dynamic drivers with powerful bass",
+        "AI-enhanced noise reduction for clearer calls",
+        "IP55 water and dust resistance",
+        "Lightweight design at just 5.5g per earbud"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/3a36a88d9701f8a3a550312c6e95e3370df6cdab-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-c50i-or-comfortable-clip-on-earbuds-with-powerful-bass-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-v40i-or-comfortable-fit-and-clear-sound-lidless-case",
+      "slug": "soundcore-v40i-or-comfortable-fit-and-clear-sound-lidless-case",
+      "name": "Soundcore V40i | Comfortable Fit and Clear Sound, Lidless Case",
+      "brand": "Soundcore",
+      "categorySlug": "open-ear-clip-buds",
+      "categoryName": "Open Ear Clip Buds",
+      "price": 7650,
+      "compareAtPrice": 8500,
+      "inStock": true,
+      "shortDescription": "Soundcore V40i are open-ear wireless earbuds designed for all-day comfort, situational awareness, and powerful sound. With adjustable ear hooks, 16 × 13 mm drivers, AI-enhanced call quality, and an innovative lid-free charging case, they're ideal for workouts, commuting, and everyday use",
+      "description": "Soundcore V40i are open-ear wireless earbuds designed for all-day comfort, situational awareness, and powerful sound. With adjustable ear hooks, 16 × 13 mm drivers, AI-enhanced call quality, and an innovative lid-free charging case, they're ideal for workouts, commuting, and everyday use",
+      "features": [
+        "Open-ear design for all-day comfort and environmental awareness",
+        "4-level adjustable ear hooks for a secure, personalized fit",
+        "Large 16 × 13 mm drivers with enhanced bass performance",
+        "4 AI-powered microphones for crystal-clear calls",
+        "Multipoint connection for two devices simultaneously",
+        "Up to 21 hours total battery life with the charging case",
+        "IP55 water and dust resistance with SweatGuard™ technology",
+        "Custom EQ and 22 sound presets via the Soundcore app",
+        "Touch controls for music, calls, and voice assistant",
+        "Stylish lid-free magnetic charging case for quick access"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0bef7925d3d6ec9c1cbaf700efa1dfdf211e5a0a-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-v40i-or-comfortable-fit-and-clear-sound-lidless-case-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-space-2-or-comfortable-noise-cancelling-headphones-for-all-day-wear",
+      "slug": "soundcore-space-2-or-comfortable-noise-cancelling-headphones-for-all-day-wear",
+      "name": "Soundcore Space 2 | Comfortable Noise Cancelling Headphones for All-Day Wear",
+      "brand": "Soundcore",
+      "categorySlug": "headphones",
+      "categoryName": "Headphones",
+      "price": 16500,
+      "compareAtPrice": 18000,
+      "inStock": true,
+      "shortDescription": "Escape distractions and enjoy rich, detailed sound with the Soundcore Space 2. Featuring powerful adaptive noise cancellation, Hi-Res Audio support, ultra-soft memory foam ear cushions, and an impressive 70-hour battery life, it's the perfect companion for commuting, flights, work, and entertainment",
+      "description": "Escape distractions and enjoy rich, detailed sound with the Soundcore Space 2. Featuring powerful adaptive noise cancellation, Hi-Res Audio support, ultra-soft memory foam ear cushions, and an impressive 70-hour battery life, it's the perfect companion for commuting, flights, work, and entertainment",
+      "features": [
+        "Adaptive ANC 3.0 with 4-stage low-frequency noise cancellation",
+        "40mm double-layer diaphragm drivers for deep bass and crisp highs",
+        "Hi-Res Audio (wired) and Hi-Res Wireless Audio with LDAC",
+        "Up to 70 hours of playtime (ANC Off)",
+        "Up to 50 hours of playtime (ANC On)",
+        "Fast charging: 5 minutes = up to 4 hours of playback",
+        "AI-enhanced microphones for clear voice calls",
+        "Pressure-relieving memory foam ear cushions for all-day comfortPressure-relieving memory foam ear cushions for all-day comfort",
+        "Wear detection automatically pauses and resumes playback",
+        "Custom EQ, HearID sound personalization, white noise mode, and customizable controls via the Soundcore app"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/9ade60fc9ecbcb620b450bebf3c181d8b5678c17-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-space-2-or-comfortable-noise-cancelling-headphones-for-all-day-wear-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-q20i-hybrid-anc-headphones",
+      "slug": "soundcore-q20i-hybrid-anc-headphones",
+      "name": "Soundcore Q20i Hybrid ANC Headphones",
+      "brand": "Soundcore",
+      "categorySlug": "headphones",
+      "categoryName": "Headphones",
+      "price": 6150,
+      "compareAtPrice": 6800,
+      "inStock": true,
+      "shortDescription": "One of the best value-for-money over-ear ANC headphones in its price range. If you're looking for an affordable pair with great battery life and solid sound, it's an easy recommendation",
+      "description": "One of the best value-for-money over-ear ANC headphones in its price range. If you're looking for an affordable pair with great battery life and solid sound, it's an easy recommendation",
+      "features": [
+        "Hybrid Active Noise Cancellation (reduces up to 90% of low-frequency noise)",
+        "40mm dynamic drivers with BassUp technology",
+        "Hi-Res Audio support (via the included AUX cable)",
+        "Up to 60 hours battery (40 hours with ANC on)",
+        "5-minute fast charge = up to 4 hours of playback",
+        "Multipoint Bluetooth connection (connect to 2 devices simultaneously)",
+        "Custom EQ and controls through the Soundcore app",
+        "Built-in microphone for calls"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/1b9b728a18e462d4a6e4cb99268cb5ca1fb5f9a9-800x800.png"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-q20i-hybrid-anc-headphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powernova-q41-40-000mah-35w-powerbank",
+      "slug": "oraimo-powernova-q41-40-000mah-35w-powerbank",
+      "name": "Oraimo powernova Q41 (40,000mAh) 35W powerbank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 4400,
+      "compareAtPrice": 4800,
+      "inStock": true,
+      "shortDescription": "A 35W super fast charging powerbank able to recharge your laptop/phone upto 8 times.",
+      "description": "A 35W super fast charging powerbank able to recharge your laptop/phone upto 8 times.",
+      "features": [
+        "35W super fast",
+        "Two power inputs",
+        "Digital power display"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/4ebfd626e39638d504169a64aebb288acd880376-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powernova-q41-40-000mah-35w-powerbank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-neo-anc-wireless-earbuds",
+      "slug": "oraimo-spacebuds-neo-anc-wireless-earbuds",
+      "name": "Oraimo SpaceBuds Neo+ ANC Wireless Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 2300,
+      "compareAtPrice": 2800,
+      "inStock": true,
+      "shortDescription": "Affordable Oraimo wireless earbuds with Active Noise Cancellation (ANC). Delivers immersive audio, extended battery life, and reliable everyday performance.",
+      "description": "Affordable Oraimo wireless earbuds with Active Noise Cancellation (ANC). Delivers immersive audio, extended battery life, and reliable everyday performance.",
+      "features": [
+        "Active Noise Cancellation (ANC) for reduced background noise",
+        "Up to 30 hours of total playtime",
+        "360 Spatial Sound for an immersive listening experience",
+        "IPX4 splash and sweat resistance",
+        "Oraimo Sound App support for customization and enhanced controls"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/2d5ee28c11a41e0080294726e3202e56cdd983ff-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-neo-anc-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/budi-20-000mah-pocket-powerbank-22-5w-fast-charging",
+      "slug": "budi-20-000mah-pocket-powerbank-22-5w-fast-charging",
+      "name": "Budi 20,000mAh pocket powerbank (22.5W fast charging)",
+      "brand": "Budi",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 3250,
+      "compareAtPrice": 4000,
+      "inStock": true,
+      "shortDescription": "A portable 20,000mAh powerbank with an inbuilt iphone & type-c cable able to recharge your phone at a fast speed of upto 22.5W.",
+      "description": "A portable 20,000mAh powerbank with an inbuilt iphone & type-c cable able to recharge your phone at a fast speed of upto 22.5W.",
+      "features": [
+        "20,000mAh capacity (Charge upto 4 times)",
+        "Inbuilt carrying lanyard",
+        "Inbuilt charging cables",
+        "Portable pocket friendly design",
+        "22.5W fast charging",
+        "1 year warranty",
+        "Digital power display"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/048e9f73c2d79bd84f6ed6d7d29c4812200661f8-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/budi-20-000mah-pocket-powerbank-22-5w-fast-charging-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-muse-2-lite-ladies-smartwatch",
+      "slug": "oraimo-watch-muse-2-lite-ladies-smartwatch",
+      "name": "Oraimo watch muse 2 lite (Ladies Smartwatch)",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 2499,
+      "compareAtPrice": 2900,
+      "inStock": true,
+      "shortDescription": "Stylish & lightweight ladies’ smartwatch with a 1.26” full-touch TFT display. IP68 water & dust resistant. Up to 6 days usage / 21 days standby",
+      "description": "Stylish & lightweight ladies’ smartwatch with a 1.26” full-touch TFT display. IP68 water & dust resistant. Up to 6 days usage / 21 days standby",
+      "features": [
+        "🛡️ Anti-scratch Panda Glass",
+        "📞 HD Bluetooth calling",
+        "❤️ Heart rate & SpO₂ monitoring",
+        "🌸 Female health tracking",
+        "🤖 AI-generated watch faces",
+        "Up to 6 days usage / 21 days standby",
+        "IP68 water & dust resistant"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/8d8836c37d2d140bb293cbd8d32543a268147273-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-muse-2-lite-ladies-smartwatch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/budi-iphone-earphones-half-in-ear-design",
+      "slug": "budi-iphone-earphones-half-in-ear-design",
+      "name": "Budi iphone earphones (Half-in ear design)",
+      "brand": "Budi",
+      "categorySlug": "budi",
+      "categoryName": "Budi",
+      "price": 699,
+      "compareAtPrice": 999,
+      "inStock": true,
+      "shortDescription": "The best wired earphones for iphone users (lightning cable) with premium sound and very clear calls.Featuring a comfortable half-in ear design.",
+      "description": "The best wired earphones for iphone users (lightning cable) with premium sound and very clear calls.Featuring a comfortable half-in ear design.",
+      "features": [
+        "Clear hd calls",
+        "Improved bass",
+        "Unlimited playtime 😅",
+        "length of upto 1.2m",
+        "intelligence control"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/cc28831673b3eb805a8eb4718304a980c6abb43b-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/budi-iphone-earphones-half-in-ear-design-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powernova-l21-20000mah-30w-fast-charging-power-bank",
+      "slug": "oraimo-powernova-l21-20000mah-30w-fast-charging-power-bank",
+      "name": "Oraimo PowerNova L21 20000mAh 30W Fast Charging Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 3999,
+      "compareAtPrice": 4500,
+      "inStock": true,
+      "shortDescription": "Stay powered anywhere with the Oraimo PowerNova L21, featuring a 20,000mAh battery, 30W fast charging, three output ports, and a smart LED display for real-time battery monitoring.",
+      "description": "Stay powered anywhere with the Oraimo PowerNova L21, featuring a 20,000mAh battery, 30W fast charging, three output ports, and a smart LED display for real-time battery monitoring.",
+      "features": [
+        "20,000mAh high-capacity battery",
+        "30W fast charging via USB-C",
+        "Dual USB-C ports and one USB-A output",
+        "Charge up to 3 devices simultaneously",
+        "Smart LED display for real-time battery level",
+        "Up to 4.2 phone charges on a single full charge*"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/21ee086d1e7d432be2010a2b3527cc88bd6cce52-960x1280.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powernova-l21-20000mah-30w-fast-charging-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-magpower-15-oraimo-magpower-15-10000mah-wireless-power-bank",
+      "slug": "oraimo-magpower-15-oraimo-magpower-15-10000mah-wireless-power-bank",
+      "name": "oraimo MagPower 15 oraimo MagPower 15 10000mAh Wireless Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "wireless-powerbanks",
+      "categoryName": "Wireless Powerbanks",
+      "price": 3500,
+      "compareAtPrice": 3750,
+      "inStock": true,
+      "shortDescription": "A compact 10,000mAh magnetic wireless power bank designed for convenient charging on the go. Supports both wireless and wired fast charging for smartphones, earbuds, and other compatible devices.",
+      "description": "A compact 10,000mAh magnetic wireless power bank designed for convenient charging on the go. Supports both wireless and wired fast charging for smartphones, earbuds, and other compatible devices.",
+      "features": [
+        "10,000mAh battery capacity for multiple device recharge",
+        "15W wireless fast charging",
+        "5W wired fast charging via USB-C and USB-A ports",
+        "Strong magnetic attachment (10N) for secure wireless charging",
+        "Foldable metal stand supports both portrait and landscape viewing.",
+        "Wide compatibility with Qi-enabled smartphones and wireless charging devices"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/e0ecdd71155c2e3accd3e0342c6c10f8b7718a2c-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-magpower-15-oraimo-magpower-15-10000mah-wireless-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-buds-neo-3-edge-100-hours-playtime",
+      "slug": "itel-buds-neo-3-edge-100-hours-playtime",
+      "name": "Itel buds neo 3 edge 100 Hours Playtime",
+      "brand": "Itel",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 1699,
+      "compareAtPrice": 2000,
+      "inStock": true,
+      "shortDescription": "An upgrade from Itel Buds Neo 3 with upto 100 Hours playtime.Suitable for the one looking for affordable original earbuds and something durable with a straight forwand warranty.",
+      "description": "An upgrade from Itel Buds Neo 3 with upto 100 Hours playtime.Suitable for the one looking for affordable original earbuds and something durable with a straight forwand warranty.",
+      "features": [
+        "100 Hours Playtime",
+        "Deep Bass with Auto tuning",
+        "Ai noise cancellation on calls",
+        "Waterproof and sweat proof",
+        "Short-stemmed buds"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/8fdfcb4becd4ddfd0e7beb38934062d04baf15d5-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-buds-neo-3-edge-100-hours-playtime-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powernova-l22-20-000mah-power-bank",
+      "slug": "oraimo-powernova-l22-20-000mah-power-bank",
+      "name": "Oraimo PowerNova L22 20,000mAh Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2999,
+      "compareAtPrice": 4700,
+      "inStock": true,
+      "shortDescription": "A high-capacity 20,000mAh power bank with 22.5W fast charging and built-in Type-C & Lightning cables for convenient charging on the go.",
+      "description": "A high-capacity 20,000mAh power bank with 22.5W fast charging and built-in Type-C & Lightning cables for convenient charging on the go.",
+      "features": [
+        "🔋 20,000mAh battery capacity (Charge 4 times)",
+        "⚡ 22.5W fast charging",
+        "Built-in Type-C & Lightning braided cables",
+        "Dual Type-C input & output ports",
+        "Portable and travel-friendly design",
+        "PD 3.0 & QC 3.0 compatible"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a3939fd20e353faf62493545d78df1f747aae634-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powernova-l22-20-000mah-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/soundcore-select-4-go-bluetooth-speaker",
+      "slug": "soundcore-select-4-go-bluetooth-speaker",
+      "name": "🔊 Soundcore Select 4 Go Bluetooth Speaker",
+      "brand": "Soundcore",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 3400,
+      "compareAtPrice": 3800,
+      "inStock": true,
+      "shortDescription": "Compact, portable Bluetooth speaker with punchy bass Perfect for outdoor adventures, travel & everyday use",
+      "description": "Compact, portable Bluetooth speaker with punchy bass Perfect for outdoor adventures, travel & everyday use",
+      "features": [
+        "🔋 Up to 20 hours of playtime",
+        "💦 Waterproof, dustproof & floatable",
+        "🔊 Small size with powerful punchy sound",
+        "🎒 Pocket-sized & easy to carry",
+        "🎛️ Customize sound with EQ via App",
+        "🔗 TWS pairing — connect 2 speakers together"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/806d033146bf315871c8492d90938c68a786bebc-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/soundcore-select-4-go-bluetooth-speaker-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-necklace-5-wireless-neckband-earphones",
+      "slug": "oraimo-necklace-5-wireless-neckband-earphones",
+      "name": "Oraimo Necklace 5 ANC Wireless Neckband",
+      "brand": "Oraimo",
+      "categorySlug": "neck-bands",
+      "categoryName": "Neck Bands",
+      "price": 3250,
+      "compareAtPrice": 3500,
+      "inStock": true,
+      "shortDescription": "The Oraimo Necklace 5 is a lightweight wireless neckband earphone featuring ANC(Active noise cancellation) designed for comfortable all-day use. It delivers powerful sound, deep bass, clear calls, and reliable connectivity,",
+      "description": "The Oraimo Necklace 5 is a lightweight wireless neckband earphone featuring ANC(Active noise cancellation) designed for comfortable all-day use. It delivers powerful sound, deep bass, clear calls, and reliable connectivity,",
+      "features": [
+        "Upto -50db noise cancellation",
+        "40 Hours long playtime",
+        "ENC Noise Cancellation for clear calls",
+        "HavyBass™ Sound Technology",
+        "Fast Charging Support",
+        "Oraimo Sound Support"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/99740ce8229cb111e49187f0a5f3bf15315807f7-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-necklace-5-wireless-neckband-earphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebox-max-200w-auracast-party-speaker",
+      "slug": "oraimo-spacebox-max-200w-auracast-party-speaker",
+      "name": "🔊 Oraimo SpaceBox Max 200W Auracast Party Speaker",
+      "brand": "Oraimo",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 36999,
+      "compareAtPrice": 40000,
+      "inStock": true,
+      "shortDescription": "Powerful 200W party speaker with deep, explosive bass Includes Oraimo wireless microphones Perfect for parties, events & outdoor entertainment",
+      "description": "Powerful 200W party speaker with deep, explosive bass Includes Oraimo wireless microphones Perfect for parties, events & outdoor entertainment",
+      "features": [
+        "🎤 Supports 2 external mics with app control",
+        "🔊 200W Ultimate Sound",
+        "💥 Explosive bass even at low volume",
+        "🔗 Connect 2+ speakers with Auracast",
+        "🔋 6–15 hrs playtime with Boost Mode",
+        "⚡ AC power support for long events",
+        "Easy carrying & setup with mount support",
+        "Multiple audio input modes"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/e7f3d738cedaba3d54e1ece37b1f8905329754eb-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebox-max-200w-auracast-party-speaker-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/havit-h602bt-wireless-headphones",
+      "slug": "havit-h602bt-wireless-headphones",
+      "name": "🎧 Havit H602BT Wireless Headphones",
+      "brand": "Havit",
+      "categorySlug": "headphones",
+      "categoryName": "Headphones",
+      "price": 1999,
+      "compareAtPrice": 2300,
+      "inStock": true,
+      "shortDescription": "Comfortable, foldable wireless headphones with powerful sound Ideal for music, calls, travel & everyday use",
+      "description": "Comfortable, foldable wireless headphones with powerful sound Ideal for music, calls, travel & everyday use",
+      "features": [
+        "🔋 Up to 35 hours playtime",
+        "🔊 Excellent sound quality",
+        "📶 Bluetooth & AUX mode",
+        "🔄 Rotatable & foldable design",
+        "↕️ Adjustable/extensible headband",
+        "🧸 Soft, comfortable earmuffs"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/db9bd1bf55a3d27d0602685558b4073ec3b8fd46-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/havit-h602bt-wireless-headphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-6-lite-2-01-smart-watch-scratch-resistant",
+      "slug": "oraimo-watch-6-lite-2-01-smart-watch-scratch-resistant",
+      "name": "oraimo Watch 6 Lite 2.01'' Smart Watch Scratch Resistant",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 2250,
+      "compareAtPrice": 2400,
+      "inStock": true,
+      "shortDescription": "Stylish and feature-packed smartwatch designed for everyday use, fitness, and productivity.",
+      "description": "Stylish and feature-packed smartwatch designed for everyday use, fitness, and productivity.",
+      "features": [
+        "Anti-Scratch Panda Glass",
+        "2.01-inch HD Display",
+        "IP68 Water Resista",
+        "Customizable Watch Faces",
+        "Works with both Android and iOS smartphones via the Oraimo Health app.",
+        "Bluetooth Calling"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/756d55bf15b70e414cf0f98b20ee208615386761-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-6-lite-2-01-smart-watch-scratch-resistant-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-air-2",
+      "slug": "oraimo-spacebuds-air-2",
+      "name": "Oraimo SpaceBuds Air 2",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 1900,
+      "compareAtPrice": 2200,
+      "inStock": true,
+      "shortDescription": "Lightweight half-in ear design true wireless earbuds with Bluetooth 6.0, AI smart translation, crystal-clear calls, and up to 50 hours of total playtime.",
+      "description": "Lightweight half-in ear design true wireless earbuds with Bluetooth 6.0, AI smart translation, crystal-clear calls, and up to 50 hours of total playtime.",
+      "features": [
+        "Up to 7.5 hours playtime (50 hours with charging case)",
+        "Dual-mic AI call noise reduction",
+        "Semi-in-ear comfortable fit",
+        "Custom EQ support via Oraimo app",
+        "IPX4 water-resistant",
+        "USB Type-C fast charging"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/87f2189952d666d15a8b1a7b01932a03a458f640-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-air-2-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-nova-2-air-ultra-slim-amoled-smartwatch",
+      "slug": "oraimo-watch-nova-2-air-ultra-slim-amoled-smartwatch",
+      "name": "Oraimo Watch Nova 2 Air Ultra-Slim AMOLED Smartwatch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 4599,
+      "compareAtPrice": 4800,
+      "inStock": true,
+      "shortDescription": "A premium ultra-slim smartwatch with a vibrant 1.95” curved AMOLED display, Bluetooth calling, AI voice assistant, advanced health tracking, and up to 12 days of battery life.",
+      "description": "A premium ultra-slim smartwatch with a vibrant 1.95” curved AMOLED display, Bluetooth calling, AI voice assistant, advanced health tracking, and up to 12 days of battery life.",
+      "features": [
+        "🤖 AI Voice Assistant+ Oraimo Ai",
+        "⌚ 1.95” Curved AMOLED display (410 × 502)",
+        "Up to 1000 nits brightness",
+        "📞 Bluetooth calling",
+        "❤️ 24/7 heart rate, SpO₂ & stress monitoring",
+        "💧 IP68 water & dust resistant",
+        "🔋 Up to 12 days battery life",
+        "160+ watch faces & AI watch faces"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/eb25cb96597a0461da6b835023fc45d7a3357c85-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-nova-2-air-ultra-slim-amoled-smartwatch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powernova-l11-10-000mah-22-5w-fast-charging-power-bank",
+      "slug": "oraimo-powernova-l11-10-000mah-22-5w-fast-charging-power-bank",
+      "name": "Oraimo PowerNova L11 10,000mAh 22.5W Fast Charging Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2750,
+      "compareAtPrice": 3000,
+      "inStock": true,
+      "shortDescription": "A compact and portable 10,000mAh power bank with 22.5W two-way fast charging, a built-in braided USB-C cable, and multiple charging ports.",
+      "description": "A compact and portable 10,000mAh power bank with 22.5W two-way fast charging, a built-in braided USB-C cable, and multiple charging ports.",
+      "features": [
+        "22.5W Two-Way Fast Charging",
+        "Built-in Braided USB-C Cable",
+        "Charge 3 Devices Simultaneously",
+        "Flight-Friendly – Safe to carry on most flights within airline battery limits",
+        "Safe Charging Protection"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a96c54bd91e58d75e96444b859bc821fd48233fd-600x600.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powernova-l11-10-000mah-22-5w-fast-charging-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-5r-1-43-amoled-ip68-smart-watch",
+      "slug": "oraimo-watch-5r-1-43-amoled-ip68-smart-watch",
+      "name": "Oraimo Watch 5R 1.43” AMOLED IP68 Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 3499,
+      "compareAtPrice": 3850,
+      "inStock": true,
+      "shortDescription": "Affordable premium smartwatch featuring a vibrant 1.43” AMOLED display, Bluetooth calling, health tracking, and up to 10 days of battery life.",
+      "description": "Affordable premium smartwatch featuring a vibrant 1.43” AMOLED display, Bluetooth calling, health tracking, and up to 10 days of battery life.",
+      "features": [
+        "Ip68 Waterproof & dust proof",
+        "1' 43” Round AMOLED display",
+        "Bluetooth wireless calling",
+        "Up to 10 days battery life",
+        "AI-generated watch faces",
+        "100+ sports modes"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/9c52f3884408dca29211c1cbba413182e453669a-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-5r-1-43-amoled-ip68-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-140w-4-in-1-laptop-charger",
+      "slug": "anker-140w-4-in-1-laptop-charger",
+      "name": "Anker 140W 4 in 1 laptop charger",
+      "brand": "Anker",
+      "categorySlug": "charging-solutions",
+      "categoryName": "Charging Solutions",
+      "price": 9500,
+      "compareAtPrice": 11000,
+      "inStock": true,
+      "shortDescription": "High-performance 140W GaN wall charger designed to power up to four devices simultaneously. Equipped with a smart display for real-time power monitoring and advanced safety features for reliable charging.",
+      "description": "High-performance 140W GaN wall charger designed to power up to four devices simultaneously. Equipped with a smart display for real-time power monitoring and advanced safety features for reliable charging.",
+      "features": [
+        "140W maximum total power output for ultra-fast charging.",
+        "4 charging ports",
+        "Laptop charging support",
+        "Intelligent temperature monitoring",
+        "Advanced GaN technology",
+        "140W USB-C to USB-C cable",
+        "Retractable UK plug for easy portability and convenient storage."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/e9f95f01a7acac1ff6d91ef3af6502f2d434046d-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-140w-4-in-1-laptop-charger-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-boompop-n-oraimo-boompop-n-wireless-headphones",
+      "slug": "oraimo-boompop-n-oraimo-boompop-n-wireless-headphones",
+      "name": "Oraimo BoomPop N oraimo BoomPop N Wireless Headphones",
+      "brand": "Oraimo",
+      "categorySlug": "headphones",
+      "categoryName": "Headphones",
+      "price": 3600,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "Wireless over-ear headphones designed for immersive audio, calls, gaming, and everyday use. Combines Hybrid Active Noise Cancellation (ANC), long battery life, and deep bass performance.",
+      "description": "Wireless over-ear headphones designed for immersive audio, calls, gaming, and everyday use. Combines Hybrid Active Noise Cancellation (ANC), long battery life, and deep bass performance.",
+      "features": [
+        "Hybrid Active Noise Cancellation (ANC) to reduce background noise",
+        "Up to 65 hours of playtime with ANC off and up to 44 hours with ANC on.",
+        "Enhanced Bass Boost for richer, deeper sound.",
+        "Dual-Mic Environmental Noise Cancellation (ENC) for clearer voice calls.",
+        "Dual Device Connection to connect and switch between two devices seamlessly.",
+        "Foldable and adjustable design for portability and comfort.",
+        "40 mm dynamic drivers for powerful sound output."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/11c5f9855a54f1caa85598c9ac1afcf9182f8210-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-boompop-n-oraimo-boompop-n-wireless-headphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-opensnap-open-ear-earbuds",
+      "slug": "oraimo-opensnap-open-ear-earbuds",
+      "name": "oraimo OpenSnap Open-Ear Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "open-ear-clip-buds",
+      "categoryName": "Open Ear Clip Buds",
+      "price": 3000,
+      "compareAtPrice": 3400,
+      "inStock": true,
+      "shortDescription": "Open-ear wireless earbuds designed for comfortable all-day listening while keeping you aware of your surroundings. Features a stylish clip-on design, powerful bass, clear calls, and long battery life for music, workouts, and daily use.",
+      "description": "Open-ear wireless earbuds designed for comfortable all-day listening while keeping you aware of your surroundings. Features a stylish clip-on design, powerful bass, clear calls, and long battery life for music, workouts, and daily use.",
+      "features": [
+        "Open-Ear Design -Clip in ear",
+        "Dual microphones for clearer voice calls.",
+        "Dual Device Connection",
+        "Up to 6 hours playtime and 26 hours with charging case.",
+        "Physical Button Control",
+        "Equipped with 10.8mm dynamic drivers and HavyBass™ enhancement."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/c747e28ca8978d721ff1eefa805b89295163f17a-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-opensnap-open-ear-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-necklace-lite-call-vibration-wireless-headphones",
+      "slug": "oraimo-necklace-lite-call-vibration-wireless-headphones",
+      "name": "Oraimo Necklace Lite Call Vibration Wireless Headphones",
+      "brand": "Oraimo",
+      "categorySlug": "neck-bands",
+      "categoryName": "Neck Bands",
+      "price": 1600,
+      "compareAtPrice": 1850,
+      "inStock": true,
+      "shortDescription": "Wireless neckband headphones designed for all-day comfort and reliable connectivity.Features vibration alerts for incoming calls, making it easier to notice calls even in noisy environments.",
+      "description": "Wireless neckband headphones designed for all-day comfort and reliable connectivity.Features vibration alerts for incoming calls, making it easier to notice calls even in noisy environments.",
+      "features": [
+        "🔊 Call Vibration Alerts",
+        "🎵 30-Hour Playtime",
+        "🎧 10mm Dynamic Drivers",
+        "🔄 Dual Device Connectivity",
+        "📞 AI Noise Cancellation for Calls",
+        "🧲 Magnetic Earbuds"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0ad6a37f0ab7053b0293b54b992bbe61b83135b6-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-necklace-lite-call-vibration-wireless-headphones-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powernova-q31-30-000mah-22-5w-fast-charging-power-bank",
+      "slug": "oraimo-powernova-q31-30-000mah-22-5w-fast-charging-power-bank",
+      "name": "Oraimo PowerNova Q31 30,000mAh 22.5W Fast Charging Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 3400,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "High-capacity 30,000mAh power bank designed to keep your devices powered for extended periods. Supports 22.5W fast charging for quick and efficient charging.",
+      "description": "High-capacity 30,000mAh power bank designed to keep your devices powered for extended periods. Supports 22.5W fast charging for quick and efficient charging.",
+      "features": [
+        "30,000mAh ultra-large battery",
+        "22.5W fast charging support",
+        "Smart digital display for accurate battery status.",
+        "2 USB-A output ports",
+        "1 USB Type-C port for charging input/output."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/680bf908c07af40df8bcb2dcb9ff18c3e4b6e1f4-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powernova-q31-30-000mah-22-5w-fast-charging-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/utarudi-20-000mah-portable-powerbank",
+      "slug": "utarudi-20-000mah-portable-powerbank",
+      "name": "Utarudi 20,000mAh portable powerbank",
+      "brand": "Utarudi",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2000,
+      "compareAtPrice": 2500,
+      "inStock": true,
+      "shortDescription": "super-fast 35W portable power bank designed for quick and reliable charging. Equipped with a 20,000mAh high-capacity battery to keep your devices powered throughout the day.",
+      "description": "super-fast 35W portable power bank designed for quick and reliable charging. Equipped with a 20,000mAh high-capacity battery to keep your devices powered throughout the day.",
+      "features": [
+        "20,000mAh large battery capacity",
+        "35W super-fast charging output.",
+        "2-in-1 built-in cable with USB Type-C and Lightning connectors.",
+        "Built-in cable functions as a carrying lanyard.",
+        "Compact, lightweight, and portable design."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/7c95ead2ffeda2a0c69d3b3d5f695bcd07878638-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/utarudi-20-000mah-portable-powerbank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-smart-trimmer-3-in-1-kit-water-resistant-itr-37",
+      "slug": "itel-smart-trimmer-3-in-1-kit-water-resistant-itr-37",
+      "name": "Itel Smart Trimmer 3-in-1 Kit Water Resistant (ITR-37)",
+      "brand": "Itel",
+      "categorySlug": "trimmers",
+      "categoryName": "Trimmers",
+      "price": 1750,
+      "compareAtPrice": 2000,
+      "inStock": true,
+      "shortDescription": "Multi-functional 3-in-1 grooming kit designed for trimming hair, beard, and nose hair. Water-resistant (IPX6) design with a fully washable body for easy cleaning.",
+      "description": "Multi-functional 3-in-1 grooming kit designed for trimming hair, beard, and nose hair. Water-resistant (IPX6) design with a fully washable body for easy cleaning.",
+      "features": [
+        "3 interchangeable trimming heads (hair clipper, foil shaver, nose trimmer)",
+        "Water-resistant IPX6 rating with fully washable body",
+        "Powerful 7500 RPM motor for efficient trimming",
+        "Up to 90 minutes of cordless runtime",
+        "6 guide combs for multiple cutting lengths",
+        "Smart LED display for battery status"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/481052ec4ca33077019c90162af2f4a42d383558-1179x1179.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-smart-trimmer-3-in-1-kit-water-resistant-itr-37-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/havit-pb5214-35w-10000mah-portable-power-bank",
+      "slug": "havit-pb5214-35w-10000mah-portable-power-bank",
+      "name": "Havit PB5214 35W 10000mAh Portable Power Bank",
+      "brand": "Havit",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2700,
+      "compareAtPrice": 3000,
+      "inStock": true,
+      "shortDescription": "Compact and lightweight portable power bank .",
+      "description": "Compact and lightweight portable power bank .",
+      "features": [
+        "⚡ 35W Fast Charging",
+        "🔋 10000mAh Battery Capacity",
+        "🔌 Built-in Type-C Cable",
+        "Digital Power Display",
+        "Portable & Lightweight Design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a4ad270fb9e9c4d6128bf686313339ecc981f34b-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/havit-pb5214-35w-10000mah-portable-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/utarudi-gs90-amoled-smartwatch",
+      "slug": "utarudi-gs90-amoled-smartwatch",
+      "name": "Utarudi Gs90 Amoled Smartwatch",
+      "brand": "Utarudi",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 3999,
+      "compareAtPrice": 4500,
+      "inStock": true,
+      "shortDescription": "One of the best original Amoled smartwatch currently available in the market. Features a vivid AMOLED full display, Ip67 water and dust resistivity and 3 straps and Chat gpt features.",
+      "description": "One of the best original Amoled smartwatch currently available in the market. Features a vivid AMOLED full display, Ip67 water and dust resistivity and 3 straps and Chat gpt features.",
+      "features": [
+        "3 different straps (Leather,Silicone,Metallic)",
+        "AMOLED display",
+        "ip67 water resistance",
+        "Metallic alloy frame",
+        "Upto 7 days battery",
+        "24 Hours monitoring"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/4787d5c2651b4d4ec59a1b192c6dfacadbd94615-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/utarudi-gs90-amoled-smartwatch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powernova-q21-20000mah-22-5w-power-bank",
+      "slug": "oraimo-powernova-q21-20000mah-22-5w-power-bank",
+      "name": "oraimo PowerNova Q21 20000mAh 22.5W Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2600,
+      "compareAtPrice": 3000,
+      "inStock": true,
+      "shortDescription": "20,000mAh high-capacity portable power bank. Delivers up to 22.5W fast charging with advanced AniFast technology.",
+      "description": "20,000mAh high-capacity portable power bank. Delivers up to 22.5W fast charging with advanced AniFast technology.",
+      "features": [
+        "20,000mAh Capacity (Recharge 4 times)",
+        "22.5W Fast Charging",
+        "PD3.0 & QC3.0 Compatibility",
+        "Smart Digital Display",
+        "Triple Device Charging-3 power outputs"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/e3dcbb9bfca83c67c84811b215cb2378bcf3a589-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powernova-q21-20000mah-22-5w-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/22mm-smartwatch-straps",
+      "slug": "22mm-smartwatch-straps",
+      "name": "22MM smartwatch straps",
+      "brand": "Generic",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 600,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "Silicone straps @350 bob Leather straps @500 bob Milanese straps @600 bob",
+      "description": "Silicone straps @350 bob Leather straps @500 bob Milanese straps @600 bob",
+      "features": [
+        "22mm Smartwatch straps"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/a777424f1553d6d919869ebb4b2b90930a14da73-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/22mm-smartwatch-straps-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-airbuds-4-enc-true-wireless-earbuds",
+      "slug": "oraimo-airbuds-4-enc-true-wireless-earbuds",
+      "name": "oraimo AirBuds 4 ENC True Wireless Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earbuds",
+      "categoryName": "Earbuds",
+      "price": 2499,
+      "compareAtPrice": 2850,
+      "inStock": true,
+      "shortDescription": "Oraimo Airbuds 4 earbuds with no stem perfect fit for small ears.The buds feature a havy bass and clear calls.",
+      "description": "Oraimo Airbuds 4 earbuds with no stem perfect fit for small ears.The buds feature a havy bass and clear calls.",
+      "features": [
+        "38 Hour Long playtime",
+        "ENC Noise Cancellation Technology",
+        "6mm Dynamic Drivers with HavyBass™",
+        "Low-Latency Game Mode",
+        "IPX4 Water & Sweat Resistance",
+        "oraimo Sound App Support"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/d7f3c100f4267f222b2b426e2b1b4a2d5b16ea9c-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-airbuds-4-enc-true-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-powerbox-400-vision-40000mah-22-5w-power-bank",
+      "slug": "oraimo-powerbox-400-vision-40000mah-22-5w-power-bank",
+      "name": "oraimo PowerBox 400 Vision 40000mAh 22.5W Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 3500,
+      "compareAtPrice": 4200,
+      "inStock": true,
+      "shortDescription": "A high-capacity power bank that features a 40,000mAh battery capacity with support for 22.5W fast charging, allowing users to recharge devices quickly while on the move",
+      "description": "A high-capacity power bank that features a 40,000mAh battery capacity with support for 22.5W fast charging, allowing users to recharge devices quickly while on the move",
+      "features": [
+        "40,000mAh capacity (Recharge 8 times)",
+        "22.5W Fast Charging",
+        "PD 3.0 & QC 3.0 Support",
+        "4 Charging Outputs",
+        "LED Digital Display",
+        "1 Year Warranty"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/da9a1260a54e14b4a508217e7d9bd60cdfa22853-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-powerbox-400-vision-40000mah-22-5w-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-z-anc-wireless-earbuds",
+      "slug": "oraimo-spacebuds-z-anc-wireless-earbuds",
+      "name": "Oraimo SpaceBuds Z ANC Wireless Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 2499,
+      "compareAtPrice": 3500,
+      "inStock": true,
+      "shortDescription": "Advanced wireless earbuds featuring Active Noise Cancellation (ANC), immersive spatial audio, powerful bass, and long-lasting battery life. Designed for music, gaming, calls, and everyday use with smart features like dual-device connectivity and app customization",
+      "description": "Advanced wireless earbuds featuring Active Noise Cancellation (ANC), immersive spatial audio, powerful bass, and long-lasting battery life. Designed for music, gaming, calls, and everyday use with smart features like dual-device connectivity and app customization",
+      "features": [
+        "Active Noise Cancellation (ANC) * Reduces external noise by up to 30dB",
+        "4-Mic AI Call Noise Cancellation",
+        "Sound360 Spatial Audio",
+        "Up to 38 hours total playtime",
+        "Features 10mm dynamic drivers",
+        "Low-Latency Game Mode",
+        "oraimo Sound App Support"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/24f29f3fb4d0e70b486c3066670e59ef7c9079ef-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-z-anc-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-10000mah-power-bank-slim-powerflow-l1",
+      "slug": "oraimo-10000mah-power-bank-slim-powerflow-l1",
+      "name": "oraimo 10000mAh Power Bank Slim PowerFlow L1",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 1499,
+      "compareAtPrice": 1800,
+      "inStock": true,
+      "shortDescription": "Slim and portable power bank designed for fast and reliable charging on the go. Features 10000mAh capacity, multi-device charging, and intelligent safety protection for everyday power needs.",
+      "description": "Slim and portable power bank designed for fast and reliable charging on the go. Features 10000mAh capacity, multi-device charging, and intelligent safety protection for everyday power needs.",
+      "features": [
+        "10,000mAh Capacity (Recharge 2 times)",
+        "15W fast charging",
+        "Charge 3 Devices at Once – Includes 1 Type-C port and 2 USB-A ports.",
+        "Two-Way Type-C Port – Supports both device charging and power bank recharging.",
+        "Free c-c removable cable/lanyard"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0f92aeb2778aef7b49e8cd5db8236de2a6fd8529-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-10000mah-power-bank-slim-powerflow-l1-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-nova-2r-amoled-smart-watch",
+      "slug": "oraimo-watch-nova-2r-amoled-smart-watch",
+      "name": "oraimo Watch Nova 2R (AMOLED) Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 4700,
+      "compareAtPrice": 5200,
+      "inStock": true,
+      "shortDescription": "Stylish and durable smartwatch featuring a 1.43-inch AMOLED display with sharp 466×466 resolution for clear visuals. Built with a lightweight and premium ABS/PC/Zinc Alloy body for comfortable daily wear.",
+      "description": "Stylish and durable smartwatch featuring a 1.43-inch AMOLED display with sharp 466×466 resolution for clear visuals. Built with a lightweight and premium ABS/PC/Zinc Alloy body for comfortable daily wear.",
+      "features": [
+        "Water Resistant (1ATM)",
+        "Premium Build Quality – Made with ABS, PC, and Zinc Alloy",
+        "Up to 10 days normal usage and 35 days standby time",
+        "1. 43” AMOLED Display",
+        "Bluetooth V5.4 Connectivity",
+        "Supports smart lifestyle and fitness tracking features.",
+        "Slim & Slick Profile"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/ac42d0e1279f0bd15d25f2affec82c640b317da2-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-nova-2r-amoled-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-budsgo-iew-64-tws",
+      "slug": "itel-budsgo-iew-64-tws",
+      "name": "itel BudsGo IEW-64 TWS",
+      "brand": "Itel",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 1200,
+      "compareAtPrice": 1500,
+      "inStock": true,
+      "shortDescription": "Quality sound, powerful bass, and clear calls. With a stylish pearlescent gloss finish, comfortable in-ear design, and long battery life on a budget",
+      "description": "Quality sound, powerful bass, and clear calls. With a stylish pearlescent gloss finish, comfortable in-ear design, and long battery life on a budget",
+      "features": [
+        "13mm Large Dynamic Drivers",
+        "AI-Powered Call Clarity",
+        "30 Hours playtime",
+        "12-Month Warranty",
+        "Comfortable In-Ear Fit"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/9e3ca9743284aa4658c9b128e4bc59adaf7efb04-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-budsgo-iew-64-tws-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-hybrid-anc-true-wireless-earbuds",
+      "slug": "oraimo-spacebuds-hybrid-anc-true-wireless-earbuds",
+      "name": "Oraimo SpaceBuds Hybrid ANC True Wireless Earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 4399,
+      "compareAtPrice": 4900,
+      "inStock": true,
+      "shortDescription": "The Oraimo SpaceBuds are premium true wireless earbuds featuring Hybrid Active Noise Cancellation (ANC), immersive sound, and customizable voice prompts. Designed for work, travel, gaming, and everyday listening, they combine long battery life, crystal-clear calls, and a comfortable ergonomic fit.",
+      "description": "The Oraimo SpaceBuds are premium true wireless earbuds featuring Hybrid Active Noise Cancellation (ANC), immersive sound, and customizable voice prompts. Designed for work, travel, gaming, and everyday listening, they combine long battery life, crystal-clear calls, and a comfortable ergonomic fit.",
+      "features": [
+        "11mm Dynamic Drivers with HavyBass™",
+        "Up to -50dB Hybrid Active Noise Cancellation",
+        "Low-Latency Gaming Mode",
+        "IP54 Water & Dust Resistance",
+        "Google Fast Pair (Android)",
+        "Dual Device Connection",
+        "4-Microphone ENC Technology"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/5c0f63368ac715c7534bd3492373446f18f97c61-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-hybrid-anc-true-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-smartwatch-storm-ultra-anti-scartch",
+      "slug": "itel-smartwatch-storm-ultra-anti-scartch",
+      "name": "Itel smartwatch storm ultra (Anti-Scartch)",
+      "brand": "Itel",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 2199,
+      "compareAtPrice": 2500,
+      "inStock": true,
+      "shortDescription": "A scratch resistant premium smartwatch designed for users who want advanced health tracking, Bluetooth calling, and a stylish, durable design. With a large HD display, multiple sports modes, and long battery life, it is ideal for fitness, work, and everyday use.",
+      "description": "A scratch resistant premium smartwatch designed for users who want advanced health tracking, Bluetooth calling, and a stylish, durable design. With a large HD display, multiple sports modes, and long battery life, it is ideal for fitness, work, and everyday use.",
+      "features": [
+        "IP68 Water & Dust Resistance",
+        "Scratch resistant screen display",
+        "Long Battery Life -Upto 7 Days",
+        "Bluetooth Calling",
+        "24/7 Health Monitoring",
+        "Custom Watch Faces"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/23c70db844bdec021fa616bee76694622643b359-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-smartwatch-storm-ultra-anti-scartch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-fit-020-smartwatch-multiple-straps",
+      "slug": "itel-fit-020-smartwatch-multiple-straps",
+      "name": "itel Fit 020 Smartwatch (Multiple straps)",
+      "brand": "Itel",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 1899,
+      "compareAtPrice": 2100,
+      "inStock": true,
+      "shortDescription": "The itel Fit 020 is a stylish and lightweight smartwatch designed for everyday use. It features a large full-touch display, Bluetooth calling, comprehensive health monitoring, multiple sports modes, and smart notifications, making it an ideal companion for fitness, work, and daily activities.",
+      "description": "The itel Fit 020 is a stylish and lightweight smartwatch designed for everyday use. It features a large full-touch display, Bluetooth calling, comprehensive health monitoring, multiple sports modes, and smart notifications, making it an ideal companion for fitness, work, and daily activities.",
+      "features": [
+        "1'83-inch HD Full-Touch Display",
+        "Bluetooth Calling",
+        "24/7 Health Monitoring",
+        "IP68 Water Resistance",
+        "Custom Watch Faces",
+        "Android & iOS Compatibility"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/8e5a8dbd0dd22aeadba84a6f05b8820e667d8f54-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-fit-020-smartwatch-multiple-straps-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-braid-c-lightning-braided-cable",
+      "slug": "oraimo-braid-c-lightning-braided-cable",
+      "name": "Oraimo Braid (C-lightning braided cable)",
+      "brand": "Oraimo",
+      "categorySlug": "charging-solutions",
+      "categoryName": "Charging Solutions",
+      "price": 450,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "A durable USB-C to Lightning fast charging cable built for Apple devices. It supports up to 45W Power Delivery (PD) charging, offers reliable 480Mbps data transfer, and features a reinforced braided nylon design for enhanced durability.",
+      "description": "A durable USB-C to Lightning fast charging cable built for Apple devices. It supports up to 45W Power Delivery (PD) charging, offers reliable 480Mbps data transfer, and features a reinforced braided nylon design for enhanced durability.",
+      "features": [
+        "45W Power Delivery Fast Charging",
+        "3A Output – Delivers fast, stable, and efficient charging",
+        "Fast Data Transfer",
+        "Braided Nylon Design",
+        "Upto 1 Metre Length"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/f27e71ac6574065b2c9889eaed3c10ea43ef096b-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-braid-c-lightning-braided-cable-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-buds-air-5e-true-wireless-earbuds",
+      "slug": "itel-buds-air-5e-true-wireless-earbuds",
+      "name": "itel Buds Air 5E True Wireless Earbuds",
+      "brand": "Itel",
+      "categorySlug": "earbuds",
+      "categoryName": "Earbuds",
+      "price": 1350,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "The itel Buds Air 5E are stylish and lightweight true wireless earbuds designed to deliver immersive sound, clear calls, and reliable wireless connectivity. With long battery life, low-latency mode, and a comfortable fit, they are ideal for music, gaming, work, and everyday use.",
+      "description": "The itel Buds Air 5E are stylish and lightweight true wireless earbuds designed to deliver immersive sound, clear calls, and reliable wireless connectivity. With long battery life, low-latency mode, and a comfortable fit, they are ideal for music, gaming, work, and everyday use.",
+      "features": [
+        "13mm Dynamic Drivers",
+        "Up to 39 Hours Playtime",
+        "ENC Call Noise Reduction",
+        "Low Latency Game Mode",
+        "Comfortable Ergonomic Fit",
+        "Voice Assistant Support",
+        "IPX5 Water Resistance"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/26ce56860f16a0485d5cbd21431a360221492425-750x1100.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-buds-air-5e-true-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-buds-fit-5-clip-in-earbuds",
+      "slug": "itel-buds-fit-5-clip-in-earbuds",
+      "name": "Itel buds fit 5 Clip-in earbuds",
+      "brand": "Itel",
+      "categorySlug": "open-ear-clip-buds",
+      "categoryName": "Open Ear Clip Buds",
+      "price": 2200,
+      "compareAtPrice": 2500,
+      "inStock": true,
+      "shortDescription": "The Itel BudsFit 5 are next-generation true wireless earbuds featuring the innovative C-Bridge Comfort Design for a secure, ultra-lightweight fit. Designed for all-day comfort, they deliver immersive sound, low-latency gaming, AI-powered call noise cancellation, and long-lasting battery life.",
+      "description": "The Itel BudsFit 5 are next-generation true wireless earbuds featuring the innovative C-Bridge Comfort Design for a secure, ultra-lightweight fit. Designed for all-day comfort, they deliver immersive sound, low-latency gaming, AI-powered call noise cancellation, and long-lasting battery life.",
+      "features": [
+        "AI Call Noise Cancellation",
+        "C-Bridge Comfort Design",
+        "Deep Bass Audio",
+        "32-Hour Total Playtime",
+        "60ms Low Latency Mode",
+        "IP54 Water & Dust Resistance"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/abc273e26be84a1dc8a2d1ac85dfd1b59c5eeba8-680x680.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-buds-fit-5-clip-in-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-slicelink-pro-10-000mah-power-bank",
+      "slug": "oraimo-slicelink-pro-10-000mah-power-bank",
+      "name": "Oraimo SliceLink Pro 10,000mAh Power Bank",
+      "brand": "Oraimo",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 2250,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "A slim, lightweight 10,000mAh portable power bank designed for convenient everyday charging. It features built-in charging cables,(22.5W) fast charging technology, and multiple output options, making it ideal for travel, work, and daily",
+      "description": "A slim, lightweight 10,000mAh portable power bank designed for convenient everyday charging. It features built-in charging cables,(22.5W) fast charging technology, and multiple output options, making it ideal for travel, work, and daily",
+      "features": [
+        "Built-in Charging Cables",
+        "22.5W super fast charging",
+        "10,000mAh Capacity (Recharge 2 times)",
+        "Multiple Output Ports"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0e17ab4aae5c317e4e20294869d95f04408b7f1c-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-slicelink-pro-10-000mah-power-bank-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/havit-m9052-smart-life-series-smart-watch",
+      "slug": "havit-m9052-smart-life-series-smart-watch",
+      "name": "Havit M9052 Smart Life Series Smart Watch",
+      "brand": "Havit",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 2499,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "A lightweight and stylish smartwatch with a 1.85-inch TFT full-touch display, Bluetooth calling, comprehensive health monitoring, fitness tracking, and smart notifications. It is compatible with Android and iOS devices, making it ideal for everyday use, work, and workouts.",
+      "description": "A lightweight and stylish smartwatch with a 1.85-inch TFT full-touch display, Bluetooth calling, comprehensive health monitoring, fitness tracking, and smart notifications. It is compatible with Android and iOS devices, making it ideal for everyday use, work, and workouts.",
+      "features": [
+        "Bluetooth Calling",
+        "24/7 Health Monitoring",
+        "Custom Watch Faces",
+        "85” TFT Full-Touch Display",
+        "100+ Sports Modes – Monitor workouts, steps, calories, and fitness progress.",
+        "Ip68 Water & dust resistance"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/109bfdd9a4a80f0c56977e043f7517b07d35d5d0-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/havit-m9052-smart-life-series-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebox-pro-oraimo-karaoke-bluetooth-speaker-or-80w",
+      "slug": "oraimo-spacebox-pro-oraimo-karaoke-bluetooth-speaker-or-80w",
+      "name": "oraimo SpaceBox Pro oraimo Karaoke Bluetooth Speaker | 80W",
+      "brand": "Oraimo",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 8999,
+      "compareAtPrice": 11000,
+      "inStock": true,
+      "shortDescription": "Portable 80W Bluetooth karaoke speaker designed for powerful indoor and outdoor entertainment. Delivers immersive 2.1-channel surround sound with deep bass, clear vocals, and customizable karaoke effects.",
+      "description": "Portable 80W Bluetooth karaoke speaker designed for powerful indoor and outdoor entertainment. Delivers immersive 2.1-channel surround sound with deep bass, clear vocals, and customizable karaoke effects.",
+      "features": [
+        "80W Powerful Sound with dual digital amplifiers and HavyBass™ technology.",
+        "Custom Karaoke Mode with adjustable bass, treble, reverb, and vocal effects via the oraimo Sound App (microphone sold separately).",
+        "1-Channel Surround Sound featuring a 4-inch subwoofer, dual tweeters, and passive radiators",
+        "Infinite Beat Lights with customizable colors and music-synced lighting effects.",
+        "13 Hours playtime on Max volume",
+        "20 Hours on medium volume"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0fc98ed8303cd2a2c70bc271c65538df15103f4a-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebox-pro-oraimo-karaoke-bluetooth-speaker-or-80w-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/redmi-buds-6-play-spy-earbuds",
+      "slug": "redmi-buds-6-play-spy-earbuds",
+      "name": "Redmi Buds 6 Play, Spy earbuds",
+      "brand": "Redmi",
+      "categorySlug": "earbuds",
+      "categoryName": "Earbuds",
+      "price": 1900,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "Ultra-lightweight design at just 3.6g for comfortable, all-day wear Compact, stylish, and versatile earbuds for everyday use.",
+      "description": "Ultra-lightweight design at just 3.6g for comfortable, all-day wear Compact, stylish, and versatile earbuds for everyday use.",
+      "features": [
+        "36 hours of total playback with the charging case",
+        "Features 10mm dynamic drivers for powerful, clean, and immersive sound",
+        "AI noise reduction technology for clearer calls",
+        "IPX4 water resistance for protection against splashes and sweat",
+        "Supports Google Fast Pair for seamless device connection",
+        "10 minutes of charging provides up to 3 hours of playback"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/527d14543efa078c81e087d804fd0ffcc472841a-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/redmi-buds-6-play-spy-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/anker-soundcore-r60i-nc-true-wireless-noise-cancelling-earbuds",
+      "slug": "anker-soundcore-r60i-nc-true-wireless-noise-cancelling-earbuds",
+      "name": "Anker Soundcore R60i NC True Wireless Noise-Cancelling Earbuds",
+      "brand": "Soundcore",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 4500,
+      "compareAtPrice": 4800,
+      "inStock": true,
+      "shortDescription": "Premium true wireless earbuds designed for immersive music, calls, gaming, and everyday use. Features adaptive noise cancellation, high-resolution wireless audio, and long battery life.",
+      "description": "Premium true wireless earbuds designed for immersive music, calls, gaming, and everyday use. Features adaptive noise cancellation, high-resolution wireless audio, and long battery life.",
+      "features": [
+        "Adaptive Active Noise Cancellation (ANC)",
+        "Reduces surrounding noise by up to 52dB (depending on mode/environment).",
+        "Equipped with 11mm titanium-coated dynamic drivers.",
+        "Long Battery Life-Up to 10 hours playback on a single charge.",
+        "Up to 50 hours total with the charging case",
+        "6-microphone AI system improves voice clarity.",
+        "AI translation features available through the Soundcore app in supported regions.",
+        "IP55 water and dust resistance for workouts and outdoor use."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/dfa52865124ef147e7b6ad556d9815ddb5eab3b8-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/anker-soundcore-r60i-nc-true-wireless-noise-cancelling-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-smarttrimmer-home-cordless-powerful-electric-trimmer",
+      "slug": "oraimo-smarttrimmer-home-cordless-powerful-electric-trimmer",
+      "name": "oraimo SmartTrimmer Home Cordless Powerful Electric Trimmer",
+      "brand": "Oraimo",
+      "categorySlug": "trimmers",
+      "categoryName": "Trimmers",
+      "price": 1699,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "Cordless electric trimmer designed for convenient home grooming. Suitable for trimming beards, hair, and maintaining different grooming styles.",
+      "description": "Cordless electric trimmer designed for convenient home grooming. Suitable for trimming beards, hair, and maintaining different grooming styles.",
+      "features": [
+        "7000 RPM powerful motor for fast, efficient, snag-free trimming",
+        "Sharp stainless steel blades for precise, long-lasting cutting performance",
+        "Cordless operation with up to 90 minutes of runtime on a full charge.",
+        "4 premium guide combs for multiple trimming lengths and styles.",
+        "Easy-to-clean blades with an included cleaning brush for better hygiene",
+        "Quiet operation with a reinforced drive system that reduces noise and skin irritation."
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/9fb4bceb82277c5dbece3eba7d44d5397b4491ef-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-smarttrimmer-home-cordless-powerful-electric-trimmer-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebox-8w-wireless-speaker",
+      "slug": "oraimo-spacebox-8w-wireless-speaker",
+      "name": "oraimo SpaceBox 8W Wireless Speaker",
+      "brand": "Oraimo",
+      "categorySlug": "bluetooth-speakers",
+      "categoryName": "Bluetooth Speakers",
+      "price": 2150,
+      "compareAtPrice": 2500,
+      "inStock": true,
+      "shortDescription": "Compact and portable Bluetooth speaker designed for everyday indoor and outdoor entertainment. Delivers 8W powerful audio output with enhanced bass and clear vocals",
+      "description": "Compact and portable Bluetooth speaker designed for everyday indoor and outdoor entertainment. Delivers 8W powerful audio output with enhanced bass and clear vocals",
+      "features": [
+        "8W Powerful Sound – Rich, punchy bass",
+        "Customizable RGB Light Show – Dynamic lighting that syncs with your music",
+        "Portable Design – Lightweight (280g) with a carrying lanyard for easy transport",
+        "Custom EQ Settings – Adjust bass, mids, and treble through the oraimo Sound app.",
+        "Long Battery Life – Up to 16 hours of playback in normal mode, with PlaytimeBoost mode extending battery life",
+        "Multiple Playback Modes – Bluetooth, TF (microSD) card, and FM radio"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/0a835350a3c19bbc999f8443861eff6bbc70c6a8-3021x3021.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebox-8w-wireless-speaker-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/itel-buds-neo-3-100-hours-playtime",
+      "slug": "itel-buds-neo-3-100-hours-playtime",
+      "name": "Itel Buds Neo 3 100 Hours Playtime",
+      "brand": "Itel",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 1499,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "Genuine upgraded Itel earbuds Affordable, original, and built for durability Backed by a straightforward warranty",
+      "description": "Genuine upgraded Itel earbuds Affordable, original, and built for durability Backed by a straightforward warranty",
+      "features": [
+        "Up to 100 hours of total battery life (with charging case)",
+        "Up to 14 hours of nonstop playback",
+        "Smart touch controls for easy operation",
+        "Spatial Super Bass for enhanced sound quality",
+        "Sweatproof and waterproof design",
+        "Stable wireless connection with up to 10-meter range",
+        "AI Noise Cancellation for clear voice c"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/fb084f2dd9ba97adb3b9708405b99a01c0e56126-3013x3013.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/itel-buds-neo-3-100-hours-playtime-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-spacebuds-lite-wireless-earbuds",
+      "slug": "oraimo-spacebuds-lite-wireless-earbuds",
+      "name": "Oraimo Spacebuds Lite Wireless earbuds",
+      "brand": "Oraimo",
+      "categorySlug": "earpods",
+      "categoryName": "Earpods",
+      "price": 1699,
+      "compareAtPrice": 1900,
+      "inStock": true,
+      "shortDescription": "True Wireless Stereo (TWS) Bluetooth earbuds designed for everyday music, calls, gaming, and entertainment. Features immersive spatial audio, AI-powered call noise cancellation, and long battery life in a lightweight, portable design.",
+      "description": "True Wireless Stereo (TWS) Bluetooth earbuds designed for everyday music, calls, gaming, and entertainment. Features immersive spatial audio, AI-powered call noise cancellation, and long battery life in a lightweight, portable design.",
+      "features": [
+        "Up to 40-hour playtime",
+        "Sound360 Spatial Audio",
+        "AI Call Noise Cancellation",
+        "Smart Earbud Finder Tech",
+        "Low-Latency Game Mode",
+        "10mm dynamic drivers"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/44c157b7e552517917e83eb17196c0bcf1519cca-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-spacebuds-lite-wireless-earbuds-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-6r-1-39-anti-scratch-ip68-smart-watch",
+      "slug": "oraimo-watch-6r-1-39-anti-scratch-ip68-smart-watch",
+      "name": "Oraimo Watch 6R 1.39\" Anti-Scratch IP68 Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 2499,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "The Oraimo Watch 6R is a durable and stylish smartwatch featuring a 1.39-inch HD anti-scratch display, Bluetooth calling, health tracking, 100+ sports modes, IP68 water resistance, and up to 7 days of battery life.",
+      "description": "The Oraimo Watch 6R is a durable and stylish smartwatch featuring a 1.39-inch HD anti-scratch display, Bluetooth calling, health tracking, 100+ sports modes, IP68 water resistance, and up to 7 days of battery life.",
+      "features": [
+        "IP68 water resistance (rain, sweat, and splash-proof)",
+        "1.39\" HD full-touch colorful TFT display",
+        "Anti-Scratch Panda Glass for enhanced durability",
+        "Bluetooth calling directly from your wrist",
+        "Up to 7 days of typical battery life",
+        "AI-generated watch faces with 120+ customizable design"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/87683b9de60c9893752ecdc4f308dc1e7561067c-1280x1280.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-6r-1-39-anti-scratch-ip68-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-6-pro-1-69-full-touch-smart-watch",
+      "slug": "oraimo-watch-6-pro-1-69-full-touch-smart-watch",
+      "name": "Oraimo Watch 6 Pro 1.69\" Full Touch Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 3300,
+      "compareAtPrice": 3800,
+      "inStock": true,
+      "shortDescription": "A stylish smartwatch with a 1.69-inch full-touch color display, Bluetooth calling, health monitoring, fitness tracking, and long battery life. It is designed for everyday use, workouts, and staying connected.",
+      "description": "A stylish smartwatch with a 1.69-inch full-touch color display, Bluetooth calling, health monitoring, fitness tracking, and long battery life. It is designed for everyday use, workouts, and staying connected.",
+      "features": [
+        "Anti-scratch Panda Glass protection",
+        "IP68 water and dust resistance",
+        "Bluetooth HD calling (make and receive calls)",
+        "Up to 5 days of battery life (typical use)",
+        "Compatible with Android and iOS"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/6b8c26991df9454d6d0890befc907b098b0a7cf1-1280x1280.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-6-pro-1-69-full-touch-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-digiline-100w-cable",
+      "slug": "oraimo-digiline-100w-cable",
+      "name": "Oraimo Digiline 100W Cable",
+      "brand": "Oraimo",
+      "categorySlug": "cables-adapters",
+      "categoryName": "Cables Adapters",
+      "price": 599,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "Fastest power cable with a speed of upto 100W.Recharge your laptop/phone at a super speed.",
+      "description": "Fastest power cable with a speed of upto 100W.Recharge your laptop/phone at a super speed.",
+      "features": [
+        "Real time power display",
+        "100W super fast speed",
+        "1.2M long braided cable",
+        "C-c power cable"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/6f9e73255b0e7a2cd20dbbce77dd18dd124de3de-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-digiline-100w-cable-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/oraimo-watch-muse-1-32-amoled-ip68-smart-watch",
+      "slug": "oraimo-watch-muse-1-32-amoled-ip68-smart-watch",
+      "name": "oraimo Watch Muse 1.32 AMOLED IP68 Smart Watch",
+      "brand": "Oraimo",
+      "categorySlug": "smart-watches",
+      "categoryName": "Smart Watches",
+      "price": 5000,
+      "compareAtPrice": 5500,
+      "inStock": true,
+      "shortDescription": "A stylish and modern smartwatch designed for everyday wear, combining fashion with smart health and fitness features. Features a premium metal frame with a vibrant 1.32-inch AMOLED display for sharp visuals and excellent brightness.",
+      "description": "A stylish and modern smartwatch designed for everyday wear, combining fashion with smart health and fitness features. Features a premium metal frame with a vibrant 1.32-inch AMOLED display for sharp visuals and excellent brightness.",
+      "features": [
+        "1\" 32-inch AMOLED Display",
+        "IP68 Water & Dust Resistance",
+        "Long Battery Life Up to 11 days of normal use",
+        "Anti-Scratch Panda Glass",
+        "Rose gold metal case with interchangeable Milanese steel and silicone straps.",
+        "Personalize your watch with over 120 AI-generated watch fac"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/2e044022dad157d6e89b6a65810ef250259bc933-3024x3024.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/oraimo-watch-muse-1-32-amoled-ip68-smart-watch-1.webp"
+      ]
+    },
+    {
+      "sourceUrl": "https://www.detraaccessories.com/product/infinix-xpower-10-pro-10000mah-22-5w-fast-charging-portable-power-bank-with-attached",
+      "slug": "infinix-xpower-10-pro-10000mah-22-5w-fast-charging-portable-power-bank-with-attached",
+      "name": "Infinix XPower 10 Pro 10000mAh 22.5W Fast Charging Portable Power Bank with Attached Braided USB-C Cable",
+      "brand": "Infinix",
+      "categorySlug": "power-banks",
+      "categoryName": "Power Banks",
+      "price": 1699,
+      "compareAtPrice": null,
+      "inStock": true,
+      "shortDescription": "High-capacity 10,000mAh portable power bank designed for reliable charging on the go. Supports 22.5W fast charging for quick and efficient power delivery.",
+      "description": "High-capacity 10,000mAh portable power bank designed for reliable charging on the go. Supports 22.5W fast charging for quick and efficient power delivery.",
+      "features": [
+        "10,000mAh battery capacity",
+        "22.5W fast charging support",
+        "Built-in braided USB-C charging cable",
+        "Digital battery percentage display",
+        "1-year warranty"
+      ],
+      "images": [
+        "https://cdn.sanity.io/images/mvk7xrnt/production/64dfcc3d6471f315512f80d8d71a4b508532ea00-3024x4032.jpg"
+      ],
+      "localImages": [
+        "/images/products/detra/infinix-xpower-10-pro-10000mah-22-5w-fast-charging-portable-power-bank-with-attached-1.webp"
+      ]
+    }
+  ]
+}

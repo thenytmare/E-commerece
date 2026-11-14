@@ -1,12 +1,57 @@
-node_modules
-.next
-.turbo
-.git
-.github
-coverage
-dist
-*.log
+# Credentials and local environment files, including every workspace package.
 .env
-.env.local
-apps/web/node_modules
-packages/*/node_modules
+.env.*
+**/.env
+**/.env.*
+
+# Dependencies and generated output at the root and at any nested depth.
+node_modules
+**/node_modules
+.pnpm-store
+**/.pnpm-store
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+out
+**/out
+build
+**/build
+coverage
+**/coverage
+*.tsbuildinfo
+**/*.tsbuildinfo
+*.log
+**/*.log
+
+# Browser test output and caches.
+**/test-results
+**/playwright-report
+**/blob-report
+**/playwright/.cache
+**/.cache
+
+# Local data is transferred separately to persistent production storage.
+backups
+**/backups
+apps/web/public/uploads
+Claude outputs
+scripts/catalog-scraper/data/debug
+tests/cache/results.json
+tests/cache/build-routes.txt
+tests/load/results
+
+# Version control and editor metadata.
+.git
+**/.git
+.github
+.idea
+**/.idea
+.vscode
+**/.vscode
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db

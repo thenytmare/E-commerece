@@ -6,6 +6,7 @@ import { getCatalogRepos } from '@/lib/catalog';
 import { Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedRootCategories } from '@/lib/catalog-cache';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -15,7 +16,7 @@ interface CategoryPageProps {
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
   const repos = getCatalogRepos();
-  const category = await repos.category.findBySlug(slug);
+  const category = await getCachedCategoryBySlug(slug);
 
   if (!category) {
     return { title: 'Category Not Found' };
@@ -32,7 +33,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const query = await searchParams;
   const repos = getCatalogRepos();
 
-  const category = await repos.category.findBySlug(slug);
+  const category = await getCachedCategoryBySlug(slug);
   if (!category) {
     notFound();
   }
@@ -40,14 +41,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const page = Math.max(1, Number(query.page) || 1);
 
   const [categories, brands, catalog] = await Promise.all([
-    repos.category.findRootCategories(),
-    repos.brand.findAllActive(),
+    getCachedRootCategories(),
+    getCachedActiveBrands(),
     repos.product.findMany({
       categoryId: category.id,
       brandId: query.brand
-        ? (await repos.brand.findBySlug(query.brand))?.id
+        ? (await getCachedBrandBySlug(query.brand))?.id
         : undefined,
       search: query.q?.trim() || undefined,
+      // Deactivated products must never appear on the storefront.
+      isActive: true,
       page,
     }),
   ]);

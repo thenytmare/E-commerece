@@ -10,8 +10,23 @@ export const DEFAULT_CURRENCY = 'KES';
 /** Low stock threshold default when not set per variant */
 export const DEFAULT_LOW_STOCK_THRESHOLD = 5;
 
-/** Flat-rate shipping in KES */
+/**
+ * Old flat-rate shipping in KES. No longer used by checkout: delivery is now
+ * priced per location (see ./delivery.ts). Kept only so nothing importing it breaks.
+ */
 export const FLAT_SHIPPING_KES = 500;
 
-/** Orders at or above this subtotal qualify for free shipping */
+/** Orders at or above this subtotal get free delivery, whatever the location */
 export const FREE_SHIPPING_THRESHOLD_KES = 10_000;
+
+/**
+ * Tax rate applied to order totals, as a fraction (0 = 0%).
+ *
+ * Kenyan VAT is not currently charged at checkout. That's a pending business
+ * decision (registration status, pricing strategy — whether listed prices are
+ * treated as VAT-inclusive — and provider-side tax handling all need to be
+ * settled first), not an oversight, so this stays a named, discoverable
+ * constant rather than a bare `0` buried in the order-total calculation.
+ * Flip it once that decision is made; nothing downstream assumes it's zero.
+ */
+export const DEFAULT_TAX_RATE = 0;

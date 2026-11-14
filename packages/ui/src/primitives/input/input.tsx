@@ -3,7 +3,10 @@ import { type InputHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@repo/utils';
 
 const inputVariants = cva(
-  'flex w-full rounded-lg border bg-background px-4 py-2 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+  // Base text size is 16px (not text-sm/14px): iOS Safari auto-zooms the
+  // whole page on focus for any input under 16px, which is jarring on a
+  // form someone's filling out on their phone (checkout, registration).
+  'flex w-full rounded-lg border bg-background px-4 py-2 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -11,7 +14,7 @@ const inputVariants = cva(
         error: 'border-destructive focus-visible:ring-2 focus-visible:ring-destructive',
       },
       inputSize: {
-        sm: 'h-9 text-xs',
+        sm: 'h-9 text-sm',
         md: 'h-11',
         lg: 'h-12 text-base',
       },

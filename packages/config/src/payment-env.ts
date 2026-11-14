@@ -7,6 +7,10 @@ export interface PaymentConfig {
   mpesaConsumerSecret?: string;
   mpesaShortcode?: string;
   mpesaPasskey?: string;
+  /** Shared secret embedded in the Daraja callback URL path. */
+  mpesaCallbackSecret?: string;
+  /** Public HTTPS origin, independent of local storefront/auth URLs. */
+  mpesaCallbackBaseUrl?: string;
   mpesaEnv: 'sandbox' | 'production';
   paymentDevMode: boolean;
 }
@@ -22,6 +26,8 @@ export function getPaymentConfig(): PaymentConfig {
     mpesaConsumerSecret: process.env.MPESA_CONSUMER_SECRET,
     mpesaShortcode: process.env.MPESA_SHORTCODE,
     mpesaPasskey: process.env.MPESA_PASSKEY,
+    mpesaCallbackSecret: process.env.MPESA_CALLBACK_SECRET,
+    mpesaCallbackBaseUrl: process.env.MPESA_CALLBACK_BASE_URL,
     mpesaEnv: process.env.MPESA_ENV === 'production' ? 'production' : 'sandbox',
     paymentDevMode: process.env.PAYMENT_DEV_MODE === 'true',
   };
@@ -36,7 +42,10 @@ export function isMpesaConfigured(): boolean {
     process.env.MPESA_CONSUMER_KEY &&
       process.env.MPESA_CONSUMER_SECRET &&
       process.env.MPESA_SHORTCODE &&
-      process.env.MPESA_PASSKEY
+      process.env.MPESA_PASSKEY &&
+      // Without the callback secret there is no authenticated way for
+      // Safaricom to report the result, so M-Pesa is not usable.
+      process.env.MPESA_CALLBACK_SECRET
   );
 }
 

@@ -7,6 +7,7 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
 import { loginSchema } from './lib/validations/auth';
+import { rateLimit } from './lib/rate-limit';
 
 const repos = createRepositories();
 
@@ -20,9 +21,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) {
+          return null;
+        }
+
+        // Limit at the verification boundary, so the direct Auth.js callback
+        // URL gets the same protection as the login form. One bucket per
+        // account and one per address, so guessing many passwords for one
+        // account, or many accounts from one address, are both slowed down.
+        // The reply is the same as a wrong password, so it reveals nothing.
+        const forwarded = request?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim();
+        const address = forwarded || request?.headers?.get('x-real-ip') || 'unknown';
+        const byAccount = await rateLimit(`auth-account:${parsed.data.email.toLowerCase()}`, 10, 5 * 60_000);
+        const byAddress = await rateLimit(`auth-ip:${address}`, 30, 5 * 60_000);
+        if (!byAccount.allowed || !byAddress.allowed) {
           return null;
         }
 
@@ -31,10 +45,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Deactivated and soft-deleted accounts must not be able to sign in.
+        // Without this, the admin "deactivate"/"archive customer" actions have
+        // no effect on authentication and a banned user can simply log back in.
+        if (!user.isActive || user.deletedAt) {
+          return null;
+        }
+
         const passwordValid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!passwordValid) {
           return null;
         }
+
+        // Shown on the admin Staff page. A failure here must never block sign-in.
+        await repos.user.updateLastLogin(user.id).catch((error) => {
+          console.error('Could not record last sign-in time:', error);
+        });
 
         return {
           id: user.id,
@@ -53,15 +79,49 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
 
-      const dbUser = await repos.user.findById(userId);
+      let dbUser;
+      try {
+        dbUser = await repos.user.findById(userId);
+      } catch (error) {
+        // This callback runs on nearly every page load (it's where sessions
+        // are read), so a transient DB error here must not cascade into a
+        // sitewide 500. Treat it as "can't verify right now" rather than
+        // "revoke access": log it and hand back the token unchanged, keeping
+        // whatever roles it already had cached instead of throwing or
+        // silently granting/escalating access.
+        console.error('jwt callback: failed to look up user for session refresh', error);
+        return token;
+      }
       token.sub = userId;
-      token.roles = dbUser?.roles.map((entry) => entry.role.name) ?? [];
+
+      // This callback runs on every session read, not just at sign-in, so it
+      // is also where an already-issued session gets revoked: clearing roles
+      // and flagging the token drops admin access the moment the account is
+      // deactivated, rather than whenever the JWT happens to expire.
+      if (!dbUser || !dbUser.isActive || dbUser.deletedAt) {
+        token.roles = [];
+        token.disabled = true;
+        return token;
+      }
+
+      token.roles = dbUser.roles.map((entry) => entry.role.name);
+      // Kept in step with the database, so a name or email changed on the
+      // admin Profile page shows straight away without signing out.
+      token.email = dbUser.email;
+      token.name = dbUser.name;
+      token.disabled = false;
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub ?? '';
-        session.user.roles = (token.roles as RoleName[] | undefined) ?? [];
+        session.user.disabled = token.disabled === true;
+        // A deactivated account keeps no usable identity. Every action that
+        // checks `session.user.id` (wishlist, reviews, checkout, order access)
+        // then treats it as signed out, without each one needing its own check.
+        session.user.id = session.user.disabled ? '' : (token.sub ?? '');
+        session.user.roles = session.user.disabled
+          ? []
+          : ((token.roles as RoleName[] | undefined) ?? []);
       }
       return session;
     },

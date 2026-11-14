@@ -58,7 +58,7 @@ async function main() {
     update: {},
   });
 
-  const chargers = await prisma.category.upsert({
+  const _chargers = await prisma.category.upsert({
     where: { slug: 'chargers' },
     create: { name: 'Chargers', slug: 'chargers', sortOrder: 3, isActive: true },
     update: {},
@@ -244,10 +244,23 @@ async function main() {
   });
   console.log('  ✓ Site settings');
 
-  // Admin user
-  const adminEmail = 'admin@primeaccessorieskenya.co.ke';
+  // Admin user.
+  // The password comes from SEED_ADMIN_PASSWORD. A built-in default is only
+  // allowed outside production, so a seed run on the live server can never
+  // create (or reset to) a password that is visible in this repository.
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@primeaccessorieskenya.co.ke';
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!seedPassword && process.env.NODE_ENV === 'production') {
+    throw new Error('Set SEED_ADMIN_PASSWORD (12+ characters) before seeding a production database.');
+  }
+  if (seedPassword && seedPassword.length < 12) {
+    throw new Error('SEED_ADMIN_PASSWORD must be at least 12 characters.');
+  }
+  if (!seedPassword) {
+    console.warn('  ! SEED_ADMIN_PASSWORD not set: using the development-only default password.');
+  }
   const bcrypt = await import('bcryptjs');
-  const passwordHash = await bcrypt.default.hash('Admin123!', 12);
+  const passwordHash = await bcrypt.default.hash(seedPassword ?? 'Admin123!', 12);
   
   await prisma.user.upsert({
     where: { email: adminEmail },
@@ -263,9 +276,11 @@ async function main() {
         }
       }
     },
+    // Re-running the seed never changes an existing admin's password unless
+    // SEED_ADMIN_PASSWORD is set explicitly.
     update: {
       name: 'Prime Accessories Kenya Admin',
-      passwordHash,
+      ...(seedPassword ? { passwordHash } : {}),
     }
   });
   console.log('  ✓ Admin account');

@@ -1,30 +1,43 @@
 'use client';
 
 import {
+  chooseCashOnDeliveryAction,
   initiateMpesaPaymentAction,
   initiateStripePaymentAction,
   simulatePaymentAction,
   type PaymentActionState,
 } from '@/lib/actions/payment';
 import { formatPrice } from '@/lib/format';
-import type { OrderDetail } from '@repo/database';
 import { Button, Input, Text } from '@repo/ui';
-import { useActionState, useTransition } from 'react';
+import { useActionState, useEffect, useState, useTransition } from 'react';
+import { MpesaPaymentStatus } from './mpesa-payment-status';
 
 const initialState: PaymentActionState = {};
 
 interface PaymentMethodPickerProps {
-  order: OrderDetail;
+  initialPaymentId?: string;
+  orderNumber: string;
+  /**
+   * Plain number, not Prisma's Decimal. Decimal instances can't cross the
+   * server/client boundary — React rejects them as non-plain objects — so the
+   * page converts before passing.
+   */
+  total: number;
   stripeEnabled: boolean;
   mpesaEnabled: boolean;
+  /** Cash on Delivery — Nairobi deliveries only. */
+  codEnabled: boolean;
   devMode: boolean;
   cancelled?: boolean;
 }
 
 export function PaymentMethodPicker({
-  order,
+  initialPaymentId,
+  orderNumber,
+  total,
   stripeEnabled,
   mpesaEnabled,
+  codEnabled,
   devMode,
   cancelled,
 }: PaymentMethodPickerProps) {
@@ -34,21 +47,47 @@ export function PaymentMethodPicker({
   );
   const [isStripePending, startStripeTransition] = useTransition();
   const [isSimulating, startSimulateTransition] = useTransition();
+  const [isCodPending, startCodTransition] = useTransition();
+  const [codError, setCodError] = useState<string | null>(null);
+  const [stripeError, setStripeError] = useState<string | null>(null);
 
-  const total =
-    typeof order.total === 'object' && 'toNumber' in order.total
-      ? order.total.toNumber()
-      : Number(order.total);
+  // Once an STK push is accepted we swap the form for the live status panel.
+  const [trackingPaymentId, setTrackingPaymentId] = useState<string | null>(initialPaymentId ?? null);
+
+  useEffect(() => {
+    if (mpesaState?.paymentId) {
+      setTrackingPaymentId(mpesaState.paymentId);
+    }
+  }, [mpesaState]);
 
   const handleStripe = () => {
+    setStripeError(null);
     startStripeTransition(async () => {
-      await initiateStripePaymentAction(order.orderNumber);
+      try {
+        // On success the action redirects to Stripe and never returns. A
+        // returned value is always a failure, so show it and keep the button
+        // usable for another try.
+        const result = await initiateStripePaymentAction(orderNumber);
+        if (result?.error) setStripeError(result.error);
+      } catch (error) {
+        // Next.js redirects surface as a thrown signal. Let those through.
+        if (error && typeof error === 'object' && 'digest' in error) throw error;
+        setStripeError('Could not start card payment. Please try again.');
+      }
+    });
+  };
+
+  const handleCashOnDelivery = () => {
+    setCodError(null);
+    startCodTransition(async () => {
+      const result = await chooseCashOnDeliveryAction(orderNumber);
+      if (result?.error) setCodError(result.error);
     });
   };
 
   const handleSimulate = (provider: 'STRIPE' | 'MPESA') => {
     startSimulateTransition(async () => {
-      await simulatePaymentAction(order.orderNumber, provider);
+      await simulatePaymentAction(orderNumber, provider);
     });
   };
 
@@ -58,7 +97,7 @@ export function PaymentMethodPicker({
         <Text className="mb-1 font-semibold">Amount due</Text>
         <Text className="text-2xl font-bold">{formatPrice(total)}</Text>
         <Text variant="muted" className="mt-1 text-sm">
-          Order {order.orderNumber}
+          Order {orderNumber}
         </Text>
       </div>
 
@@ -77,39 +116,69 @@ export function PaymentMethodPicker({
           <Button onClick={handleStripe} isLoading={isStripePending} className="w-full">
             Pay with card
           </Button>
+          {stripeError ? (
+            <p className="mt-3 text-sm text-destructive" role="alert">
+              {stripeError} You can try again, or choose another method.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
       {mpesaEnabled ? (
+        trackingPaymentId ? (
+          <MpesaPaymentStatus
+            paymentId={trackingPaymentId}
+            orderNumber={orderNumber}
+            onRetry={() => setTrackingPaymentId(null)}
+          />
+        ) : (
+          <div className="rounded-xl border border-border bg-card p-6">
+            <Text className="mb-3 font-semibold">Pay with M-Pesa</Text>
+            <Text variant="muted" className="mb-4 text-sm">
+              You will receive an STK push on your phone to enter your PIN.
+            </Text>
+            <form action={mpesaAction} className="space-y-4">
+              <input type="hidden" name="orderNumber" value={orderNumber} />
+              <Input
+                name="phone"
+                label="M-Pesa phone number"
+                type="tel"
+                placeholder="07XX XXX XXX"
+                required
+                disabled={mpesaPending}
+              />
+              {mpesaState?.error ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {mpesaState.error}
+                </p>
+              ) : null}
+              <Button type="submit" className="w-full" isLoading={mpesaPending}>
+                Send STK push
+              </Button>
+            </form>
+          </div>
+        )
+      ) : null}
+
+      {codEnabled ? (
         <div className="rounded-xl border border-border bg-card p-6">
-          <Text className="mb-3 font-semibold">Pay with M-Pesa</Text>
+          <Text className="mb-3 font-semibold">Cash on Delivery</Text>
           <Text variant="muted" className="mb-4 text-sm">
-            You will receive an STK push on your phone to enter your PIN.
+            Pay the rider in cash when your order arrives. Available for Nairobi deliveries.
           </Text>
-          <form action={mpesaAction} className="space-y-4">
-            <input type="hidden" name="orderNumber" value={order.orderNumber} />
-            <Input
-              name="phone"
-              label="M-Pesa phone number"
-              type="tel"
-              placeholder="07XX XXX XXX"
-              required
-              disabled={mpesaPending}
-            />
-            {mpesaState?.error ? (
-              <p className="text-sm text-destructive" role="alert">
-                {mpesaState.error}
-              </p>
-            ) : null}
-            {mpesaState?.success ? (
-              <p className="text-sm text-green-600" role="status">
-                {mpesaState.success}
-              </p>
-            ) : null}
-            <Button type="submit" className="w-full" isLoading={mpesaPending}>
-              Send STK push
-            </Button>
-          </form>
+          {codError ? (
+            <p className="mb-3 text-sm text-destructive" role="alert">
+              {codError}
+            </p>
+          ) : null}
+          <Button
+            variant="outline"
+            onClick={handleCashOnDelivery}
+            isLoading={isCodPending}
+            className="w-full"
+          >
+            Pay on delivery
+          </Button>
         </div>
       ) : null}
 
@@ -138,7 +207,7 @@ export function PaymentMethodPicker({
         </div>
       ) : null}
 
-      {!stripeEnabled && !mpesaEnabled && !devMode ? (
+      {!stripeEnabled && !mpesaEnabled && !codEnabled && !devMode ? (
         <div className="rounded-xl border border-border bg-muted/30 p-6 text-center">
           <Text variant="muted">No payment methods are configured. Contact support.</Text>
         </div>

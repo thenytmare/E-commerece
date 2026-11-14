@@ -1,0 +1,70 @@
+name: CI
+
+# Runs on every pull request and every push to main. A change should not be
+# merged unless install, typecheck, tests, build and the dependency check pass.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Dummy values, only so the build can run. Never put real secrets here.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+      AUTH_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The lockfile must be up to date. This fails if package.json and
+      # pnpm-lock.yaml disagree.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm db:generate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Script tests
+        run: pnpm test:scripts
+
+      - name: Web tests
+        run: pnpm test:web
+
+      - name: Build
+        run: pnpm build
+
+      # Reports high and critical problems in packages that ship to production.
+      #
+      # It does NOT block yet, because the audit currently finds issues that need
+      # package upgrades first (next 15.5.28 or newer, @sentry/nextjs 10.75.2 or
+      # newer, nodemailer, sharp, zod). After you upgrade, delete the
+      # `continue-on-error` line below so the check blocks merges.
+      - name: Dependency audit
+        continue-on-error: true
+        run: pnpm audit --prod --audit-level=high
+
+  # Placeholder for the browser journey test. It needs a throwaway Postgres and
+  # provider stubs. Payment simulation must stay OFF in production builds, so
+  # this job runs the app in test mode against stubs instead. Add it once the
+  # E2E suite is moved off PAYMENT_DEV_MODE on a production build.

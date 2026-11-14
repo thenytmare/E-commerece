@@ -1,4 +1,4 @@
-import type { Address, AddressType, Prisma } from '@prisma/client';
+import type { Address, AddressType } from '@prisma/client';
 import { BaseRepository } from './base.repository';
 
 export interface CreateAddressInput {
@@ -28,6 +28,27 @@ export class AddressRepository extends BaseRepository {
   findByIdForUser(id: string, userId: string): Promise<Address | null> {
     return this.db.address.findFirst({
       where: { id, userId },
+    });
+  }
+
+  /**
+   * Create a one-off address with no account behind it.
+   *
+   * Used by guest checkout: the address exists only to ship the order it was
+   * created for, and is never offered as a saved address.
+   */
+  createForGuest(input: CreateAddressInput): Promise<Address> {
+    return this.db.address.create({
+      data: {
+        userId: null,
+        name: input.name,
+        phone: input.phone,
+        county: input.county,
+        city: input.city,
+        street: input.street,
+        postalCode: input.postalCode ?? null,
+        isDefault: false,
+      },
     });
   }
 

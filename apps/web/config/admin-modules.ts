@@ -26,6 +26,9 @@ export interface AdminModule {
 export const registeredModules: AdminModule[] = [];
 
 export function registerModule(module: AdminModule) {
+  if (registeredModules.some((m) => m.id === module.id)) {
+    return;
+  }
   registeredModules.push(module);
 }
 

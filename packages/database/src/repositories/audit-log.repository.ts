@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { BaseRepository } from './base.repository';
 
 /**
@@ -19,7 +20,7 @@ export class AuditLogRepository extends BaseRepository {
     entity: string;
     entityId?: string;
     actorId?: string;
-    metadata?: any;
+    metadata?: Prisma.InputJsonValue;
     ipAddress?: string;
   }) {
     return this.db.auditLog.create({

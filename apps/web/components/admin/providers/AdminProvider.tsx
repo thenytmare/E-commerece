@@ -5,14 +5,15 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 type AdminState = {
   sidebarCollapsed: boolean;
   sidebarExpandedGroup: string | null;
-  searchOpen: boolean;
+  mobileSidebarOpen: boolean;
 };
 
 type AdminActions = {
   setSidebarCollapsed: (collapsed: boolean) => void;
   setSidebarExpandedGroup: (group: string | null) => void;
-  setSearchOpen: (open: boolean) => void;
   toggleSidebar: () => void;
+  setMobileSidebarOpen: (open: boolean) => void;
+  toggleMobileSidebar: () => void;
 };
 
 const AdminContext = createContext<(AdminState & AdminActions) | undefined>(undefined);
@@ -22,7 +23,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AdminState>({
     sidebarCollapsed: false,
     sidebarExpandedGroup: null,
-    searchOpen: false,
+    mobileSidebarOpen: false,
   });
 
   useEffect(() => {
@@ -52,30 +53,32 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setSearchOpen = (open: boolean) => {
-    setState(s => ({ ...s, searchOpen: open }));
-  };
-
   const toggleSidebar = () => {
     setSidebarCollapsed(!state.sidebarCollapsed);
   };
 
-  // Avoid hydration mismatch by not rendering until client loads stored state
-  if (!isClient) {
-    return <div style={{ visibility: 'hidden' }}>{children}</div>;
-  }
+  const setMobileSidebarOpen = (open: boolean) => {
+    setState(s => ({ ...s, mobileSidebarOpen: open }));
+  };
 
+  const toggleMobileSidebar = () => {
+    setState(s => ({ ...s, mobileSidebarOpen: !s.mobileSidebarOpen }));
+  };
+
+  const value = {
+    ...state,
+    setSidebarCollapsed,
+    setSidebarExpandedGroup,
+    toggleSidebar,
+    setMobileSidebarOpen,
+    toggleMobileSidebar,
+  };
+
+  // Keep default state on SSR/first paint; hydrate from localStorage after mount.
+  // Always wrap with Provider so useAdmin works during SSR and first client render.
   return (
-    <AdminContext.Provider
-      value={{
-        ...state,
-        setSidebarCollapsed,
-        setSidebarExpandedGroup,
-        setSearchOpen,
-        toggleSidebar,
-      }}
-    >
-      {children}
+    <AdminContext.Provider value={value}>
+      <div style={{ visibility: isClient ? 'visible' : 'hidden' }}>{children}</div>
     </AdminContext.Provider>
   );
 }

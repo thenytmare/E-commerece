@@ -1,4 +1,5 @@
 import { createRepositories } from '@repo/database';
+import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedRootCategories } from '@/lib/catalog-cache';
 
 /** Shared repository instance for server components and actions */
 export function getCatalogRepos() {
@@ -15,11 +16,14 @@ export interface CatalogSearchParams {
 
 export async function resolveCatalogFilters(params: CatalogSearchParams) {
   const repos = getCatalogRepos();
-  const page = Math.max(1, Number(params.page) || 1);
+  const parsedPage = Number.parseInt(params.page ?? '', 10);
+  // A finite whole number between 1 and 10,000. Anything else (Infinity, NaN,
+  // negatives, huge values) falls back to page 1 instead of reaching the database.
+  const page = Number.isSafeInteger(parsedPage) ? Math.min(10_000, Math.max(1, parsedPage)) : 1;
 
   const [category, brand] = await Promise.all([
-    params.category ? repos.category.findBySlug(params.category) : null,
-    params.brand ? repos.brand.findBySlug(params.brand) : null,
+    params.category ? getCachedCategoryBySlug(params.category) : null,
+    params.brand ? getCachedBrandBySlug(params.brand) : null,
   ]);
 
   return {

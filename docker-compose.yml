@@ -4,15 +4,16 @@ services:
     container_name: primeaccessorieskenya-postgres
     restart: unless-stopped
     ports:
-      - '5432:5432'
+      # Bind to localhost only — never publish Postgres on all interfaces.
+      - '127.0.0.1:5432:5432'
     environment:
-      POSTGRES_USER: prime_accessories_kenya
-      POSTGRES_PASSWORD: prime_accessories_kenya
-      POSTGRES_DB: prime_accessories_kenya
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U prime_accessories_kenya -d prime_accessories_kenya']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
       timeout: 5s
       retries: 5
