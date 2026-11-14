@@ -14,6 +14,33 @@ const adminUserListInclude = {
 
 export type AdminUserListItem = Prisma.UserGetPayload<{ include: typeof adminUserListInclude }>;
 
+/** Roles that can open the admin. Anyone without one of these is a customer. */
+export const STAFF_ROLES = ['ADMIN', 'MANAGER', 'SUPPORT'] as const satisfies readonly RoleName[];
+export type StaffRole = (typeof STAFF_ROLES)[number];
+
+export function isStaffRole(role: string): role is StaffRole {
+  return (STAFF_ROLES as readonly string[]).includes(role);
+}
+
+const staffListSelect = {
+  id: true,
+  email: true,
+  name: true,
+  isActive: true,
+  lastLoginAt: true,
+  createdAt: true,
+  passwordHash: true,
+  roles: { select: { role: { select: { name: true } } } },
+} satisfies Prisma.UserSelect;
+
+/** Contains the password hash. Map it to a yes/no before it leaves the server. */
+export type StaffListRow = Prisma.UserGetPayload<{ select: typeof staffListSelect }>;
+
+export type SetStaffRoleResult = 'ok' | 'unchanged' | 'not_found' | 'unavailable' | 'last_admin';
+
+/** Thrown inside the role transaction so the whole change is undone. */
+class LastAdminError extends Error {}
+
 export class UserRepository extends BaseRepository {
   async findByEmail(email: string): Promise<UserWithRoles | null> {
     return this.db.user.findUnique({ where: { email }, include: userWithRoles });
@@ -30,7 +57,10 @@ export class UserRepository extends BaseRepository {
         roles: { include: { role: true } },
         addresses: { orderBy: { isDefault: 'desc' } },
         orders: { orderBy: { createdAt: 'desc' }, take: 10, include: { payments: true } },
-        wishlists: { take: 5, include: { product: { select: { id: true, name: true, slug: true } } } },
+        wishlists: {
+          take: 5,
+          include: { product: { select: { id: true, name: true, slug: true } } },
+        },
       },
     });
   }
@@ -40,10 +70,19 @@ export class UserRepository extends BaseRepository {
     isActive?: boolean;
     isDeleted?: boolean;
     role?: RoleName;
+    /** "customers" leaves out anyone with a staff role; "staff" shows only them. */
+    audience?: 'customers' | 'staff';
     page?: number;
     limit?: number;
   }): Promise<{ items: AdminUserListItem[]; total: number }> {
     const where: Prisma.UserWhereInput = {};
+    const and: Prisma.UserWhereInput[] = [];
+
+    if (options?.audience === 'customers') {
+      and.push({ roles: { none: { role: { name: { in: [...STAFF_ROLES] } } } } });
+    } else if (options?.audience === 'staff') {
+      and.push({ roles: { some: { role: { name: { in: [...STAFF_ROLES] } } } } });
+    }
 
     if (options?.search) {
       where.OR = [
@@ -64,7 +103,11 @@ export class UserRepository extends BaseRepository {
     }
 
     if (options?.role) {
-      where.roles = { some: { role: { name: options.role } } };
+      and.push({ roles: { some: { role: { name: options.role } } } });
+    }
+
+    if (and.length > 0) {
+      where.AND = and;
     }
 
     const page = options?.page ?? 1;
@@ -93,9 +136,18 @@ export class UserRepository extends BaseRepository {
     const [total, active, newThisMonth, customers, admins] = await Promise.all([
       this.db.user.count({ where: { deletedAt: null } }),
       this.db.user.count({ where: { isActive: true, deletedAt: null } }),
-      this.db.user.count({ where: { deletedAt: null, createdAt: { gte: new Date(new Date().setDate(1)) } } }),
-      this.db.user.count({ where: { deletedAt: null, roles: { some: { role: { name: 'CUSTOMER' } } } } }),
-      this.db.user.count({ where: { deletedAt: null, roles: { some: { role: { name: { in: ['ADMIN', 'MANAGER', 'SUPPORT'] } } } } } }),
+      this.db.user.count({
+        where: { deletedAt: null, createdAt: { gte: new Date(new Date().setDate(1)) } },
+      }),
+      this.db.user.count({
+        where: { deletedAt: null, roles: { some: { role: { name: 'CUSTOMER' } } } },
+      }),
+      this.db.user.count({
+        where: {
+          deletedAt: null,
+          roles: { some: { role: { name: { in: ['ADMIN', 'MANAGER', 'SUPPORT'] } } } },
+        },
+      }),
     ]);
     return { total, active, inactive: total - active, newThisMonth, customers, admins };
   }
@@ -104,8 +156,16 @@ export class UserRepository extends BaseRepository {
     return this.db.user.create({ data });
   }
 
-  async createWithPassword(data: { email: string; passwordHash: string; name?: string }): Promise<UserWithRoles> {
-    const user = await this.create({ email: data.email, passwordHash: data.passwordHash, name: data.name });
+  async createWithPassword(data: {
+    email: string;
+    passwordHash: string;
+    name?: string;
+  }): Promise<UserWithRoles> {
+    const user = await this.create({
+      email: data.email,
+      passwordHash: data.passwordHash,
+      name: data.name,
+    });
     await this.assignRole(user.id, 'CUSTOMER');
     const withRoles = await this.findById(user.id);
     if (!withRoles) throw new Error('Failed to load user after creation');
@@ -119,6 +179,108 @@ export class UserRepository extends BaseRepository {
       create: { userId, roleId: role.id },
       update: {},
     });
+  }
+
+  /** Everyone who can open the admin, oldest first. Archived accounts are left out. */
+  async findStaff(): Promise<StaffListRow[]> {
+    return this.db.user.findMany({
+      where: { deletedAt: null, roles: { some: { role: { name: { in: [...STAFF_ROLES] } } } } },
+      select: staffListSelect,
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  /**
+   * Give a user exactly one staff role, or take staff access away (role null).
+   * Taking it away leaves them as a customer.
+   *
+   * The shop must always keep at least one admin who can sign in. The check
+   * runs inside the same serializable transaction as the change, so two admins
+   * demoting each other at the same moment cannot both succeed.
+   */
+  async setStaffRole(userId: string, role: StaffRole | null): Promise<SetStaffRoleResult> {
+    try {
+      return await this.db.$transaction(
+        async (tx) => {
+          const user = await tx.user.findUnique({
+            where: { id: userId },
+            select: {
+              isActive: true,
+              deletedAt: true,
+              roles: { select: { role: { select: { name: true } } } },
+            },
+          });
+          if (!user) return 'not_found';
+          if (!user.isActive || user.deletedAt) return 'unavailable';
+
+          const current = user.roles.map((entry) => entry.role.name).filter(isStaffRole);
+          const unchanged = role
+            ? current.length === 1 && current[0] === role
+            : current.length === 0;
+          if (unchanged) return 'unchanged';
+
+          const staffRoles = await tx.role.findMany({
+            where: { name: { in: [...STAFF_ROLES] } },
+            select: { id: true },
+          });
+          await tx.userRole.deleteMany({
+            where: { userId, roleId: { in: staffRoles.map((r) => r.id) } },
+          });
+
+          const keep = await tx.role.upsert({
+            where: { name: role ?? 'CUSTOMER' },
+            create: { name: role ?? 'CUSTOMER' },
+            update: {},
+          });
+          await tx.userRole.upsert({
+            where: { userId_roleId: { userId, roleId: keep.id } },
+            create: { userId, roleId: keep.id },
+            update: {},
+          });
+
+          // Only a change that takes ADMIN away can leave the shop without one.
+          if (current.includes('ADMIN') && role !== 'ADMIN') {
+            const admins = await tx.user.count({
+              where: {
+                isActive: true,
+                deletedAt: null,
+                passwordHash: { not: null },
+                roles: { some: { role: { name: 'ADMIN' } } },
+              },
+            });
+            if (admins === 0) throw new LastAdminError();
+          }
+          return 'ok';
+        },
+        { isolationLevel: 'Serializable' }
+      );
+    } catch (error) {
+      if (error instanceof LastAdminError) return 'last_admin';
+      throw error;
+    }
+  }
+
+  /** Finds an account whatever the letter case, so "Ann@x.com" and "ann@x.com" count as the same. */
+  async findByEmailAnyCase(email: string): Promise<UserWithRoles | null> {
+    return this.db.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' } },
+      include: userWithRoles,
+    });
+  }
+
+  /** Which of these ids belong to staff. Used to keep customer actions off staff accounts. */
+  async staffIdsAmong(ids: string[]): Promise<string[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db.user.findMany({
+      where: { id: { in: ids }, roles: { some: { role: { name: { in: [...STAFF_ROLES] } } } } },
+      select: { id: true },
+    });
+    return rows.map((row) => row.id);
+  }
+
+  /** Change a user's own name and sign-in email. */
+  async updateProfile(id: string, data: { name: string | null; email: string }): Promise<void> {
+    await this.db.user.update({ where: { id }, data: { name: data.name, email: data.email } });
   }
 
   /** Replace a user's password hash — used by the reset flow. */
@@ -180,12 +342,18 @@ export class UserRepository extends BaseRepository {
   }
 
   async bulkSoftDelete(ids: string[]): Promise<number> {
-    const r = await this.db.user.updateMany({ where: { id: { in: ids } }, data: { deletedAt: new Date(), isActive: false } });
+    const r = await this.db.user.updateMany({
+      where: { id: { in: ids } },
+      data: { deletedAt: new Date(), isActive: false },
+    });
     return r.count;
   }
 
   async bulkRestore(ids: string[]): Promise<number> {
-    const r = await this.db.user.updateMany({ where: { id: { in: ids } }, data: { deletedAt: null, isActive: true } });
+    const r = await this.db.user.updateMany({
+      where: { id: { in: ids } },
+      data: { deletedAt: null, isActive: true },
+    });
     return r.count;
   }
 }

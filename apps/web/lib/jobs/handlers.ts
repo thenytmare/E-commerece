@@ -1,7 +1,7 @@
 import { BACK_IN_STOCK_EMAIL_JOB, ORDER_CONFIRMATION_JOB, prisma } from '@repo/database';
 import { isMailConfigured, sendMail } from '@/lib/mail';
-import { backInStockEmail, orderConfirmationEmail, passwordResetEmail } from './emails';
-import { PASSWORD_RESET_EMAIL_JOB, RECONCILE_PAYMENTS_JOB } from './types';
+import { backInStockEmail, orderConfirmationEmail, passwordResetEmail, staffInviteEmail } from './emails';
+import { PASSWORD_RESET_EMAIL_JOB, RECONCILE_PAYMENTS_JOB, STAFF_INVITE_EMAIL_JOB } from './types';
 
 /**
  * What each job type does.
@@ -15,7 +15,7 @@ import { PASSWORD_RESET_EMAIL_JOB, RECONCILE_PAYMENTS_JOB } from './types';
  * that waited (for example during a mail outage) acts on the current state.
  */
 
-export { PASSWORD_RESET_EMAIL_JOB, RECONCILE_PAYMENTS_JOB };
+export { PASSWORD_RESET_EMAIL_JOB, RECONCILE_PAYMENTS_JOB, STAFF_INVITE_EMAIL_JOB };
 
 export interface JobHandler {
   run(payload: unknown): Promise<void>;
@@ -44,6 +44,17 @@ export const jobHandlers: Record<string, JobHandler> = {
     retryable: false,
     async run(payload) {
       await sendMail(passwordResetEmail(field(payload, 'to'), field(payload, 'resetUrl')));
+    },
+  },
+
+  [STAFF_INVITE_EMAIL_JOB]: {
+    timeoutMs: 30_000,
+    sensitive: true,
+    // Same as a reset link: cleared on failure. The admin sends a new invite
+    // from the Staff page instead.
+    retryable: false,
+    async run(payload) {
+      await sendMail(staffInviteEmail(field(payload, 'to'), field(payload, 'setPasswordUrl'), field(payload, 'roleLabel')));
     },
   },
 

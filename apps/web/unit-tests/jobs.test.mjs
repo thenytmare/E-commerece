@@ -76,8 +76,9 @@ describe('scheduleSlot', () => {
 
 describe('handlers', () => {
   it('treats the reset link as a secret that cannot be retried by hand', () => {
-    expect(SENSITIVE_JOB_TYPES).toEqual(['auth.password-reset-email']);
+    expect(SENSITIVE_JOB_TYPES).toEqual(['auth.password-reset-email', 'auth.staff-invite-email']);
     expect(RETRYABLE_JOB_TYPES).not.toContain('auth.password-reset-email');
+    expect(RETRYABLE_JOB_TYPES).not.toContain('auth.staff-invite-email');
     expect(RETRYABLE_JOB_TYPES).toContain('order.confirmation-email');
   });
 

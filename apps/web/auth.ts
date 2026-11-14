@@ -57,6 +57,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Shown on the admin Staff page. A failure here must never block sign-in.
+        await repos.user.updateLastLogin(user.id).catch((error) => {
+          console.error('Could not record last sign-in time:', error);
+        });
+
         return {
           id: user.id,
           email: user.email,
@@ -100,6 +105,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       token.roles = dbUser.roles.map((entry) => entry.role.name);
+      // Kept in step with the database, so a name or email changed on the
+      // admin Profile page shows straight away without signing out.
+      token.email = dbUser.email;
+      token.name = dbUser.name;
       token.disabled = false;
       return token;
     },

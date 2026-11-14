@@ -23,6 +23,20 @@ const categoryWithChildrenInclude = {
   },
 } satisfies Prisma.CategoryInclude;
 
+/** What the shop needs to draw a category card. */
+export type CategoryCard = {
+  id: string;
+  name: string;
+  slug: string;
+  /** The admin's own photo if set, otherwise a product photo. */
+  coverUrl: string | null;
+  /** True when coverUrl is the admin's own chosen photo. */
+  hasOwnImage: boolean;
+  /** Ticked "Show on the homepage" in the admin. */
+  isFeatured: boolean;
+  productCount: number;
+};
+
 export type CategoryWithChildren = Prisma.CategoryGetPayload<{
   include: typeof categoryWithChildrenInclude;
 }>;
@@ -99,6 +113,55 @@ export class CategoryRepository extends BaseRepository {
       include: categoryWithChildrenInclude,
       orderBy: { sortOrder: 'asc' },
     });
+  }
+
+  /**
+   * Top-level categories for the shop's category cards and header menu.
+   *
+   * Each comes with a cover picture: the category's own photo if the admin
+   * uploaded one, otherwise the first picture of one of its visible products
+   * (featured products first). Empty categories are left out, so customers
+   * never open a category with nothing in it. Returns plain values only, so
+   * the result is safe to cache as JSON.
+   */
+  async findCategoryCards(): Promise<CategoryCard[]> {
+    const visible = { isActive: true, deletedAt: null } satisfies Prisma.ProductWhereInput;
+    const rows = await this.db.category.findMany({
+      where: { parentId: null, isActive: true, deletedAt: null },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        imageUrl: true,
+        isFeatured: true,
+        _count: { select: { products: { where: visible } } },
+        products: {
+          where: { ...visible, images: { some: {} } },
+          orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+          take: 1,
+          select: {
+            images: {
+              orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }],
+              take: 1,
+              select: { url: true },
+            },
+          },
+        },
+      },
+    });
+
+    return rows
+      .filter((row) => row._count.products > 0)
+      .map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        coverUrl: row.imageUrl || row.products[0]?.images[0]?.url || null,
+        hasOwnImage: Boolean(row.imageUrl),
+        isFeatured: row.isFeatured,
+        productCount: row._count.products,
+      }));
   }
 
   /** Get all categories for Admin (flat list with counts, supports filtering & pagination) */

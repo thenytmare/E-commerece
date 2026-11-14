@@ -54,11 +54,20 @@ export function createRepositories(db = prisma) {
 export type Repositories = ReturnType<typeof createRepositories>;
 
 export { BaseRepository } from './base.repository';
-export { UserRepository, type UserWithRoles, type AdminUserListItem } from './user.repository';
+export {
+  UserRepository,
+  STAFF_ROLES,
+  isStaffRole,
+  type StaffRole,
+  type StaffListRow,
+  type SetStaffRoleResult,
+  type UserWithRoles,
+  type AdminUserListItem,
+} from './user.repository';
 export { ReviewRepository } from './review.repository';
 export { WishlistRepository, type WishlistEntry } from './wishlist.repository';
 export { BrandRepository, type AdminBrandListItem } from './brand.repository';
-export { CategoryRepository, type CategoryWithChildren, type AdminCategoryListItem } from './category.repository';
+export { CategoryRepository, type CategoryWithChildren, type AdminCategoryListItem, type CategoryCard } from './category.repository';
 export {
   ProductRepository,
   type ProductDetail,

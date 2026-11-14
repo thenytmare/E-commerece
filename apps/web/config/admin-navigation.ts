@@ -311,6 +311,26 @@ registerModule({
 });
 
 registerModule({
+  id: 'staff-module',
+  name: 'Staff & roles',
+  permissions: ['staff.manage'],
+  routes: ['/admin/settings/staff'],
+  navigation: [
+    {
+      group: 'Settings',
+      items: [
+        {
+          title: 'Staff & roles',
+          href: '/admin/settings/staff',
+          icon: UserCog,
+          requiredPermissions: ['staff.manage'],
+        }
+      ]
+    }
+  ]
+});
+
+registerModule({
   id: 'jobs-module',
   name: 'Background Jobs',
   permissions: ['settings.write'],

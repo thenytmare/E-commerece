@@ -3,6 +3,8 @@ import { logoutAction } from '@/lib/actions/auth';
 import { resolveCart } from '@/lib/cart';
 import { canAccessAdmin } from '@/lib/auth/rbac';
 import { SearchInput } from '@/components/SearchInput';
+import { CategoryMenu } from '@/components/catalog/category-menu';
+import { getCachedCategoryCards } from '@/lib/catalog-cache';
 import { Badge, Button, Container } from '@repo/ui';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
@@ -12,6 +14,10 @@ export async function SiteHeader() {
   const session = await auth();
   const { itemCount } = await resolveCart();
   const isStaff = session?.user ? canAccessAdmin(session.user.roles) : false;
+  // Cached and shared with the homepage cards; a failure must not break the header.
+  const menuCategories = await getCachedCategoryCards()
+    .then((cards) => cards.map(({ id, name, slug }) => ({ id, name, slug })))
+    .catch(() => []);
 
   return (
     // Sticky: on a long product or listing page the cart, search and nav
@@ -37,6 +43,9 @@ export async function SiteHeader() {
               <span className="ml-1.5">Shop</span>
             </Link>
           </Button>
+          <div className="hidden md:block">
+            <CategoryMenu categories={menuCategories} />
+          </div>
           <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
             <Link href="/products">Products</Link>
           </Button>

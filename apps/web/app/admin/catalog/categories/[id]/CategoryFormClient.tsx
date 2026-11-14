@@ -93,7 +93,7 @@ export function CategoryFormClient({
             />
           </FormField>
 
-          <FormField id="imageUrl" label="Category Image" description="Pick from the Media Library or paste a URL.">
+          <FormField id="imageUrl" label="Category Image" description="The photo on this category's homepage tile. Pick from the Media Library or paste a URL. Use a wide, sharp photo, at least 1600 pixels across. Keep the bottom-left corner plain, as the category name sits there.">
             <ImageUrlField
               id="imageUrl"
               name="imageUrl"
@@ -136,7 +136,7 @@ export function CategoryFormClient({
               defaultChecked={initialData?.isFeatured || false}
               className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
             />
-            <span className="text-sm font-medium text-foreground">Featured (highlighted on storefront)</span>
+            <span className="text-sm font-medium text-foreground">Show on the homepage as a big photo tile (up to 5 show, lowest sort order first)</span>
           </label>
           
           <FormField id="sortOrder" label="Sort Order" description="Lower numbers appear first.">

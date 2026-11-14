@@ -26,6 +26,13 @@ export const getCachedRootCategories = unstable_cache(
   { tags: [CATALOG_TAG], revalidate: SAFETY_SECONDS }
 );
 
+/** Category cards with cover photos, for the homepage and the header menu. */
+export const getCachedCategoryCards = unstable_cache(
+  () => repos.category.findCategoryCards(),
+  ['category-cards'],
+  { tags: [CATALOG_TAG], revalidate: SAFETY_SECONDS }
+);
+
 export const getCachedCategoryBySlug = cache((slug: string) =>
   unstable_cache(() => repos.category.findBySlug(slug), ['category-by-slug', slug], {
     tags: [CATALOG_TAG],

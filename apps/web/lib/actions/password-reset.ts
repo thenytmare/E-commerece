@@ -1,11 +1,11 @@
 'use server';
 
-import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { createRepositories, enqueueJob, prisma } from '@repo/database';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { PASSWORD_RESET_EMAIL_JOB } from '@/lib/jobs/types';
+import { RESET_IDENTIFIER_PREFIX as IDENTIFIER_PREFIX, hashResetToken as hashToken, newResetLink } from '@/lib/auth/reset-tokens';
 
 const repos = createRepositories();
 
@@ -17,19 +17,6 @@ export type PasswordResetState = {
 
 /** How long a reset link stays usable. */
 const TOKEN_TTL_MS = 60 * 60 * 1000;
-
-/** Namespaced so these can't collide with any other verification token. */
-const IDENTIFIER_PREFIX = 'password-reset:';
-
-/**
- * Only the hash is stored.
- *
- * A stolen database snapshot then yields no usable reset links, the same
- * reasoning that applies to password hashes themselves.
- */
-function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
-}
 
 const emailSchema = z.string().trim().toLowerCase().email('Enter a valid email address.');
 
@@ -57,9 +44,7 @@ export async function requestPasswordResetAction(
     if (user && user.isActive && !user.deletedAt && user.passwordHash) {
       const identifier = `${IDENTIFIER_PREFIX}${email}`;
 
-      const token = randomBytes(32).toString('base64url');
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-      const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+      const { token, url: resetUrl } = newResetLink(email);
 
       // One transaction: the old links stop working, the new one is saved, and
       // the email is queued, all or nothing. The background worker sends it,

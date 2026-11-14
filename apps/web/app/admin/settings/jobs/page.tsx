@@ -14,6 +14,7 @@ const DELAY_WARNING_SECONDS = 10 * 60;
 
 const JOB_NAMES: Record<string, string> = {
   'auth.password-reset-email': 'Password reset email',
+  'auth.staff-invite-email': 'Staff invite email',
   'order.confirmation-email': 'Order confirmation email',
   'back-in-stock.email': 'Back in stock email',
   'payments.reconcile': 'Payment check',

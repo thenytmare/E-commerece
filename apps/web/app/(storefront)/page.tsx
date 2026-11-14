@@ -3,17 +3,18 @@ import { ProductImage } from '@/components/catalog/product-image';
 import { BannerStrip } from '@/components/BannerStrip';
 import { getCatalogRepos } from '@/lib/catalog';
 import { getHomepageSections } from '@/lib/homepage';
-import { Button, Container, Grid, Heading, Section, Text } from '@repo/ui';
+import { Button, Container, Heading, Section, Text } from '@repo/ui';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedRootCategories } from '@/lib/catalog-cache';
+import { CategoryCards, MoreCategories } from '@/components/catalog/category-cards';
+import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedCategoryCards } from '@/lib/catalog-cache';
 
 export default async function HomePage() {
   const repos = getCatalogRepos();
   const sections = await getHomepageSections();
 
   const [categories, featured, newArrivals, bestSellers] = await Promise.all([
-    sections.featuredCategories.enabled ? getCachedRootCategories() : Promise.resolve([]),
+    sections.featuredCategories.enabled ? getCachedCategoryCards() : Promise.resolve([]),
     sections.featuredProducts.enabled
       ? repos.product.findMany({ isFeatured: true, isActive: true, limit: 4 })
       : Promise.resolve(null),
@@ -22,6 +23,15 @@ export default async function HomePage() {
       : Promise.resolve(null),
     sections.bestSellers.enabled ? repos.product.findBestSelling(4) : Promise.resolve(null),
   ]);
+
+  // Up to five big tiles: the categories ticked "Show on the homepage", in
+  // sort order. Until any are ticked, the first five by sort order. Every
+  // other category is listed as a small link underneath.
+  const HOME_TILES = 5;
+  const picked = categories.filter((category) => category.isFeatured);
+  const homeTiles = (picked.length > 0 ? picked : categories).slice(0, HOME_TILES);
+  const tileIds = new Set(homeTiles.map((category) => category.id));
+  const otherCategories = categories.filter((category) => !tileIds.has(category.id));
 
   // What most shoppers actually see first when the hero has no admin-set
   // image: real stock, not a placeholder. Featured stock wins if curated;
@@ -101,22 +111,13 @@ export default async function HomePage() {
             <Heading size="lg" className="mb-6">
               Shop by Category
             </Heading>
-            {/* CategoryNav's pill-filter pattern belongs on listing pages where it
-                tracks an active category; here it only duplicated the card grid
-                below with the same destinations, so this section keeps one. */}
-            <Grid cols={4} gap="md">
-              {categories.map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/categories/${category.slug}`}
-                  className="group rounded-xl border border-border bg-card p-6 text-center shadow-soft transition-shadow hover:shadow-md"
-                >
-                  <Heading as="h3" size="xs" className="group-hover:text-primary">
-                    {category.name}
-                  </Heading>
-                </Link>
-              ))}
-            </Grid>
+            <CategoryCards categories={homeTiles} />
+            <MoreCategories categories={otherCategories} />
+            <div className="mt-8 flex justify-center">
+              <Button size="lg" asChild className="w-full rounded-full sm:w-auto sm:px-10">
+                <Link href="/products">See all products</Link>
+              </Button>
+            </div>
           </Container>
         </Section>
       )}

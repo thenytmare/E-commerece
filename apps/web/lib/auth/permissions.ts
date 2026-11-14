@@ -11,7 +11,8 @@ export type Permission =
   | 'marketing.read' | 'marketing.write' | 'marketing.delete'
   | 'reviews.read' | 'reviews.write' | 'reviews.delete'
   | 'analytics.read'
-  | 'settings.read' | 'settings.write';
+  | 'settings.read' | 'settings.write'
+  | 'staff.manage';
 
 export const RolePermissions: Record<RoleName, Permission[]> = {
   ADMIN: [
@@ -25,7 +26,9 @@ export const RolePermissions: Record<RoleName, Permission[]> = {
     'marketing.read', 'marketing.write', 'marketing.delete',
     'reviews.read', 'reviews.write', 'reviews.delete',
     'analytics.read',
-    'settings.read', 'settings.write'
+    'settings.read', 'settings.write',
+    // Only admins can give or take away staff access.
+    'staff.manage'
   ],
   // Managers run the catalog day to day, so they own product imagery and
   // promotions outright. They can view store-wide settings (settings.read)

@@ -28,6 +28,22 @@ export function passwordResetEmail(to: string, resetUrl: string): MailMessage {
   };
 }
 
+export function staffInviteEmail(to: string, setPasswordUrl: string, roleLabel: string): MailMessage {
+  return {
+    to,
+    subject: `You have been added to the ${storeName()} admin`,
+    text: [
+      `You have been given ${roleLabel} access to the ${storeName()} admin.`,
+      '',
+      `Open this link to choose your password: ${setPasswordUrl}`,
+      '',
+      `Then sign in at ${baseUrl()}/login with this email address.`,
+      '',
+      'The link expires in 3 days. If you were not expecting this, you can ignore this email.',
+    ].join('\n'),
+  };
+}
+
 export interface ConfirmationOrder {
   orderNumber: string;
   isGuest: boolean;

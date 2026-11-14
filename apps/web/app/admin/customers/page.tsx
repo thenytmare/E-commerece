@@ -15,7 +15,8 @@ export default async function CustomersPage({
   const repos = createRepositories();
 
   const params = await searchParams;
-  const search = typeof params.search === 'string' && params.search.trim() ? params.search.trim() : undefined;
+  const search =
+    typeof params.search === 'string' && params.search.trim() ? params.search.trim() : undefined;
   const page = Number(typeof params.page === 'string' ? params.page : '1') || 1;
   // Both sets are fetched so the client's Active/Trash toggle has data for
   // either tab. Previously only active rows were loaded, so an archived
@@ -25,12 +26,16 @@ export default async function CustomersPage({
   // toggle has data for either tab.
   const limit = 25;
   const [activeResult, archivedResult] = await Promise.all([
-    repos.user.adminFindMany({ isDeleted: false, search, page, limit }),
-    repos.user.adminFindMany({ isDeleted: true, search, page, limit }),
+    // Staff accounts are listed on Settings > Staff & roles, not here.
+    repos.user.adminFindMany({ audience: 'customers', isDeleted: false, search, page, limit }),
+    repos.user.adminFindMany({ audience: 'customers', isDeleted: true, search, page, limit }),
   ]);
   const items = [...activeResult.items, ...archivedResult.items];
   const total = activeResult.total + archivedResult.total;
-  const totalPages = Math.max(1, Math.ceil(Math.max(activeResult.total, archivedResult.total) / limit));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(Math.max(activeResult.total, archivedResult.total) / limit)
+  );
 
   const customers: {
     id: string;
@@ -48,14 +53,17 @@ export default async function CustomersPage({
     email: u.email,
     phone: u.phone,
     isActive: u.isActive,
-    roles: u.roles.map(r => r.role.name),
+    roles: u.roles.map((r) => r.role.name),
     ordersCount: u._count.orders,
     createdAt: u.createdAt,
     isDeleted: u.deletedAt !== null,
   }));
 
   return (
-    <AdminPage title="Customers" description="Manage customer accounts and profiles.">
+    <AdminPage
+      title="Customers"
+      description="People who shop with you. Staff accounts are under Settings, then Staff & roles."
+    >
       <CustomerListClient
         initialData={customers}
         page={page}
