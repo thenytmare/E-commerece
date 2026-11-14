@@ -70,6 +70,7 @@ export { BrandRepository, type AdminBrandListItem } from './brand.repository';
 export { CategoryRepository, type CategoryWithChildren, type AdminCategoryListItem, type CategoryCard } from './category.repository';
 export {
   ProductRepository,
+  type CatalogSort,
   type ProductDetail,
   type ProductListItem,
   type ProductListFilters,

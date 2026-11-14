@@ -25,6 +25,7 @@ export {
   type ProductDetail,
   type ProductListItem,
   type ProductListFilters,
+  type CatalogSort,
   type PaginatedProducts,
   type StockCheckResult,
   type LowStockInventory,

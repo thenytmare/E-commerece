@@ -331,6 +331,26 @@ registerModule({
 });
 
 registerModule({
+  id: 'category-cleanup-module',
+  name: 'Category clean-up',
+  permissions: ['settings.write'],
+  routes: ['/admin/settings/category-cleanup'],
+  navigation: [
+    {
+      group: 'Settings',
+      items: [
+        {
+          title: 'Category clean-up',
+          href: '/admin/settings/category-cleanup',
+          icon: Tags,
+          requiredPermissions: ['settings.write'],
+        }
+      ]
+    }
+  ]
+});
+
+registerModule({
   id: 'jobs-module',
   name: 'Background Jobs',
   permissions: ['settings.write'],

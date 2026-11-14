@@ -27,6 +27,16 @@ WORKDIR /app
 COPY packages/database/prisma ./packages/database/prisma
 CMD ["pnpm", "--filter", "@repo/database", "db:deploy"]
 
+# Prisma's command-line tool on its own, for applying database changes when
+# the shop starts (see scripts/docker-start.sh). Keep the version the same as
+# "prisma" in packages/database/package.json.
+FROM base AS migrate-cli
+ARG PRISMA_VERSION=6.19.3
+WORKDIR /opt/prisma-cli
+RUN npm init -y >/dev/null \
+ && npm install --no-audit --no-fund --omit=dev "prisma@${PRISMA_VERSION}" \
+ && npm cache clean --force
+
 FROM deps AS builder
 WORKDIR /app
 COPY . .
@@ -52,6 +62,15 @@ ENV HOSTNAME=0.0.0.0
 COPY --from=builder --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=node:node /app/apps/web/public ./apps/web/public
+# Database changes are applied by the start script before the server starts.
+COPY --from=migrate-cli --chown=node:node /opt/prisma-cli /opt/prisma-cli
+COPY --from=builder --chown=node:node /app/packages/database/prisma/schema.prisma ./db/prisma/schema.prisma
+COPY --from=builder --chown=node:node /app/packages/database/prisma/migrations ./db/prisma/migrations
+COPY --from=builder --chown=node:node /app/scripts/docker-start.sh ./docker-start.sh
+# Windows line endings would stop the script from running; remove any.
+RUN sed -i 's/\r$//' ./docker-start.sh && chmod +x ./docker-start.sh
+ENV CHECKPOINT_DISABLE=1 \
+    PRISMA_HIDE_UPDATE_MESSAGE=1
 # Admin uploads live outside the app so they survive rebuilds. Mount a volume
 # (or a host folder) at /data/uploads, and include it in your backups.
 ENV UPLOAD_DIR=/data/uploads
@@ -62,6 +81,6 @@ EXPOSE 3000
 # Alpine's busybox provides wget out of the box (no curl in this image, and
 # nothing extra is installed above) — use it to poll the app's own health
 # endpoint, which checks DB connectivity and returns 503 on failure.
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=15s \
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=60s \
   CMD wget --quiet --tries=1 --spider "http://127.0.0.1:${PORT}/api/health" || exit 1
-CMD ["node", "apps/web/server.js"]
+CMD ["./docker-start.sh"]

@@ -84,39 +84,89 @@ export interface CreateProductInput {
 
 export type UpdateProductInput = Partial<CreateProductInput> & { status?: string };
 
+/** How the shop's product lists can be ordered. */
+export type CatalogSort = 'newest' | 'price-asc' | 'price-desc';
+
+const CATALOG_ORDER: Record<CatalogSort, Prisma.ProductOrderByWithRelationInput[]> = {
+  newest: [{ createdAt: 'desc' }],
+  'price-asc': [{ basePrice: 'asc' }, { createdAt: 'desc' }],
+  'price-desc': [{ basePrice: 'desc' }, { createdAt: 'desc' }],
+};
+
+/** Shared filter for product lists and their counts, so both always agree. */
+function catalogWhere(filters?: {
+  isActive?: boolean;
+  isFeatured?: boolean;
+  categoryId?: string;
+  brandId?: string;
+  brandIds?: string[];
+  search?: string;
+}): Prisma.ProductWhereInput {
+  const where: Prisma.ProductWhereInput = { deletedAt: null };
+  if (filters?.isActive !== undefined) where.isActive = filters.isActive;
+  if (filters?.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
+  if (filters?.categoryId) where.categoryId = filters.categoryId;
+  if (filters?.brandIds && filters.brandIds.length > 0) where.brandId = { in: filters.brandIds };
+  else if (filters?.brandId) where.brandId = filters.brandId;
+  if (filters?.search) {
+    // Also matches the brand name and short description — searching a brand
+    // ("Anker") or a spec word ("noise cancelling") previously returned
+    // nothing unless that word happened to be in the product's own name.
+    where.OR = [
+      { name: { contains: filters.search, mode: 'insensitive' } },
+      { slug: { contains: filters.search, mode: 'insensitive' } },
+      { shortDescription: { contains: filters.search, mode: 'insensitive' } },
+      { brand: { name: { contains: filters.search, mode: 'insensitive' } } },
+    ];
+  }
+  return where;
+}
+
 export class ProductRepository extends BaseRepository {
   /** Simple findMany for storefront/dashboard — returns paginated products */
-  async findMany(filters?: { isActive?: boolean; isFeatured?: boolean; limit?: number; categoryId?: string; brandId?: string; search?: string; page?: number; }): Promise<PaginatedProducts> {
+  async findMany(filters?: { isActive?: boolean; isFeatured?: boolean; limit?: number; categoryId?: string; brandId?: string; brandIds?: string[]; search?: string; page?: number; sort?: CatalogSort; }): Promise<PaginatedProducts> {
     const page = Number.isSafeInteger(filters?.page) ? Math.min(10_000, Math.max(1, filters!.page!)) : 1;
     const limit = Math.min(Math.max(1, filters?.limit ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
     const skip = (page - 1) * limit;
-    const where: Prisma.ProductWhereInput = { deletedAt: null };
-    if (filters?.isActive !== undefined) where.isActive = filters.isActive;
-    if (filters?.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
-    if (filters?.categoryId) where.categoryId = filters.categoryId;
-    if (filters?.brandId) where.brandId = filters.brandId;
-    if (filters?.search) {
-      // Also matches the brand name and short description — searching a brand
-      // ("Anker") or a spec word ("noise cancelling") previously returned
-      // nothing unless that word happened to be in the product's own name.
-      where.OR = [
-        { name: { contains: filters.search, mode: 'insensitive' } },
-        { slug: { contains: filters.search, mode: 'insensitive' } },
-        { shortDescription: { contains: filters.search, mode: 'insensitive' } },
-        { brand: { name: { contains: filters.search, mode: 'insensitive' } } },
-      ];
-    }
+    const where = catalogWhere(filters);
     const [items, total] = await Promise.all([
       this.db.product.findMany({
         where,
         include: productListInclude,
-        orderBy: { createdAt: 'desc' },
+        orderBy: CATALOG_ORDER[filters?.sort ?? 'newest'] ?? CATALOG_ORDER.newest,
         skip,
         take: limit,
       }),
       this.db.product.count({ where }),
     ]);
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  /**
+   * How many visible products each category and each brand has, for the
+   * shop's filter panel. Each count applies the other filters but not its
+   * own, so ticking a brand never makes the other brands drop to zero.
+   */
+  async catalogFacets(filters: { categoryId?: string; brandIds?: string[]; search?: string }): Promise<{
+    byCategory: Record<string, number>;
+    byBrand: Record<string, number>;
+  }> {
+    const [categories, brands] = await Promise.all([
+      this.db.product.groupBy({
+        by: ['categoryId'],
+        where: catalogWhere({ isActive: true, brandIds: filters.brandIds, search: filters.search }),
+        _count: { _all: true },
+      }),
+      this.db.product.groupBy({
+        by: ['brandId'],
+        where: catalogWhere({ isActive: true, categoryId: filters.categoryId, search: filters.search }),
+        _count: { _all: true },
+      }),
+    ]);
+    return {
+      byCategory: Object.fromEntries(categories.map((row) => [row.categoryId, row._count._all])),
+      byBrand: Object.fromEntries(brands.map((row) => [row.brandId, row._count._all])),
+    };
   }
 
   /** Best-selling active products by total units sold across all orders. */
