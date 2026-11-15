@@ -18,11 +18,15 @@ const productListInclude = {
     // Inventory comes along so grid cards can show stock status — without it
     // a shopper had to open the product to discover it was sold out.
     select: {
+      id: true,
       price: true,
       compareAtPrice: true,
       inventory: { select: { quantity: true, reserved: true } },
     },
   },
+  // Cards add the default option straight to the cart only when there is no
+  // other option (colour, size) to choose; otherwise they open the product.
+  _count: { select: { variants: true } },
 } satisfies Prisma.ProductInclude & { brand: object; category: object; images: object; variants: object };
 
 export type ProductListItem = Prisma.ProductGetPayload<{ include: typeof productListInclude }>;

@@ -1,3 +1,4 @@
+import { ProductCardActions } from '@/components/catalog/ProductCardActions';
 import { ProductImage } from '@/components/catalog/product-image';
 import { discountPercent, formatPrice, toNumber } from '@/lib/format';
 import type { ProductListItem } from '@repo/database';
@@ -7,9 +8,15 @@ import Link from 'next/link';
 interface ProductCardProps {
   product: ProductListItem;
   priority?: boolean;
+  /** Is it on the signed-in shopper's saved list? */
+  saved?: boolean;
+  whatsappNumber: string;
+  storeName: string;
+  /** Full address of the site, for the product link in WhatsApp messages. */
+  siteUrl: string;
 }
 
-export function ProductCard({ product, priority }: ProductCardProps) {
+export function ProductCard({ product, priority, saved = false, whatsappNumber, storeName, siteUrl }: ProductCardProps) {
   const defaultVariant = product.variants[0];
   const price = defaultVariant?.price ?? product.basePrice;
   const compareAt = defaultVariant?.compareAtPrice ?? product.compareAtPrice;
@@ -24,10 +31,10 @@ export function ProductCard({ product, priority }: ProductCardProps) {
   const isLowStock = available !== null && available > 0 && available <= 5;
 
   return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-soft transition-shadow hover:shadow-md"
-    >
+    // The picture and text open the product; the buttons underneath sit
+    // outside that link, so each tap does exactly one thing.
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-soft transition-shadow hover:shadow-md">
+      <Link href={`/products/${product.slug}`} className="flex flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
       <div className="relative">
         <ProductImage
           src={featuredImage?.url}
@@ -44,7 +51,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
           </span>
         ) : null}
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col gap-2 p-3 pb-3 sm:p-4 sm:pb-3">
         <Text variant="muted" className="text-xs font-medium text-primary">
           {product.brand.name}
         </Text>
@@ -63,6 +70,20 @@ export function ProductCard({ product, priority }: ProductCardProps) {
           ) : null}
         </div>
       </div>
-    </Link>
+      </Link>
+      <ProductCardActions
+        productId={product.id}
+        productSlug={product.slug}
+        productName={product.name}
+        priceText={formatPrice(price)}
+        variantId={defaultVariant?.id ?? null}
+        hasOptions={product._count.variants > 1}
+        soldOut={isSoldOut}
+        saved={saved}
+        whatsappNumber={whatsappNumber}
+        storeName={storeName}
+        productUrl={`${siteUrl}/products/${product.slug}`}
+      />
+    </div>
   );
 }
