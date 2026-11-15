@@ -26,22 +26,22 @@ export function QuantitySelector({ quantity, max, onChange }: Props) {
         type="button"
         onClick={decrement}
         disabled={quantity <= 1}
-        className="px-3 py-2 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+        className="inline-flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
         aria-label="Decrease quantity"
       >
-        <Minus className="h-4 w-4" />
+        <Minus className="h-4 w-4" aria-hidden="true" />
       </button>
-      <span className="px-4 py-2 text-sm font-medium text-center min-w-[3rem] border-x border-border tabular-nums">
+      <span className="flex h-11 min-w-[3rem] items-center justify-center border-x border-border px-4 text-base font-medium tabular-nums" aria-live="polite">
         {quantity}
       </span>
       <button
         type="button"
         onClick={increment}
         disabled={isMaxed}
-        className="px-3 py-2 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+        className="inline-flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
         aria-label="Increase quantity"
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-4 w-4" aria-hidden="true" />
       </button>
     </div>
   );

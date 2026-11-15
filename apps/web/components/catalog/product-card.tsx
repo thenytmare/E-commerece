@@ -42,11 +42,11 @@ export function ProductCard({ product, priority, saved = false, whatsappNumber, 
           priority={priority}
         />
         {isSoldOut ? (
-          <span className="absolute left-2 top-2 rounded-md bg-foreground/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-background">
+          <span className="absolute left-2 top-2 rounded-md bg-foreground/85 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-background">
             Sold out
           </span>
         ) : isLowStock ? (
-          <span className="absolute left-2 top-2 rounded-md bg-warning px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-warning-foreground">
+          <span className="absolute left-2 top-2 rounded-md bg-warning px-2 py-1 text-xs font-semibold uppercase tracking-wide text-warning-foreground">
             Only {available} left
           </span>
         ) : null}

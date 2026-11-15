@@ -142,7 +142,9 @@ export async function resetPasswordAction(
       if (spent.count !== 1) {
         return 'invalid' as const;
       }
-      await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+      // The new version number signs out every existing sign-in on this account,
+      // including any made by whoever had the old password.
+      await tx.user.update({ where: { id: user.id }, data: { passwordHash, sessionVersion: { increment: 1 } } });
       // Any other links for this account stop working too.
       await tx.verificationToken.deleteMany({ where: { identifier } });
       return 'ok' as const;

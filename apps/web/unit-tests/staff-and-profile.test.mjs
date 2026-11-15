@@ -23,6 +23,7 @@ const prisma = {
 const requirePermission = vi.fn();
 const requireAdmin = vi.fn();
 const rateLimit = vi.fn();
+const signIn = vi.fn();
 
 vi.mock('@repo/database', () => ({
   prisma,
@@ -34,6 +35,14 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('@/lib/request-context', () => ({ getClientIp: async () => '127.0.0.1' }));
 vi.mock('@/lib/rate-limit', () => ({ rateLimit, retryMessage: (s) => `Try again in ${s} seconds.` }));
 vi.mock('@/lib/mail', () => ({ isMailConfigured: () => true }));
+vi.mock('@/auth', () => ({ signIn }));
+// redirect() ends a server action by throwing; the tests catch it and read the address.
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn((url) => {
+    throw Object.assign(new Error('NEXT_REDIRECT'), { url });
+  }),
+}));
+const redirected = (promise) => promise.then(() => null, (error) => error.url ?? Promise.reject(error));
 
 const staff = await import('@/lib/actions/admin-staff');
 const profile = await import('@/lib/actions/admin-profile');
@@ -222,13 +231,30 @@ describe('profile actions', () => {
   });
 
   it('changes the password to a new bcrypt hash and logs it', async () => {
-    const res = await profile.changePasswordAction(null, form({ currentPassword: 'old-password-123', newPassword: 'a-long-new-password', confirmPassword: 'a-long-new-password' }));
-    expect(res.success).toBe(true);
+    const to = await redirected(profile.changePasswordAction(null, form({ currentPassword: 'old-password-123', newPassword: 'a-long-new-password', confirmPassword: 'a-long-new-password' })));
+    expect(to).toBe('/admin/settings/profile?password=changed');
     const saved = tx.user.update.mock.calls[0][0];
     expect(saved.where).toEqual({ id: 'admin-1' });
     expect(await bcrypt.compare('a-long-new-password', saved.data.passwordHash)).toBe(true);
     expect(tx.verificationToken.deleteMany).toHaveBeenCalled();
     expect(auditCreate).toHaveBeenCalledWith(expect.objectContaining({ action: 'profile.password_change', entityId: 'admin-1' }));
+  });
+
+  it('signs out other devices but keeps this one signed in', async () => {
+    signIn.mockReset();
+    const to = await redirected(profile.changePasswordAction(null, form({ currentPassword: 'old-password-123', newPassword: 'a-long-new-password', confirmPassword: 'a-long-new-password' })));
+    // A new session version ends every older sign-in...
+    expect(tx.user.update.mock.calls[0][0].data.sessionVersion).toEqual({ increment: 1 });
+    // ...this device signs straight back in with the new password, and the page reloads with the message.
+    expect(signIn).toHaveBeenCalledWith('credentials', { email: 'boss@shop.test', password: 'a-long-new-password', redirect: false });
+    expect(to).toBe('/admin/settings/profile?password=changed');
+  });
+
+  it('sends this device to sign in again if it cannot sign back in by itself', async () => {
+    signIn.mockReset();
+    signIn.mockRejectedValueOnce(new Error('no'));
+    const to = await redirected(profile.changePasswordAction(null, form({ currentPassword: 'old-password-123', newPassword: 'a-long-new-password', confirmPassword: 'a-long-new-password' })));
+    expect(to).toBe('/login?callbackUrl=/admin/settings/profile');
   });
 
   it('only ever changes the signed-in account', async () => {

@@ -104,6 +104,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
 
+      // Signing in records which session version this sign-in belongs to. A
+      // password change or reset raises the version, so any sign-in made
+      // before it ends here: returning null makes Auth.js delete the cookie.
+      // Sign-ins from before this check existed have no version and count as 0.
+      if (user) {
+        token.sessionVersion = dbUser.sessionVersion;
+      } else if ((token.sessionVersion ?? 0) !== dbUser.sessionVersion) {
+        return null;
+      }
+
       token.roles = dbUser.roles.map((entry) => entry.role.name);
       // Kept in step with the database, so a name or email changed on the
       // admin Profile page shows straight away without signing out.

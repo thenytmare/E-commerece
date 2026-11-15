@@ -63,7 +63,7 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 border-b border-border py-6 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-4 border-b border-border py-6 sm:flex-row sm:flex-wrap sm:items-center">
       <Link
         href={`/products/${product.slug}`}
         className="flex flex-1 gap-4"
@@ -95,7 +95,8 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
         </div>
       </Link>
 
-      <div className="flex items-center justify-between gap-4 sm:justify-end">
+      {/* Wraps on narrow phones, so quantity, price and Remove never push past the screen edge. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 sm:flex-nowrap sm:justify-end">
         {!item.available ? (
           <Text className="text-sm font-medium text-destructive" role="alert">
             No longer available
@@ -131,6 +132,7 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
             type="button"
             variant="ghost"
             size="sm"
+            className="h-11 sm:h-9"
             disabled={isPending}
             onClick={handleRemove}
           >
@@ -140,13 +142,13 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
       </div>
 
       {atStockLimit && !error ? (
-        <Text variant="muted" className="text-sm sm:text-right">
+        <Text variant="muted" className="text-sm sm:basis-full sm:text-right">
           {available === 0 ? 'Out of stock' : `Only ${available} left in stock`}
         </Text>
       ) : null}
 
       {error ? (
-        <p className="text-sm text-destructive sm:text-right" role="alert">
+        <p className="text-sm text-destructive sm:basis-full sm:text-right" role="alert">
           {error}
         </p>
       ) : null}

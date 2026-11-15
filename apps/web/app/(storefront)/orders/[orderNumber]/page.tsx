@@ -98,12 +98,12 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
             Order <span className="font-mono font-medium text-foreground">{order.orderNumber}</span>
           </Text>
           {query.paid === '1' && isPaid ? (
-            <Text className="mt-3 text-sm text-green-600 dark:text-green-400">
+            <Text className="mt-3 text-sm text-green-700 dark:text-green-400">
               Your payment was successful. We&apos;ll process your order shortly.
             </Text>
           ) : null}
           {codPayment ? (
-            <Text className="mt-3 text-sm text-green-600 dark:text-green-400">
+            <Text className="mt-3 text-sm text-green-700 dark:text-green-400">
               Your order is confirmed. Please have {formatPrice(order.total)} ready to pay the rider
               on delivery.
             </Text>

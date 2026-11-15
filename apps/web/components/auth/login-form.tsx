@@ -2,6 +2,7 @@
 
 import { loginAction, type AuthFormState } from '@/lib/actions/auth';
 import { Button, Input } from '@repo/ui';
+import { PasswordInput } from './password-input';
 import Link from 'next/link';
 import { useActionState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -48,9 +49,8 @@ export function LoginForm() {
         disabled={pending}
       />
       <div>
-        <Input
+        <PasswordInput
           name="password"
-          type="password"
           label="Password"
           autoComplete="current-password"
           required

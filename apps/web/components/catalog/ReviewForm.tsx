@@ -31,7 +31,7 @@ export function ReviewForm({
         <Text variant="muted" className="mb-3 text-sm">
           Sign in to write a review for this product.
         </Text>
-        <Button asChild size="sm" variant="outline">
+        <Button asChild size="sm" variant="outline" className="h-11 sm:h-9">
           <Link href={`/login?callbackUrl=/products/${productSlug}`}>Sign in</Link>
         </Button>
       </div>

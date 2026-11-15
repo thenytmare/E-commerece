@@ -123,6 +123,9 @@
 
   html {
     @apply scroll-smooth;
+    /* Room for the sticky header, so a link or field reached with the keyboard
+       (or an #anchor) is never hidden underneath it. */
+    scroll-padding-top: 6rem;
   }
 
   body {

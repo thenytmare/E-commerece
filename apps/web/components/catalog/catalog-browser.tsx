@@ -78,8 +78,9 @@ function CategoryList({
           onClick={onPick}
           aria-current={isActive ? 'page' : undefined}
           className={cn(
-            'flex min-h-[40px] items-center justify-between gap-3 rounded-md px-3 text-sm transition-colors',
-            isActive ? 'bg-primary/10 font-semibold text-primary' : 'text-foreground hover:bg-muted'
+            'flex min-h-11 items-center justify-between gap-3 rounded-md px-3 text-sm transition-colors',
+            // Chosen: dark text (orange on the tint was too faint) with an orange bar on the left.
+            isActive ? 'bg-primary/10 font-semibold text-foreground shadow-[inset_3px_0_0_hsl(var(--primary))]' : 'text-foreground hover:bg-muted'
           )}
         >
           <span className="truncate">{name}</span>
@@ -123,7 +124,7 @@ function BrandList({
             <li key={brand.slug}>
               <label
                 htmlFor={id}
-                className="flex min-h-[40px] cursor-pointer items-center gap-3 rounded-md px-3 text-sm text-foreground hover:bg-muted"
+                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-sm text-foreground hover:bg-muted"
               >
                 <input
                   id={id}
@@ -143,7 +144,7 @@ function BrandList({
         <button
           type="button"
           onClick={() => setShowAll((value) => !value)}
-          className="mt-1 min-h-[40px] px-3 text-sm font-medium text-primary hover:underline"
+          className="mt-1 min-h-11 px-3 text-sm font-medium text-primary hover:underline"
         >
           {showAll ? 'Show fewer brands' : `Show all ${brands.length} brands`}
         </button>
@@ -225,7 +226,7 @@ export function CatalogBrowser({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder={activeCategoryName ? `Search in ${activeCategoryName}` : 'Search products'}
-        className="h-11 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
     </form>
   );
@@ -243,7 +244,7 @@ export function CatalogBrowser({
           setSortShown(event.target.value);
           go({ ...state, sort: event.target.value });
         }}
-        className="h-11 rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11 min-w-0 max-w-full rounded-lg border border-input bg-background px-3 text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {sortOptions.map((option) => (
           <option key={option.value} value={option.value}>
@@ -312,7 +313,7 @@ export function CatalogBrowser({
         {/* Search, filters button (phone) and sort. */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {searchForm}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => setPanelOpen(true)}
@@ -337,7 +338,7 @@ export function CatalogBrowser({
                     href={href(categoryPath(category.slug), state)}
                     aria-current={isActive ? 'page' : undefined}
                     className={cn(
-                      'inline-flex min-h-[40px] items-center whitespace-nowrap rounded-full border px-4 text-sm transition-colors',
+                      'inline-flex min-h-11 items-center whitespace-nowrap rounded-full border px-4 text-sm transition-colors',
                       isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card hover:border-primary'
                     )}
                   >
@@ -377,7 +378,7 @@ export function CatalogBrowser({
               <button
                 type="button"
                 onClick={() => setPanelOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted"
                 aria-label="Close filters"
               >
                 <X className="h-5 w-5" aria-hidden="true" />

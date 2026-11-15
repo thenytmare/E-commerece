@@ -68,7 +68,7 @@ export function WishlistButton({
         aria-label={saved ? 'Remove from saved items' : 'Save for later'}
         className={
           buttonClassName ??
-          'inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-60'
+          'inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-60'
         }
       >
         {pending ? (

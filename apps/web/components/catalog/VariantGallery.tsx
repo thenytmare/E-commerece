@@ -66,7 +66,9 @@ function Slides({ images, productName }: { images: GalleryImage[]; productName: 
     const el = track.current;
     if (!el) return;
     const clamped = Math.min(count - 1, Math.max(0, target));
-    el.scrollTo({ left: clamped * el.clientWidth, behavior: 'smooth' });
+    // Glide to the photo, unless the device asks for less motion.
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollTo({ left: clamped * el.clientWidth, behavior: reduce ? 'auto' : 'smooth' });
     setIndex(clamped);
   };
 
@@ -77,11 +79,22 @@ function Slides({ images, productName }: { images: GalleryImage[]; productName: 
     <div>
       <div className="group relative">
         {/* The swipe strip: one photo per screen width, snapping into place. */}
+        {/* Keyboard users can tab to the photos and use the left and right arrow keys. */}
         <div
           ref={track}
           onScroll={onScroll}
-          className="flex aspect-square snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-xl border border-border bg-card [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          aria-label={`${productName} photos`}
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowRight') {
+              event.preventDefault();
+              goTo(index + 1);
+            } else if (event.key === 'ArrowLeft') {
+              event.preventDefault();
+              goTo(index - 1);
+            }
+          }}
+          className="flex aspect-square snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-xl border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label={count > 1 ? `${productName} photos. Use the left and right arrow keys to change photo.` : `${productName} photo`}
           role="region"
           aria-roledescription="carousel"
         >

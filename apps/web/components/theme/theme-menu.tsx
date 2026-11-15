@@ -61,7 +61,7 @@ export function ThemeMenu({ initialTheme }: { initialTheme: ThemeChoice }) {
         aria-label="Light or dark colours"
         title="Light or dark colours"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-md sm:h-9 sm:w-9 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Current className="h-[18px] w-[18px]" aria-hidden="true" />
       </button>

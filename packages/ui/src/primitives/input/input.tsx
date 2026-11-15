@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import type React from 'react';
 import { type InputHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@repo/utils';
 
@@ -35,13 +36,15 @@ export interface InputProps
   hint?: string;
   /** Label for the input field */
   label?: string;
+  /** Something inside the field on the right, such as a show/hide password button. */
+  endAdornment?: React.ReactNode;
 }
 
 /**
  * Accessible text input with optional label, hint, and error states.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant, inputSize, error, hint, label, id, ...props }, ref) => {
+  ({ className, variant, inputSize, error, hint, label, id, endAdornment, ...props }, ref) => {
     const inputId = id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
     const hasError = Boolean(error);
     const resolvedVariant = hasError ? 'error' : variant;
@@ -53,16 +56,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         ) : null}
-        <input
-          id={inputId}
-          className={cn(inputVariants({ variant: resolvedVariant, inputSize, className }))}
-          ref={ref}
-          aria-invalid={hasError}
-          aria-describedby={
-            error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
-          }
-          {...props}
-        />
+        <div className={endAdornment ? 'relative' : undefined}>
+          <input
+            id={inputId}
+            className={cn(inputVariants({ variant: resolvedVariant, inputSize, className }), endAdornment && 'pr-12')}
+            ref={ref}
+            aria-invalid={hasError}
+            aria-describedby={
+              error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
+            }
+            {...props}
+          />
+          {endAdornment ? (
+            <div className="absolute inset-y-0 right-0 flex items-center pr-1">{endAdornment}</div>
+          ) : null}
+        </div>
         {error ? (
           <p id={`${inputId}-error`} className="text-sm text-destructive" role="alert">
             {error}

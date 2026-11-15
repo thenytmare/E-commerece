@@ -41,7 +41,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 // Slightly narrower on phones, so "Add" still fits on a two-column card.
 const square =
-  'inline-flex h-10 w-8 shrink-0 min-[380px]:w-9 sm:w-10 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60';
+  'inline-flex h-11 w-8 shrink-0 sm:h-10 min-[380px]:w-9 sm:w-10 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60';
 
 export function ProductCardActions(props: Props) {
   const router = useRouter();
@@ -78,7 +78,7 @@ export function ProductCardActions(props: Props) {
   };
 
   const main =
-    'inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-1 text-[13px] font-semibold min-[380px]:px-1.5 sm:px-2 sm:text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    'inline-flex h-11 min-w-0 flex-1 sm:h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-1 text-[13px] font-semibold min-[380px]:px-1.5 sm:px-2 sm:text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
   return (
     <div className="px-2 pb-2.5 min-[380px]:px-3 min-[380px]:pb-3 sm:px-4 sm:pb-4">

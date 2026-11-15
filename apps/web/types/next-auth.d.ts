@@ -21,5 +21,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     roles?: RoleName[];
     disabled?: boolean;
+    /** The account's session version when this sign-in was made (see auth.ts). */
+    sessionVersion?: number;
   }
 }

@@ -106,7 +106,7 @@ export function OrderStatusForm({ order }: OrderStatusFormProps) {
         </p>
       ) : null}
       {success ? (
-        <p className="text-sm text-green-600 dark:text-green-400" role="status">
+        <p className="text-sm text-green-700 dark:text-green-400" role="status">
           {success}
         </p>
       ) : null}

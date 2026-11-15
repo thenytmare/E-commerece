@@ -65,6 +65,9 @@ model User {
   marketingConsent      Boolean   @default(false) @map("marketing_consent")
   newsletterSubscribed  Boolean   @default(false) @map("newsletter_subscribed")
   lastLoginAt           DateTime? @map("last_login_at")
+  /// Goes up by one when the password changes or is reset. A sign-in made
+  /// under an older number stops working, so other devices are signed out.
+  sessionVersion        Int       @default(0) @map("session_version")
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 

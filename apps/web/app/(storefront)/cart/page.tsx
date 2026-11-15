@@ -49,7 +49,7 @@ export default async function CartPage() {
               </Button>
             </div>
           ) : (
-            <Grid cols={1} gap="lg" className="lg:grid-cols-[1fr_360px]">
+            <Grid cols={1} gap="lg" className="lg:grid-cols-[minmax(0,1fr)_360px]">
               <div className="rounded-xl border border-border bg-card px-6">
                 {cart.items.map((item) => (
                   // Serialized because CartItemRow is a Client Component and

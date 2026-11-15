@@ -10,7 +10,12 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 /** The signed-in staff member's own name, sign-in email and password. */
-export default async function AdminProfilePage() {
+export default async function AdminProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ password?: string }>;
+}) {
+  const { password } = await searchParams;
   const session = await requireAdmin();
   // Read from the database, not the session, so the form shows what is saved.
   const user = await createRepositories().user.findById(session.user.id);
@@ -26,6 +31,7 @@ export default async function AdminProfilePage() {
         name={user?.name ?? ''}
         email={user?.email ?? session.user.email ?? ''}
         roles={roles.length > 0 ? roles.join(', ') : 'None'}
+        passwordChanged={password === 'changed'}
       />
     </AdminPage>
   );

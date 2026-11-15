@@ -173,7 +173,7 @@ export function MoreCategories({ categories }: { categories: CategoryCard[] }) {
           <li key={category.id} className="shrink-0">
             <Link
               href={`/categories/${category.slug}`}
-              className="inline-flex min-h-[40px] items-center whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm text-foreground transition-colors hover:border-primary hover:text-primary"
+              className="inline-flex min-h-11 items-center whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm text-foreground transition-colors hover:border-primary hover:text-primary"
             >
               {category.name}
             </Link>

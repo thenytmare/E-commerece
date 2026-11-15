@@ -2,9 +2,11 @@
 
 import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { createRepositories, prisma } from '@repo/database';
 import { requireAdmin } from './auth';
+import { signIn } from '@/auth';
 import { RESET_IDENTIFIER_PREFIX } from '@/lib/auth/reset-tokens';
 import { getClientIp } from '@/lib/request-context';
 import { rateLimit, retryMessage } from '@/lib/rate-limit';
@@ -170,7 +172,8 @@ export async function changePasswordAction(
   try {
     const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
     await prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+      // The new version number signs out this account on every other device.
+      await tx.user.update({ where: { id: user.id }, data: { passwordHash, sessionVersion: { increment: 1 } } });
       // Any reset link already sent for this account stops working.
       await tx.verificationToken.deleteMany({
         where: { identifier: { in: [`${RESET_IDENTIFIER_PREFIX}${user.email}`, `${RESET_IDENTIFIER_PREFIX}${user.email.toLowerCase()}`] } },
@@ -189,5 +192,17 @@ export async function changePasswordAction(
     entityId: user.id,
   });
 
-  return { success: true, message: 'Password changed. Use the new one next time you sign in.' };
+  // Sign this device straight back in with the new password, so only the
+  // other devices are signed out. Then load the page afresh: the rest of this
+  // request still carries the old sign-in, which no longer counts.
+  let signedBackIn = true;
+  try {
+    await signIn('credentials', { email: user.email, password: parsed.data.newPassword, redirect: false });
+  } catch (error) {
+    signedBackIn = false;
+    console.error('Could not keep this device signed in after the password change:', error);
+  }
+
+  // Outside the try: redirect() works by throwing.
+  redirect(signedBackIn ? '/admin/settings/profile?password=changed' : '/login?callbackUrl=/admin/settings/profile');
 }

@@ -26,7 +26,18 @@ function Notice({ state }: { state: ProfileFormState | null }) {
   );
 }
 
-export function ProfileForms({ name, email, roles }: { name: string; email: string; roles: string }) {
+export function ProfileForms({
+  name,
+  email,
+  roles,
+  passwordChanged = false,
+}: {
+  name: string;
+  email: string;
+  roles: string;
+  /** Set after a password change, which reloads this page. */
+  passwordChanged?: boolean;
+}) {
   const [details, saveDetails, savingDetails] = useActionState(updateProfileAction, null);
   const [password, savePassword, savingPassword] = useActionState(changePasswordAction, null);
   const [emailValue, setEmailValue] = useState(email);
@@ -125,7 +136,17 @@ export function ProfileForms({ name, email, roles }: { name: string; email: stri
               className={inputClass}
             />
           </FormField>
-          <Notice state={password} />
+          <Notice
+            state={
+              password ??
+              (passwordChanged
+                ? {
+                    success: true,
+                    message: 'Password changed. You are still signed in here, and any other devices have been signed out.',
+                  }
+                : null)
+            }
+          />
           <FormActions submitText="Change password" isSubmitting={savingPassword} />
         </FormSection>
       </form>

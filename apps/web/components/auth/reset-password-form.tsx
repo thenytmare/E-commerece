@@ -2,7 +2,8 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
-import { Button, Input, Text } from '@repo/ui';
+import { Button, Text } from '@repo/ui';
+import { PasswordInput } from './password-input';
 import { resetPasswordAction, type PasswordResetState } from '@/lib/actions/password-reset';
 
 const initialState: PasswordResetState = {};
@@ -37,9 +38,8 @@ export function ResetPasswordForm({ token, email }: { token: string; email: stri
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="email" value={email} />
 
-      <Input
+      <PasswordInput
         name="password"
-        type="password"
         label="New password"
         autoComplete="new-password"
         required
@@ -47,9 +47,8 @@ export function ResetPasswordForm({ token, email }: { token: string; email: stri
         error={state.fieldErrors?.password}
         hint="At least 8 characters"
       />
-      <Input
+      <PasswordInput
         name="confirmPassword"
-        type="password"
         label="Confirm new password"
         autoComplete="new-password"
         required

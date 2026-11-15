@@ -354,7 +354,7 @@ export function ProductListClient({
         type="button"
         onClick={() => setBulkConfirm({ action: 'activate', ids: selectedIds })}
         disabled={isBulkProcessing}
-        className="px-3 py-1.5 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-600 dark:text-green-400 hover:bg-green-600/20 flex items-center gap-1"
+        className="px-3 py-1.5 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-700 dark:text-green-400 hover:bg-green-600/20 flex items-center gap-1"
       >
         <Eye className="h-3 w-3" /> Show selected
       </button>

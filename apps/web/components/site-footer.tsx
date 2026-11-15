@@ -27,7 +27,7 @@ export async function SiteFooter() {
       <Container className="py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-3">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+            <Link href="/" className="flex min-h-11 items-center gap-2 font-semibold tracking-tight">
               <Image
                 src="/images/logo.png"
                 alt=""
@@ -46,9 +46,9 @@ export async function SiteFooter() {
             <h2 id="footer-shop" className="text-sm font-semibold">
               Shop
             </h2>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-0 text-sm md:space-y-2">
               <li>
-                <Link href="/products" className="text-muted-foreground hover:text-foreground">
+                <Link href="/products" className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0">
                   All products
                 </Link>
               </li>
@@ -56,7 +56,7 @@ export async function SiteFooter() {
                 <li key={category.id}>
                   <Link
                     href={`/categories/${category.slug}`}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0"
                   >
                     {category.name}
                   </Link>
@@ -69,37 +69,37 @@ export async function SiteFooter() {
             <h2 id="footer-help" className="text-sm font-semibold">
               Help
             </h2>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-0 text-sm md:space-y-2">
               <li>
-                <Link href="/account/orders" className="text-muted-foreground hover:text-foreground">
+                <Link href="/account/orders" className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0">
                   Track my order
                 </Link>
               </li>
               <li>
                 <Link
                   href="/saved"
-                  className="text-muted-foreground hover:text-foreground"
+                  className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0"
                 >
                   Saved items
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="text-muted-foreground hover:text-foreground">
+                <Link href="/shipping" className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0">
                   Shipping &amp; delivery
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-muted-foreground hover:text-foreground">
+                <Link href="/returns" className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0">
                   Returns &amp; refunds
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
+                <Link href="/privacy" className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0">
                   Privacy policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-muted-foreground hover:text-foreground">
+                <Link href="/terms" className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground md:min-h-0">
                   Terms of sale
                 </Link>
               </li>
@@ -108,21 +108,21 @@ export async function SiteFooter() {
 
           <div className="space-y-3">
             <h2 className="text-sm font-semibold">Get in touch</h2>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                <a href={`tel:${store.phone.replace(/\s+/g, '')}`} className="hover:text-foreground">
+            <ul className="space-y-0 text-sm text-muted-foreground md:space-y-2">
+              <li className="flex min-h-11 items-center gap-2 md:min-h-0 md:items-start">
+                <Phone className="h-4 w-4 shrink-0 md:mt-0.5" aria-hidden="true" />
+                <a href={`tel:${store.phone.replace(/\s+/g, '')}`} className="inline-flex min-h-11 items-center hover:text-foreground md:min-h-0">
                   {store.phone}
                 </a>
               </li>
-              <li className="flex items-start gap-2">
-                <Mail className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                <a href={`mailto:${store.email}`} className="break-all hover:text-foreground">
+              <li className="flex min-h-11 items-center gap-2 md:min-h-0 md:items-start">
+                <Mail className="h-4 w-4 shrink-0 md:mt-0.5" aria-hidden="true" />
+                <a href={`mailto:${store.email}`} className="inline-flex min-h-11 items-center break-all hover:text-foreground md:min-h-0">
                   {store.email}
                 </a>
               </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <li className="flex min-h-11 items-center gap-2 md:min-h-0 md:items-start">
+                <MapPin className="h-4 w-4 shrink-0 md:mt-0.5" aria-hidden="true" />
                 <span>{store.address}</span>
               </li>
             </ul>
@@ -130,7 +130,7 @@ export async function SiteFooter() {
               href={whatsappHref}
               target="_blank"
               rel="noreferrer noopener"
-              className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted md:min-h-9"
             >
               Chat on WhatsApp
             </a>

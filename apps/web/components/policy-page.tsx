@@ -32,7 +32,7 @@ export function PolicyPage({
 
       <Section>
         <Container>
-          <div className="max-w-2xl space-y-8 [&_h2]:text-lg [&_h2]:font-semibold [&_p]:text-muted-foreground [&_li]:text-muted-foreground">
+          <div className="max-w-2xl space-y-8 [overflow-wrap:anywhere] [&_h2]:text-lg [&_h2]:font-semibold [&_p]:text-muted-foreground [&_li]:text-muted-foreground">
             {children}
           </div>
         </Container>

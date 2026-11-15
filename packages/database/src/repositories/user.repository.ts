@@ -283,9 +283,12 @@ export class UserRepository extends BaseRepository {
     await this.db.user.update({ where: { id }, data: { name: data.name, email: data.email } });
   }
 
-  /** Replace a user's password hash — used by the reset flow. */
+  /** Replace a user's password hash and sign the account out everywhere else. */
   async updatePassword(id: string, passwordHash: string): Promise<void> {
-    await this.db.user.update({ where: { id }, data: { passwordHash } });
+    await this.db.user.update({
+      where: { id },
+      data: { passwordHash, sessionVersion: { increment: 1 } },
+    });
   }
 
   async updateLastLogin(id: string): Promise<void> {
