@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Sora } from 'next/font/google';
 import { headers } from 'next/headers';
+import { themeClass } from '@/lib/theme';
+import { getThemeChoice } from '@/lib/theme-server';
 import '@repo/ui/globals.css';
 import './globals.css';
 
@@ -79,9 +81,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // scripts. `nonce` itself isn't referenced below because Next.js reads it
   // from the request header automatically for its own injected scripts.
   await headers();
+  // Light or dark: chosen by the shopper (a cookie), or else the device's own
+  // setting, which the CSS follows by itself. Set here so there is no flash.
+  const theme = await getThemeChoice();
 
   return (
-    <html lang="en-KE" className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en-KE"
+      data-theme={theme}
+      className={`${inter.variable} ${sora.variable} ${jetbrainsMono.variable} ${themeClass(theme)}`.trim()}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen font-sans">
         {children}
       </body>

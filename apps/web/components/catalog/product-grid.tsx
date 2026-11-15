@@ -1,6 +1,6 @@
-import { auth } from '@/auth';
 import { ProductCard } from '@/components/catalog/product-card';
 import { getStoreSettings } from '@/lib/store';
+import { getWishlistOwner } from '@/lib/wishlist-owner';
 import { createRepositories, type ProductListItem } from '@repo/database';
 import { Grid, Text } from '@repo/ui';
 import { cache } from 'react';
@@ -11,14 +11,14 @@ interface ProductGridProps {
 }
 
 /**
- * The signed-in shopper's saved products, looked up once per page even when
- * the page shows several grids (the homepage has three).
+ * The shopper's saved products (signed in or guest), looked up once per page
+ * even when the page shows several grids (the homepage has three).
  */
 const getSavedProductIds = cache(async (): Promise<Set<string>> => {
-  const session = await auth();
-  if (!session?.user?.id) return new Set();
   try {
-    return new Set(await createRepositories().wishlist.listProductIdsForUser(session.user.id));
+    const owner = await getWishlistOwner();
+    if (!owner) return new Set();
+    return new Set(await createRepositories().wishlist.listProductIdsForOwner(owner));
   } catch {
     // Hearts simply show empty if this fails; the page still works.
     return new Set();

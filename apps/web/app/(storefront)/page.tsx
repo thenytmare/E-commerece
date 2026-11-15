@@ -40,8 +40,9 @@ export default async function HomePage() {
 
   return (
     <main>
+      {/* overflow-hidden on the hero: the tilted product pictures must never push the page wider than the screen. */}
       {sections.hero.enabled && (
-        <Section spacing="lg" className="border-b border-border bg-card">
+        <Section spacing="lg" className="overflow-hidden border-b border-border bg-card">
           <Container>
             <div className="grid items-center gap-10 lg:grid-cols-[3fr_2fr] lg:gap-16">
               <div className="max-w-xl">

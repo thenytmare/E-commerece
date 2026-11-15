@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   BarChart3,
   DollarSign,
+  Heart,
   Loader2,
   ShieldAlert,
 } from 'lucide-react';
@@ -17,6 +18,7 @@ const WIDGET_ICONS = {
   activity: Activity,
   'bar-chart': BarChart3,
   'dollar-sign': DollarSign,
+  heart: Heart,
   'shield-alert': ShieldAlert,
 } as const;
 

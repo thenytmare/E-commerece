@@ -6,7 +6,13 @@ import tailwindcssAnimate from 'tailwindcss-animate';
  * Consumed by apps and the UI package for consistent styling.
  */
 const config: Config = {
-  darkMode: ['class'],
+  // Dark colours apply when the shopper picks Dark (class "dark" on <html>),
+  // or when they have not picked and their device is set to dark. Picking
+  // Light (class "light") keeps light colours even on a dark device.
+  darkMode: [
+    'variant',
+    ['@media (prefers-color-scheme: dark) { &:not(.light *) }', '&:is(.dark *)'],
+  ],
   content: [],
   theme: {
     extend: {

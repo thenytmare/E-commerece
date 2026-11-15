@@ -24,7 +24,7 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
       break;
     case 'warning':
     case 'pending':
-      colorClasses = "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
+      colorClasses = "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20";
       defaultLabel = status === 'warning' ? 'Warning' : 'Pending';
       break;
     case 'danger':
@@ -32,7 +32,7 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
       defaultLabel = 'Danger';
       break;
     case 'info':
-      colorClasses = "bg-blue-500/10 text-blue-600 border-blue-500/20";
+      colorClasses = "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
       defaultLabel = 'Info';
       break;
     case 'draft':

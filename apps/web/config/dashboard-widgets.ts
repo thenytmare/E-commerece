@@ -7,6 +7,7 @@ import QuickActionsWidget from '@/components/admin/dashboard/QuickActionsWidget'
 import StoreOverviewWidget from '@/components/admin/dashboard/StoreOverviewWidget';
 import RecentOrdersWidget from '@/components/admin/dashboard/RecentOrdersWidget';
 import RecentCustomersWidget from '@/components/admin/dashboard/RecentCustomersWidget';
+import MostSavedWidget from '@/components/admin/dashboard/MostSavedWidget';
 
 registerDashboardWidget({
   id: 'store-overview',
@@ -46,6 +47,10 @@ registerDashboardWidget({
 
 registerDashboardWidget({
   id: 'recent-customers', component: RecentCustomersWidget, permission: 'customers.read', order: 36, span: { tablet: 6, desktop: 3 },
+});
+
+registerDashboardWidget({
+  id: 'most-saved', component: MostSavedWidget, permission: 'analytics.read', order: 37, span: { tablet: 6, desktop: 6 },
 });
 
 registerDashboardWidget({

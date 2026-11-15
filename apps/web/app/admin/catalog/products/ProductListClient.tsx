@@ -51,7 +51,7 @@ const LOW_STOCK_AT = 5;
 
 function StockLabel({ stock }: { stock: number }) {
   if (stock <= 0) return <span className="text-xs font-medium text-destructive">Out of stock</span>;
-  if (stock <= LOW_STOCK_AT) return <span className="text-xs font-medium text-amber-700">{stock} left (low)</span>;
+  if (stock <= LOW_STOCK_AT) return <span className="text-xs font-medium text-amber-700 dark:text-amber-400">{stock} left (low)</span>;
   return <span className="text-xs text-muted-foreground">{stock} in stock</span>;
 }
 
@@ -312,7 +312,7 @@ export function ProductListClient({
             />
           )}
           {viewMode === 'active' && isVisible(item) && item.availableStock === 0 ? (
-            <p className="text-xs text-amber-700">Visible, but customers cannot buy it: out of stock</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">Visible, but customers cannot buy it: out of stock</p>
           ) : null}
         </div>
       ),
@@ -354,7 +354,7 @@ export function ProductListClient({
         type="button"
         onClick={() => setBulkConfirm({ action: 'activate', ids: selectedIds })}
         disabled={isBulkProcessing}
-        className="px-3 py-1.5 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-600 hover:bg-green-600/20 flex items-center gap-1"
+        className="px-3 py-1.5 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-600 dark:text-green-400 hover:bg-green-600/20 flex items-center gap-1"
       >
         <Eye className="h-3 w-3" /> Show selected
       </button>

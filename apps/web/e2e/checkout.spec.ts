@@ -38,7 +38,7 @@ test('guest can add a product to cart and complete checkout with simulated payme
     await page.waitForURL(/\/products\/[^/]+$/, { timeout: NAV_TIMEOUT });
 
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await page.getByRole('button', { name: 'Add to Cart', exact: true }).click();
+    await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
     // Confirms the add-to-cart server action actually completed, rather than
     // racing the header's cart count into the next navigation.
     await expect(page.getByRole('button', { name: 'Added to Cart' })).toBeVisible();

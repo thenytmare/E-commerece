@@ -65,7 +65,13 @@ export {
   type AdminUserListItem,
 } from './user.repository';
 export { ReviewRepository } from './review.repository';
-export { WishlistRepository, type WishlistEntry } from './wishlist.repository';
+export {
+  WishlistRepository,
+  GUEST_WISHLIST_LIMIT,
+  type WishlistEntry,
+  type WishlistOwner,
+  type MostSavedRow,
+} from './wishlist.repository';
 export { BrandRepository, type AdminBrandListItem } from './brand.repository';
 export { CategoryRepository, type CategoryWithChildren, type AdminCategoryListItem, type CategoryCard } from './category.repository';
 export {

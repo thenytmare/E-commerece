@@ -51,7 +51,7 @@ export function VisibilitySwitch({
           }`}
         />
       </span>
-      <span className={`text-xs font-medium ${checked ? 'text-green-700' : 'text-muted-foreground'}`}>
+      <span className={`text-xs font-medium ${checked ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}`}>
         {checked ? 'Visible' : 'Hidden'}
       </span>
     </button>

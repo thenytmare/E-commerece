@@ -108,7 +108,7 @@ export function WhatsAppCenterClient({
         </div>
 
         {result && (
-          <div className={`mb-4 p-3 rounded-md text-sm ${result.success ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-destructive/10 border border-destructive/20 text-destructive'}`}>
+          <div className={`mb-4 p-3 rounded-md text-sm ${result.success ? 'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-800 dark:text-green-300' : 'bg-destructive/10 border border-destructive/20 text-destructive'}`}>
             {result.error || `Campaign queued for ${result.count} recipients.`}
           </div>
         )}
@@ -237,9 +237,9 @@ export function WhatsAppCenterClient({
                   </p>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  c.target === 'all' ? 'bg-blue-100 text-blue-800' :
-                  c.target === 'recent' ? 'bg-amber-100 text-amber-800' :
-                  'bg-green-100 text-green-800'
+                  c.target === 'all' ? 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300' :
+                  c.target === 'recent' ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300' :
+                  'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300'
                 }`}>
                   {c.target === 'all' ? 'All' : c.target === 'recent' ? 'Recent' : 'Single'}
                 </span>

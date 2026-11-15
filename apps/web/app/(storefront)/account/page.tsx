@@ -45,7 +45,7 @@ export default async function AccountPage() {
               <Link href="/account/orders">My orders</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/account/wishlist">Saved items</Link>
+              <Link href="/saved">Saved items</Link>
             </Button>
             {isStaff ? (
               <Button size="sm" asChild>

@@ -12,6 +12,10 @@ interface ProductDetailViewProps {
   flashSalePrice?: number | null;
   flashSaleEndsAt?: string | null;
   className?: string;
+  /** Brand, name and badges, shown above the price beside the photo. */
+  heading?: React.ReactNode;
+  /** Shown under the buy buttons, such as the Save button. */
+  footer?: React.ReactNode;
 }
 
 /**
@@ -24,6 +28,8 @@ export function ProductDetailView({
   flashSalePrice,
   flashSaleEndsAt,
   className,
+  heading,
+  footer,
 }: ProductDetailViewProps) {
   const defaultVariant = product.variants.find((v) => v.isDefault) ?? product.variants[0];
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
@@ -40,15 +46,19 @@ export function ProductDetailView({
         productName={product.name}
       />
 
-      {/* Right: actions with live variant selection */}
-      <ProductActions
-        product={product}
-        whatsappNumber={whatsappNumber}
-        selectedVariantId={selectedVariantId}
-        onVariantChange={setSelectedVariantId}
-        flashSalePrice={flashSalePrice}
-        flashSaleEndsAt={flashSaleEndsAt}
-      />
+      {/* Right: name, then price and buy buttons with live variant selection */}
+      <div className="min-w-0">
+        {heading}
+        <ProductActions
+          product={product}
+          whatsappNumber={whatsappNumber}
+          selectedVariantId={selectedVariantId}
+          onVariantChange={setSelectedVariantId}
+          flashSalePrice={flashSalePrice}
+          flashSaleEndsAt={flashSaleEndsAt}
+        />
+        {footer}
+      </div>
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function StoreSettingsForm({ settings }: Props) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <ValidationSummary errors={[error]} />}
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-md px-4 py-3 text-sm">
+        <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-800 dark:text-green-300 rounded-md px-4 py-3 text-sm">
           {successMessage}
         </div>
       )}

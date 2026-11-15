@@ -90,7 +90,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
   if (state === 'success') {
     return (
       <div className="rounded-xl border border-green-600/30 bg-green-600/5 p-6 space-y-3">
-        <Text className="font-semibold text-green-700">Payment received</Text>
+        <Text className="font-semibold text-green-700 dark:text-green-400">Payment received</Text>
         <Text variant="muted" className="text-sm">
           {detail?.receiptNumber
             ? `M-Pesa receipt ${detail.receiptNumber}.`

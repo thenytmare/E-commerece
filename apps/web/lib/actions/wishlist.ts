@@ -1,8 +1,8 @@
 'use server';
 
-import { createRepositories } from '@repo/database';
+import { createRepositories, GUEST_WISHLIST_LIMIT } from '@repo/database';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/auth';
+import { getWishlistOwner } from '@/lib/wishlist-owner';
 
 const repos = createRepositories();
 
@@ -14,34 +14,38 @@ export type WishlistActionState = {
 };
 
 /**
- * Add or remove a product from the signed-in customer's wishlist.
+ * Add or remove a product from the shopper's saved items.
  *
- * Returns `requiresSignIn` rather than redirecting, so the button can prompt
- * in place instead of throwing the shopper off the product page.
+ * Works without signing in: a guest's items are kept on this browser and move
+ * to their account when they sign in. A guest who reaches the limit is asked
+ * to sign in.
  */
 export async function toggleWishlistAction(
   productId: string,
   variantId?: string | null
 ): Promise<WishlistActionState> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, requiresSignIn: true, error: 'Sign in to save products.' };
-  }
-
   if (!productId) {
     return { success: false, error: 'No product specified.' };
   }
 
   try {
-    const alreadySaved = await repos.wishlist.has(session.user.id, productId);
+    const owner = await getWishlistOwner({ create: true });
+    if (!owner) return { success: false, error: 'Could not update your saved items.' };
 
+    const alreadySaved = await repos.wishlist.has(owner, productId);
     if (alreadySaved) {
-      await repos.wishlist.remove(session.user.id, productId);
+      await repos.wishlist.remove(owner, productId);
     } else {
-      await repos.wishlist.add(session.user.id, productId, variantId);
+      if (owner.sessionId && (await repos.wishlist.countForOwner(owner)) >= GUEST_WISHLIST_LIMIT) {
+        return {
+          success: false,
+          requiresSignIn: true,
+          error: `You can save up to ${GUEST_WISHLIST_LIMIT} items without an account. Sign in to save more.`,
+        };
+      }
+      await repos.wishlist.add(owner, productId, variantId);
     }
-
-    revalidatePath('/account/wishlist');
+    revalidatePath('/saved');
     return { success: true, saved: !alreadySaved };
   } catch (error) {
     console.error('Wishlist toggle failed:', error);

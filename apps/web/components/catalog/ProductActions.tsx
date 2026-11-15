@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { QuantitySelector } from './QuantitySelector';
 import { ShoppingCart, Zap, Check, AlertTriangle } from 'lucide-react';
@@ -41,6 +41,21 @@ export function ProductActions({
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  // The bar at the bottom of a phone screen shows only while the main buy
+  // buttons are out of view, so it never covers them or doubles them up.
+  const buyButtonsRef = useRef<HTMLDivElement>(null);
+  const [buyButtonsVisible, setBuyButtonsVisible] = useState(true);
+  useEffect(() => {
+    const element = buyButtonsRef.current;
+    if (!element || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setBuyButtonsVisible(Boolean(entry?.isIntersecting)),
+      // Treat the strip the bar would cover as "out of view".
+      { rootMargin: '0px 0px -80px 0px' }
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   const [cartError, setCartError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -231,10 +246,10 @@ export function ProductActions({
       <div className="flex items-center gap-1.5">
         {inStock ? (
           <>
-            <Check className="h-4 w-4 text-green-600" />
-            <span className="text-sm text-green-600 font-medium">In Stock</span>
+            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <span className="text-sm text-green-600 dark:text-green-400 font-medium">In Stock</span>
             {available <= 5 && (
-              <span className="text-xs text-amber-600 ml-1">(Only {available} left)</span>
+              <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">(Only {available} left)</span>
             )}
           </>
         ) : (
@@ -261,28 +276,29 @@ export function ProductActions({
             <QuantitySelector quantity={quantity} max={available} onChange={setQuantity} />
           </div>
 
-          <div className="flex flex-col gap-2">
-            {/* Primary action: adds to cart, the intended default purchase path. */}
-            <button
-              type="button"
-              onClick={() => handleAddToCart()}
-              disabled={adding}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-            >
-              {justAdded ? <Check className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />}
-              {adding ? 'Adding...' : justAdded ? 'Added to Cart' : 'Add to Cart'}
-            </button>
-            {/* Secondary: skips the cart and goes straight to checkout — visually
-                subordinate so it reads as a shortcut, not a second default. */}
-            <button
-              type="button"
-              onClick={handleOrderNow}
-              disabled={adding}
-              className="w-full flex items-center justify-center gap-1.5 px-6 py-2 text-sm text-primary font-medium hover:underline disabled:opacity-50 transition-colors"
-            >
-              <Zap className="h-4 w-4" />
-              Buy now, straight to checkout
-            </button>
+          <div ref={buyButtonsRef} className="flex flex-col gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Primary action: adds to cart, the intended default purchase path. */}
+              <button
+                type="button"
+                onClick={() => handleAddToCart()}
+                disabled={adding}
+                className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary px-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              >
+                {justAdded ? <Check className="h-5 w-5 shrink-0" /> : <ShoppingCart className="h-5 w-5 shrink-0" />}
+                <span className="truncate">{adding ? 'Adding...' : justAdded ? 'Added' : 'Add to cart'}</span>
+              </button>
+              {/* Adds to the cart and goes straight to checkout. */}
+              <button
+                type="button"
+                onClick={handleOrderNow}
+                disabled={adding}
+                className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border-2 border-primary px-3 font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+              >
+                <Zap className="h-5 w-5 shrink-0" />
+                <span className="truncate">Buy now</span>
+              </button>
+            </div>
             {cartError && (
               <p className="text-sm text-destructive" role="alert">
                 {cartError}
@@ -303,14 +319,15 @@ export function ProductActions({
       </button>
 
       {/*
-        Mobile-only sticky purchase bar. Once a shopper scrolls into the
+        Mobile-only sticky purchase bar, shown only while the buy buttons
+        above are out of view. Once a shopper scrolls into the
         description/reviews further down the page, the inline Add to Cart
         button above scrolls out of view with nothing to replace it — this
         keeps price + purchase one tap away the whole time, same as the
         `lg:hidden` bar disappears once the desktop layout has the actions
         panel visible without scrolling.
       */}
-      {inStock && (
+      {inStock && !buyButtonsVisible && (
         <div
           className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-border bg-card px-4 py-3 shadow-elevated lg:hidden"
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
@@ -325,7 +342,7 @@ export function ProductActions({
             className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {justAdded ? <Check className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />}
-            {adding ? 'Adding...' : justAdded ? 'Added' : 'Add to Cart'}
+            {adding ? 'Adding...' : justAdded ? 'Added' : 'Add to cart'}
           </button>
         </div>
       )}

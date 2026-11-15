@@ -11,12 +11,14 @@ import { CommandPalette } from '@/components/admin/ui/CommandPalette';
 import { ToastProvider } from '@/components/ui/toast';
 import { auth } from '@/auth';
 import { getDashboardNotifications } from '@/lib/actions/admin-dashboard';
+import { getThemeChoice } from '@/lib/theme-server';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const notifications = session?.user ? await getDashboardNotifications() : [];
+  const theme = await getThemeChoice();
   return (
-    <ThemeProvider>
+    <ThemeProvider initialTheme={theme}>
       <AuthSessionProvider session={session}>
         <NotificationProvider initialNotifications={notifications}>
           <SearchProvider>

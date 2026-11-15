@@ -13,7 +13,7 @@ async function startCheckout(page: Page) {
     await page.locator('main a[href^="/products/"]').first().click();
     await page.waitForURL(/\/products\/[^/]+$/, { timeout: NAV_TIMEOUT });
   }
-  await page.getByRole('button', { name: 'Add to Cart', exact: true }).click();
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Added to Cart' })).toBeVisible();
   await page.goto('/checkout');
   await expect(page.getByRole('heading', { name: 'Checkout', level: 1 })).toBeVisible();

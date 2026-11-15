@@ -4,9 +4,9 @@ import { ProductJsonLd } from '@/components/catalog/ProductJsonLd';
 import { StarRating } from '@/components/catalog/StarRating';
 import { ProductReviews } from '@/components/catalog/ProductReviews';
 import { WishlistButton } from '@/components/catalog/WishlistButton';
-import { auth } from '@/auth';
 import { getCatalogRepos } from '@/lib/catalog';
 import { getStoreSettings } from '@/lib/store';
+import { getWishlistOwner } from '@/lib/wishlist-owner';
 import { getPublicProduct, getRatingSummary } from '@/lib/request-cache';
 import { toClientProductDetail } from '@/lib/catalog-dtos';
 import { Badge, Container, Heading, Section, Text } from '@repo/ui';
@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // These reads do not depend on each other, so they run together. Run one
   // after another, each await waits again behind other requests when the
   // server is busy (load test: product page p95 2.8 s at saturation).
-  const [flashSale, related, ratingSummary, session] = await Promise.all([
+  const [flashSale, related, ratingSummary, wishlistOwner] = await Promise.all([
     // An active flash sale overrides the variant price for the duration of
     // its window (see Admin → Marketing → Flash Sales).
     repos.flashSale.getActiveForProduct(product.id),
@@ -79,7 +79,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       limit: 4,
     }),
     getRatingSummary(product.id),
-    auth(),
+    getWishlistOwner(),
   ]);
   const relatedProducts = related.items.filter(p => p.id !== product.id).slice(0, 4);
 
@@ -93,14 +93,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const inStock = product.variants.some(
     (variant) => (variant.inventory?.quantity ?? 0) - (variant.inventory?.reserved ?? 0) > 0
   );
-  // Wishlist state for the signed-in shopper, so the heart renders correctly
-  // on first paint instead of flickering after hydration.
-  const isSaved = session?.user?.id
-    ? await repos.wishlist.has(session.user.id, product.id)
-    : false;
+  // Saved state (signed in or guest), so the heart renders correctly on
+  // first paint instead of flickering after hydration.
+  const isSaved = wishlistOwner ? await repos.wishlist.has(wishlistOwner, product.id) : false;
 
   return (
-    <main>
+    // Room at the bottom on phones, so the purchase bar never covers the footer.
+    <main className="pb-20 lg:pb-0">
       <ProductJsonLd
         name={product.name}
         description={product.seoDescription ?? product.shortDescription}
@@ -129,69 +128,47 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <span className="text-foreground">{product.name}</span>
           </nav>
 
-          {/*
-            Below `lg` these pieces are flex items so `order` can put the
-            photo first: a shopper on a phone should see what the product
-            looks like before scrolling past a paragraph of copy to find it.
-            At `lg` and up order resets to the original, deliberate desktop
-            sequence (title block, then the image/actions row).
-          */}
-          <div className="flex flex-col">
-            {/* Brand name on top */}
-            <Text variant="muted" className="order-2 mb-3 text-xs font-medium text-primary lg:order-none">
-              {product.brand.name}
-            </Text>
-
-            {/* Product name + short description + badges */}
-            <div className="order-2 mb-8 space-y-5 lg:order-none">
-              <div>
+          {/* Photo on the left; name, price and buy buttons beside it (below it on a phone). */}
+          <ProductDetailView
+            product={toClientProductDetail(product)}
+            whatsappNumber={settings.whatsappNumber}
+            flashSalePrice={flashSale ? Number(flashSale.salePrice) : null}
+            flashSaleEndsAt={flashSale ? flashSale.endsAt.toISOString() : null}
+            heading={
+              <div className="mb-5 space-y-3">
+                <Text variant="muted" className="text-xs font-medium text-primary">
+                  {product.brand.name}
+                </Text>
                 <Heading as="h1" size="lg">
                   {product.name}
                 </Heading>
-                {product.shortDescription && (
-                  <Text variant="lead" className="mt-2">
-                    {product.shortDescription}
-                  </Text>
-                )}
+                {product.shortDescription && <Text variant="lead">{product.shortDescription}</Text>}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">{product.brand.name}</Badge>
+                  <Badge variant="outline">{product.category.name}</Badge>
+                  {product.isFeatured && <Badge>Featured</Badge>}
+                </div>
+                {ratingSummary.count > 0 && ratingSummary.average !== null ? (
+                  <a href="#reviews" className="inline-flex items-center gap-2 text-sm hover:underline">
+                    <StarRating value={ratingSummary.average} />
+                    <span className="text-muted-foreground">
+                      {ratingSummary.average.toFixed(1)} ({ratingSummary.count} review
+                      {ratingSummary.count === 1 ? '' : 's'})
+                    </span>
+                  </a>
+                ) : null}
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{product.brand.name}</Badge>
-                <Badge variant="outline">{product.category.name}</Badge>
-                {product.isFeatured && <Badge>Featured</Badge>}
-              </div>
-
-              {ratingSummary.count > 0 && ratingSummary.average !== null ? (
-                <a
-                  href="#reviews"
-                  className="mt-3 inline-flex items-center gap-2 text-sm hover:underline"
-                >
-                  <StarRating value={ratingSummary.average} />
-                  <span className="text-muted-foreground">
-                    {ratingSummary.average.toFixed(1)} ({ratingSummary.count} review
-                    {ratingSummary.count === 1 ? '' : 's'})
-                  </span>
-                </a>
-              ) : null}
-            </div>
-
-            {/* Gallery + actions (shared variant selection) */}
-            <ProductDetailView
-              product={toClientProductDetail(product)}
-              whatsappNumber={settings.whatsappNumber}
-              flashSalePrice={flashSale ? Number(flashSale.salePrice) : null}
-              flashSaleEndsAt={flashSale ? flashSale.endsAt.toISOString() : null}
-              className="order-1 lg:order-none"
-            />
-
-            <WishlistButton
-              productId={product.id}
-              productSlug={product.slug}
-              initialSaved={isSaved}
-              showLabel
-              className="order-3 mt-4 lg:order-none"
-            />
-          </div>
+            }
+            footer={
+              <WishlistButton
+                productId={product.id}
+                productSlug={product.slug}
+                initialSaved={isSaved}
+                showLabel
+                className="mt-4"
+              />
+            }
+          />
         </Container>
       </Section>
 

@@ -77,7 +77,7 @@ export async function SiteFooter() {
               </li>
               <li>
                 <Link
-                  href="/account/wishlist"
+                  href="/saved"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Saved items

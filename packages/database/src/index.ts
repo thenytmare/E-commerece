@@ -43,6 +43,9 @@ export {
   type JobStatus,
   RateLimitRepository,
   type RateLimitHit,
+  GUEST_WISHLIST_LIMIT,
+  type WishlistOwner,
+  type MostSavedRow,
 } from './repositories';
 
 // Re-export Prisma types for consumers

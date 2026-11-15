@@ -36,7 +36,7 @@ export function ShipmentForm({
     <form onSubmit={handleSubmit} className="space-y-3 pt-3 border-t border-border">
       <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Shipping / Tracking</h5>
       {result && (
-        <div className={`text-xs rounded-md px-2 py-1 ${result.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`text-xs rounded-md px-2 py-1 ${result.success ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400'}`}>
           {result.success ? 'Shipment updated.' : result.error}
         </div>
       )}

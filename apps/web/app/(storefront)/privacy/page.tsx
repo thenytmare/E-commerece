@@ -21,6 +21,11 @@ export default async function PrivacyPage() {
           <li>Your name, phone number, email address and delivery address.</li>
           <li>Your order and payment history with us.</li>
           <li>
+            If you shop without signing in, a small cookie keeps your cart and saved items on this
+            browser. The shop needs it for the cart to work, so it is set without asking. It is
+            removed when you sign in, and your cart and saved items move to your account.
+          </li>
+          <li>
             Pseudonymous usage data about how the site is browsed: a randomly generated browser
             identifier lets us recognise repeat visits from the same browser, but it is not
             linked to your name or account. We only collect this if you accept tracking when

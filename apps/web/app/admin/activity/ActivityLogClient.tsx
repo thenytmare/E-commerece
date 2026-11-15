@@ -20,13 +20,13 @@ type AuditEntry = {
 /** Maps an audit action onto a timeline icon + colour. */
 function iconFor(action: string) {
   if (action.includes('create')) {
-    return { icon: Plus, iconBgColor: 'bg-green-100', iconColor: 'text-green-700' };
+    return { icon: Plus, iconBgColor: 'bg-green-100 dark:bg-green-500/15', iconColor: 'text-green-700 dark:text-green-400' };
   }
   if (action.includes('update')) {
-    return { icon: Pencil, iconBgColor: 'bg-blue-100', iconColor: 'text-blue-700' };
+    return { icon: Pencil, iconBgColor: 'bg-blue-100 dark:bg-blue-500/15', iconColor: 'text-blue-700 dark:text-blue-400' };
   }
   if (action.includes('delete')) {
-    return { icon: Trash2, iconBgColor: 'bg-red-100', iconColor: 'text-red-700' };
+    return { icon: Trash2, iconBgColor: 'bg-red-100 dark:bg-red-500/15', iconColor: 'text-red-700 dark:text-red-400' };
   }
   return { icon: Activity, iconBgColor: 'bg-muted', iconColor: 'text-muted-foreground' };
 }
@@ -57,10 +57,10 @@ export function ActivityLogClient({ logs }: { logs: AuditEntry[] }) {
       header: 'Action',
       cell: (item) => (
         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-          item.action.includes('create') ? 'bg-green-100 text-green-800' :
-          item.action.includes('update') ? 'bg-blue-100 text-blue-800' :
-          item.action.includes('delete') ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
+          item.action.includes('create') ? 'bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300' :
+          item.action.includes('update') ? 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300' :
+          item.action.includes('delete') ? 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300' :
+          'bg-muted text-foreground'
         }`}>
           {item.action}
         </span>

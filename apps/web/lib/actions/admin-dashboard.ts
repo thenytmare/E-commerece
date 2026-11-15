@@ -260,3 +260,13 @@ export async function getActivityFeedDashboard(): Promise<ActivityFeedResponse> 
   }));
   return { events: formatted };
 }
+
+export type MostSavedResponse = {
+  items: { productId: string; name: string; slug: string; saves: number; customerSaves: number }[];
+};
+
+/** The products shoppers save most, by customers and guests together. */
+export async function getMostSavedDashboard(): Promise<MostSavedResponse> {
+  await requirePermission('analytics.read');
+  return { items: await createRepositories().wishlist.mostSaved(8) };
+}

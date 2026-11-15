@@ -78,7 +78,10 @@ export async function getOrCreateActiveCart(): Promise<CartWithItems> {
   return repos.cart.getOrCreateForSession(sessionId);
 }
 
-/** Merge guest cart into user cart after authentication */
+/**
+ * After sign-in, move the guest cart and the guest's saved items to the
+ * account. Both use the same browser cookie, which is cleared afterwards.
+ */
 export async function mergeGuestCartForUser(userId: string): Promise<void> {
   const sessionId = await getCartSessionId();
   if (!sessionId) {
@@ -87,6 +90,12 @@ export async function mergeGuestCartForUser(userId: string): Promise<void> {
 
   const repos = createRepositories();
   await repos.cart.mergeGuestIntoUser(sessionId, userId);
+  try {
+    await repos.wishlist.mergeGuestIntoUser(sessionId, userId);
+  } catch (error) {
+    // Saved items are a nice-to-have; never block sign-in over them.
+    console.error('Moving guest saved items failed:', error);
+  }
 
   const { clearCartSessionId } = await import('@/lib/cart-session');
   await clearCartSessionId();
