@@ -234,7 +234,7 @@ export function ProductActions({
               {formatPrice(compareAt)}
             </span>
             {discount && (
-              <span className="px-2 py-0.5 text-xs font-semibold bg-destructive/10 text-destructive rounded-full">
+              <span className="px-2 py-0.5 text-xs font-semibold bg-destructive text-destructive-foreground rounded-full dark:bg-destructive/10 dark:text-destructive">
                 -{discount}%
               </span>
             )}

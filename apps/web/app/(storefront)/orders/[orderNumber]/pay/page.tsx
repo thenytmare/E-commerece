@@ -89,6 +89,7 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
                       businessName: manualMpesa.businessName,
                       paybillNumber: manualMpesa.paybillNumber,
                       accountNumber: manualMpesa.accountNumber,
+                      accountName: manualMpesa.accountName,
                       contactPhone: manualMpesa.contactPhone,
                       instructions: manualMpesa.instructions,
                     }

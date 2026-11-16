@@ -12,6 +12,20 @@ Add one only if one of these is true for a normal busy week, not a one-off spike
 
 If the database is the slow part (connections near the limit, slow queries), a second app instance makes it worse. Fix the queries first.
 
+## More copies in the same container (WEB_CONCURRENCY)
+
+One Node process uses one CPU core. To use more cores without a second server, set `WEB_CONCURRENCY=3` (3 copies on a 4-core server; leave one core for Postgres and the proxy). The start file `cluster.js` then runs three copies that share port 3000. Unset or `1` runs one copy, as before.
+
+The checklist below still applies, with these differences:
+
+- Uploads, build and secrets are shared by default, because the copies run from the same container.
+- `RATE_LIMIT_STORE` must not be `memory`, or each copy counts on its own and the real limit is three times higher.
+- Each copy has its own database pool. Prisma sets it to (cores x 2) + 1 by default, which is 9 on 4 cores, so 3 copies use up to 27. Set `connection_limit` in `DATABASE_URL` on purpose (see `docs/connection-budget.md`).
+- Each copy keeps its own 60 second cache of categories, brands and settings (see the cache section below).
+- Each copy starts the job worker. That is safe (see Background jobs below).
+- Metrics (`startMetrics`) are per copy.
+- To go back, remove `WEB_CONCURRENCY` and redeploy.
+
 ## Before you start the second instance
 
 Tick each one.

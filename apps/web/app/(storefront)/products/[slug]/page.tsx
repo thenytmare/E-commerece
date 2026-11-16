@@ -18,6 +18,14 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+/** Plain text, no HTML tags, cut at a word near 155 characters (the length search results show). */
+function plainSnippet(html: string | null | undefined, max = 155): string {
+  const text = (html ?? '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), 0) || max).trimEnd()}...`;
+}
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const repos = getCatalogRepos();
@@ -27,7 +35,15 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     return { title: 'Product Not Found' };
   }
 
-  const description = product.seoDescription ?? product.shortDescription ?? undefined;
+  // Search engines want a description on every page. Use the SEO text, then the
+  // short text, then the start of the full description, and as a last resort a
+  // plain sentence, so no product page is ever left without one.
+  const description = (
+    product.seoDescription?.trim() ||
+    product.shortDescription?.trim() ||
+    plainSnippet(product.description) ||
+    `Buy ${product.name} at Prime Accessories Kenya. Delivery across Kenya.`
+  );
   const image = product.images[0]?.url;
 
   return {

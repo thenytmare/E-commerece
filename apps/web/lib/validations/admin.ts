@@ -148,6 +148,7 @@ export const paymentSettingsSchema = z
       .optional()
       .transform((v) => (v && v.length > 0 ? v : ''))
       .refine((v) => v.length <= 40, 'Account number is too long'),
+    accountName: optionalText,
     contactPhone: optionalText,
     instructions: z
       .string()

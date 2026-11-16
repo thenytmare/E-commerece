@@ -67,6 +67,8 @@ COPY --from=migrate-cli --chown=node:node /opt/prisma-cli /opt/prisma-cli
 COPY --from=builder --chown=node:node /app/packages/database/prisma/schema.prisma ./db/prisma/schema.prisma
 COPY --from=builder --chown=node:node /app/packages/database/prisma/migrations ./db/prisma/migrations
 COPY --from=builder --chown=node:node /app/scripts/docker-start.sh ./docker-start.sh
+# Starts one copy of the shop, or several when WEB_CONCURRENCY is set.
+COPY --from=builder --chown=node:node /app/scripts/cluster.js ./cluster.js
 # Windows line endings would stop the script from running; remove any.
 RUN sed -i 's/\r$//' ./docker-start.sh && chmod +x ./docker-start.sh
 ENV CHECKPOINT_DISABLE=1 \

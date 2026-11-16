@@ -24,6 +24,22 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'success' | 'outli
   REFUNDED: 'outline',
 };
 
+/** Customer-friendly payment names for the receipt (never the raw enum). */
+function providerLabel(provider: string): string {
+  switch (provider) {
+    case 'MPESA':
+      return 'M-Pesa';
+    case 'MANUAL_MPESA':
+      return 'M-Pesa Paybill';
+    case 'STRIPE':
+      return 'Card';
+    case 'CASH_ON_DELIVERY':
+      return 'Cash on Delivery';
+    default:
+      return provider;
+  }
+}
+
 export async function generateMetadata({ params }: OrderPageProps): Promise<Metadata> {
   const { orderNumber } = await params;
   return { title: `Order ${orderNumber}` };
@@ -54,6 +70,9 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
     ? `${deliveryZoneLabel(order.deliveryZone)}${order.deliveryLocation ? ` · ${order.deliveryLocation}` : ''}`
     : null;
   const awaitingPayment = order.status === 'PENDING' && !completedPayment;
+  const awaitingManual = order.payments.some(
+    (payment) => payment.provider === 'MANUAL_MPESA' && payment.status === 'AWAITING_CONFIRMATION'
+  );
 
   const receiptProps = {
     storeName: settings.name,
@@ -80,8 +99,12 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
     paymentMethod: codPayment
       ? 'Cash on Delivery (pay the rider)'
       : completedPayment
-        ? `${completedPayment.provider} (${completedPayment.status})`
-        : 'Pending',
+        ? `${providerLabel(completedPayment.provider)} (Paid)${
+            completedPayment.receiptNumber ? ` · ${completedPayment.receiptNumber}` : ''
+          }`
+        : awaitingManual
+          ? 'M-Pesa Paybill (awaiting confirmation)'
+          : 'Pending',
   };
 
   return (

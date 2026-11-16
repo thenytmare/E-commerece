@@ -53,6 +53,20 @@ describe('paymentSettingsSchema', () => {
     });
   });
 
+  it('keeps the optional account name when given', () => {
+    const { data, fieldErrors } = parseFormData(
+      paymentSettingsSchema,
+      paymentForm({
+        manualMpesaEnabled: 'on',
+        paybillNumber: '400200',
+        accountNumber: 'PRIME',
+        accountName: 'Prime Accessories Kenya',
+      })
+    );
+    expect(fieldErrors).toBeUndefined();
+    expect(data?.accountName).toBe('Prime Accessories Kenya');
+  });
+
   it('requires the Paybill number when enabling the method', () => {
     const { fieldErrors } = parseFormData(
       paymentSettingsSchema,

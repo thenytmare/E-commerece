@@ -18,6 +18,7 @@ export default async function PaymentSettingsPage() {
         businessName: '',
         paybillNumber: '',
         accountNumber: '',
+        accountName: '',
         contactPhone: '',
         instructions: '',
       },

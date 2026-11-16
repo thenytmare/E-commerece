@@ -73,6 +73,7 @@ export async function updatePaymentSettingsAction(
     businessName,
     paybillNumber,
     accountNumber,
+    accountName,
     contactPhone,
     instructions,
   } = validation.data;
@@ -84,6 +85,7 @@ export async function updatePaymentSettingsAction(
         businessName: businessName ?? '',
         paybillNumber,
         accountNumber,
+        accountName: accountName ?? '',
         contactPhone: contactPhone ?? '',
         instructions: instructions ?? '',
       },

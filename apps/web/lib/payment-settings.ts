@@ -14,6 +14,8 @@ export type ManualMpesaSettings = {
   paybillNumber: string;
   /** Fixed account/reference number shown to every customer. */
   accountNumber: string;
+  /** Name the account is registered under, shown as "Account name" (optional). */
+  accountName: string;
   /** Optional help number shown on the payment card. */
   contactPhone: string;
   /** Optional extra note shown under the payment steps. */
@@ -46,6 +48,7 @@ export const getPaymentSettings = cache(async (): Promise<PaymentSettings> => {
       businessName: String(manual.businessName ?? '').trim(),
       paybillNumber,
       accountNumber,
+      accountName: String(manual.accountName ?? '').trim(),
       contactPhone: String(manual.contactPhone ?? '').trim(),
       instructions: String(manual.instructions ?? '').trim(),
     },

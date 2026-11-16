@@ -20,6 +20,7 @@ export type ManualMpesaConfig = {
   businessName: string;
   paybillNumber: string;
   accountNumber: string;
+  accountName: string;
   contactPhone: string;
   instructions: string;
 };
@@ -190,14 +191,25 @@ export function PaymentMethodPicker({
             </div>
 
             {manualMpesa.businessName ? (
-              <Text variant="muted" className="mb-4 text-sm">
-                Paying {manualMpesa.businessName}
-              </Text>
+              <div className="mb-4 rounded-lg bg-muted/40 px-3 py-2">
+                <Text variant="muted" className="text-xs">
+                  Paying to
+                </Text>
+                <Text className="text-base font-semibold">{manualMpesa.businessName}</Text>
+              </div>
             ) : null}
 
             <div className="space-y-2">
               <CopyRow label="Paybill (business number)" value={manualMpesa.paybillNumber} />
               <CopyRow label="Account number" value={manualMpesa.accountNumber} />
+              {manualMpesa.accountName ? (
+                <div className="rounded-lg border border-border bg-background px-3 py-2">
+                  <Text variant="muted" className="text-xs">
+                    Account name
+                  </Text>
+                  <Text className="text-base font-semibold">{manualMpesa.accountName}</Text>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2">
                 <div>
                   <Text variant="muted" className="text-xs">

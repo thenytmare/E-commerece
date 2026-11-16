@@ -10,6 +10,8 @@
 # serving customers. The deploy log shows the reason.
 #
 # Set MIGRATE_ON_START=false (for example on a second server) to skip step 1.
+# Set WEB_CONCURRENCY=3 to run three copies of the shop in this container, so
+# a busy shop can use three CPU cores. Unset or 1 runs one copy.
 set -eu
 
 if [ "${MIGRATE_ON_START:-true}" = "true" ]; then
@@ -22,5 +24,6 @@ if [ "${MIGRATE_ON_START:-true}" = "true" ]; then
   fi
 fi
 
-echo "[start] Starting the shop..."
-exec node apps/web/server.js
+echo "[start] Starting the shop (copies: ${WEB_CONCURRENCY:-1})..."
+# cluster.js runs one copy by default. Set WEB_CONCURRENCY=3 to use three cores.
+exec node cluster.js

@@ -86,8 +86,8 @@ export function PaymentSettingsForm({ settings }: Props) {
 
             <FormField
               id="businessName"
-              label="Business name"
-              description="The name M-Pesa shows your customers when they pay (optional)."
+              label="Paying to (business name)"
+              description='Shown to customers as "Paying to ..." on the payment page (optional).'
             >
               <input
                 type="text"
@@ -135,6 +135,21 @@ export function PaymentSettingsForm({ settings }: Props) {
                 />
               </FormField>
             </div>
+
+            <FormField
+              id="accountName"
+              label="Account name"
+              description='Shown to customers as "Account name ..." under the Paybill details (optional).'
+            >
+              <input
+                type="text"
+                id="accountName"
+                name="accountName"
+                defaultValue={manual.accountName}
+                placeholder="Prime Accessories Kenya"
+                className={inputClass}
+              />
+            </FormField>
 
             <FormField
               id="contactPhone"

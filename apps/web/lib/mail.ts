@@ -14,12 +14,15 @@
  * already uses; its signature hasn't changed.
  */
 import nodemailer, { type Transporter } from 'nodemailer';
+import { renderEmailHtml } from '@/lib/jobs/email-layout';
 
 export interface MailMessage {
   to: string;
   subject: string;
-  /** Plain-text body. Keep messages text-only until a real transport exists. */
+  /** Plain-text body. Always sent, so HTML-blocking clients still get a message. */
   text: string;
+  /** Optional branded HTML version (with the logo). Sent alongside the text. */
+  html?: string;
 }
 
 function isProduction(): boolean {
@@ -141,6 +144,7 @@ async function deliver(message: MailMessage): Promise<void> {
       to: message.to,
       subject: message.subject,
       text: message.text,
+      ...(message.html ? { html: message.html } : {}),
       ...(replyTo ? { replyTo } : {}),
     });
     return;
@@ -261,6 +265,23 @@ export async function sendTestEmail(to: string): Promise<{ ok: true } | { ok: fa
         `From: ${from}`,
         `Time: ${new Date().toISOString()}`,
       ].join('\n'),
+      html: renderEmailHtml(
+        {
+          heading: 'Your shop can send email',
+          paragraphs: [
+            'This is a test email. If you can read it, your shop can send email. If you can see your logo above, the branded layout works too.',
+          ],
+          lines: [
+            { label: 'Sent through', value: server ?? 'unknown' },
+            { label: 'From', value: from },
+            { label: 'Time', value: new Date().toISOString() },
+          ],
+        },
+        {
+          storeName: process.env.NEXT_PUBLIC_APP_NAME ?? 'Prime Accessories Kenya',
+          baseUrl: (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/+$/, ''),
+        }
+      ),
     });
     return { ok: true };
   } catch (error) {
