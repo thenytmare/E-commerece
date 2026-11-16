@@ -230,7 +230,9 @@ export class PaymentRepository extends BaseRepository {
       const current = await tx.payment.findUniqueOrThrow({ where: { id: paymentId } });
       await tx.$queryRaw`SELECT id FROM orders WHERE id = ${current.orderId} FOR UPDATE`;
       const claimed = await tx.payment.updateMany({
-        where: { id: paymentId, status: { in: ['PENDING', 'FAILED'] } },
+        // AWAITING_CONFIRMATION is the manual-Paybill state: an admin verifying
+        // the code calls this to settle it, exactly like an automated callback.
+        where: { id: paymentId, status: { in: ['PENDING', 'FAILED', 'AWAITING_CONFIRMATION'] } },
         data: {
           status: 'COMPLETED',
           paidAt: new Date(),
@@ -360,6 +362,115 @@ export class PaymentRepository extends BaseRepository {
           expectedAmount: payment.amount.toNumber(),
           externalId: details.externalId ?? payment.externalId,
           reason: details.reason,
+        },
+      },
+    });
+  }
+
+  /**
+   * Record a manual M-Pesa Paybill submission.
+   *
+   * The customer paid to the Paybill out of band and pasted their M-Pesa
+   * confirmation code. The payment is created AWAITING_CONFIRMATION — money is
+   * NOT yet trusted — and a staff member verifies the code against the real
+   * statement before completePayment confirms the order. The amount always
+   * comes from the order under a row lock, never the browser.
+   */
+  async createManualMpesaPayment(input: {
+    orderId: string;
+    receiptNumber: string;
+    payerPhone?: string;
+    rawMessage?: string;
+  }): Promise<{ payment: Payment; duplicate: boolean }> {
+    return this.db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM orders WHERE id = ${input.orderId} FOR UPDATE`;
+      const order = await tx.order.findUniqueOrThrow({ where: { id: input.orderId } });
+      if (order.status !== 'PENDING') throw new Error('This order is not awaiting payment');
+
+      const completed = await tx.payment.findFirst({
+        where: { orderId: input.orderId, status: 'COMPLETED' },
+      });
+      if (completed) throw new Error('This order has already been paid');
+
+      // An M-Pesa code is unique to one real transaction. Reject a code already
+      // seen anywhere, so the same payment can't be used to "pay" two orders
+      // and a double-submit of the same order is a no-op.
+      const seen = await tx.payment.findFirst({
+        where: { receiptNumber: input.receiptNumber },
+      });
+      if (seen) {
+        if (seen.orderId === input.orderId) {
+          return { payment: seen, duplicate: true };
+        }
+        throw new Error('This M-Pesa code has already been submitted. Check the code and try again.');
+      }
+
+      // Replace any earlier awaiting/failed manual attempt on this order rather
+      // than stacking rows, so the admin queue shows one entry per order.
+      const existing = await tx.payment.findFirst({
+        where: {
+          orderId: input.orderId,
+          provider: 'MANUAL_MPESA',
+          status: { in: ['AWAITING_CONFIRMATION', 'FAILED'] },
+        },
+      });
+
+      const metadata = {
+        rawMessage: input.rawMessage ?? null,
+        submittedAt: new Date().toISOString(),
+      } as Prisma.InputJsonValue;
+
+      if (existing) {
+        const payment = await tx.payment.update({
+          where: { id: existing.id },
+          data: {
+            status: 'AWAITING_CONFIRMATION',
+            receiptNumber: input.receiptNumber,
+            payerPhone: input.payerPhone ?? existing.payerPhone,
+            failureReason: null,
+            metadata,
+          },
+        });
+        return { payment, duplicate: false };
+      }
+
+      const payment = await tx.payment.create({
+        data: {
+          orderId: input.orderId,
+          provider: 'MANUAL_MPESA',
+          method: 'paybill',
+          amount: order.total,
+          status: 'AWAITING_CONFIRMATION',
+          receiptNumber: input.receiptNumber,
+          payerPhone: input.payerPhone ?? null,
+          metadata,
+        },
+      });
+      return { payment, duplicate: false };
+    });
+  }
+
+  /**
+   * Reject a manual M-Pesa submission whose code did not check out. Moves it
+   * from AWAITING_CONFIRMATION to FAILED (conditional, so it can't un-settle a
+   * confirmed payment); the order stays PENDING and the customer can resubmit.
+   */
+  async rejectManualMpesaPayment(paymentId: string, reason: string): Promise<Payment> {
+    await this.db.payment.updateMany({
+      where: { id: paymentId, provider: 'MANUAL_MPESA', status: 'AWAITING_CONFIRMATION' },
+      data: { status: 'FAILED', failureReason: reason },
+    });
+    return this.db.payment.findUniqueOrThrow({ where: { id: paymentId } });
+  }
+
+  /** Manual M-Pesa submissions awaiting a staff check, oldest first. */
+  findManualAwaitingConfirmation() {
+    return this.db.payment.findMany({
+      where: { provider: 'MANUAL_MPESA', status: 'AWAITING_CONFIRMATION' },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        order: {
+          include: { user: { select: { id: true, name: true, email: true } } },
         },
       },
     });

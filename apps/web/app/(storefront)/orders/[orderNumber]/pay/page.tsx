@@ -1,5 +1,6 @@
 import { PaymentMethodPicker } from '@/components/payment/payment-method-picker';
 import { loadViewableOrder } from '@/lib/order-access';
+import { getPaymentSettings } from '@/lib/payment-settings';
 import { formatPrice } from '@/lib/format';
 import {
   deliveryZoneLabel,
@@ -43,8 +44,19 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
 
   const stripeEnabled = isStripeConfigured();
   const mpesaEnabled = isMpesaConfigured();
-  const devMode = isPaymentDevMode() && !stripeEnabled && !mpesaEnabled;
+  const { manualMpesa } = await getPaymentSettings();
+  const devMode = isPaymentDevMode() && !stripeEnabled && !mpesaEnabled && !manualMpesa.enabled;
   const codEnabled = isCashOnDeliveryAvailable(order.deliveryZone);
+
+  // Surface this order's existing manual submission so the picker can show the
+  // "awaiting confirmation" panel or let the customer resubmit a rejected code.
+  const manualPayment = order.payments.find((p) => p.provider === 'MANUAL_MPESA');
+  const manualStatus =
+    manualPayment?.status === 'AWAITING_CONFIRMATION'
+      ? 'AWAITING_CONFIRMATION'
+      : manualPayment?.status === 'FAILED'
+        ? 'FAILED'
+        : null;
 
   return (
     <main>
@@ -71,6 +83,18 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
               stripeEnabled={stripeEnabled}
               mpesaEnabled={mpesaEnabled}
               codEnabled={codEnabled}
+              manualMpesa={
+                manualMpesa.enabled
+                  ? {
+                      businessName: manualMpesa.businessName,
+                      paybillNumber: manualMpesa.paybillNumber,
+                      accountNumber: manualMpesa.accountNumber,
+                      contactPhone: manualMpesa.contactPhone,
+                      instructions: manualMpesa.instructions,
+                    }
+                  : null
+              }
+              manualStatus={manualStatus}
               // `devMode` already means "dev mode AND no real provider
               // configured". OR-ing isPaymentDevMode() back in cancelled that
               // out, showing the simulate-payment panel on any staging

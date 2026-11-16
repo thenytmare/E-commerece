@@ -130,11 +130,49 @@ export const storeSettingsSchema = z.object({
   whatsappNumber: optionalText,
 });
 
+export const paymentSettingsSchema = z
+  .object({
+    manualMpesaEnabled: checkbox,
+    businessName: optionalText,
+    // Safaricom Paybill numbers are 5–7 digits. Keep it digits-only so a
+    // customer can type it straight into the M-Pesa menu.
+    paybillNumber: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v && v.length > 0 ? v.replace(/\s+/g, '') : ''))
+      .refine((v) => v === '' || /^\d{5,7}$/.test(v), 'Paybill number must be 5 to 7 digits'),
+    accountNumber: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v && v.length > 0 ? v : ''))
+      .refine((v) => v.length <= 40, 'Account number is too long'),
+    contactPhone: optionalText,
+    instructions: z
+      .string()
+      .trim()
+      .max(500, 'Instructions are too long')
+      .optional()
+      .transform((v) => (v && v.length > 0 ? v : null)),
+  })
+  // Turning the method on without the two numbers a customer needs would put a
+  // dead Paybill in front of real buyers, so require them together.
+  .refine((data) => !data.manualMpesaEnabled || data.paybillNumber.length > 0, {
+    message: 'Enter the Paybill number before enabling manual M-Pesa',
+    path: ['paybillNumber'],
+  })
+  .refine((data) => !data.manualMpesaEnabled || data.accountNumber.length > 0, {
+    message: 'Enter the account number before enabling manual M-Pesa',
+    path: ['accountNumber'],
+  });
+
 export type ProductInput = z.infer<typeof productSchema>;
 export type CategoryInput = z.infer<typeof categorySchema>;
 export type BrandInput = z.infer<typeof brandSchema>;
 export type CouponInput = z.infer<typeof couponSchema>;
 export type StoreSettingsInput = z.infer<typeof storeSettingsSchema>;
+export type PaymentSettingsInput = z.infer<typeof paymentSettingsSchema>;
 
 export type FieldErrors = Record<string, string>;
 

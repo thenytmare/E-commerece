@@ -261,4 +261,94 @@ describe('PaymentRepository', () => {
     await r.findByExternalId('ws_CO_123', 'MPESA');
     expect(findFirst).toHaveBeenCalledWith({ where: { externalId: 'ws_CO_123', provider: 'MPESA' } });
   });
+
+  // Manual M-Pesa: staff confirming a submitted code settles it like any other
+  // callback, so completePayment must claim AWAITING_CONFIRMATION too.
+  it('completePayment confirms an AWAITING_CONFIRMATION manual payment', async () => {
+    seed(ctx, 'AWAITING_CONFIRMATION', 'PENDING', { provider: 'MANUAL_MPESA' });
+    await repo.completePayment('pay-1');
+    expect(ctx.payments.get('pay-1')?.status).toBe('COMPLETED');
+    expect(ctx.orders.get('order-1')?.status).toBe('CONFIRMED');
+    expect(ctx.history).toHaveLength(1);
+  });
+
+  it('rejectManualMpesaPayment marks an awaiting submission FAILED and leaves the order pending', async () => {
+    seed(ctx, 'AWAITING_CONFIRMATION', 'PENDING', { provider: 'MANUAL_MPESA' });
+    await repo.rejectManualMpesaPayment('pay-1', 'Code not found');
+    expect(ctx.payments.get('pay-1')).toMatchObject({ status: 'FAILED', failureReason: 'Code not found' });
+    expect(ctx.orders.get('order-1')?.status).toBe('PENDING');
+  });
+
+  // A reject must never undo a payment a parallel confirm already settled.
+  it('rejectManualMpesaPayment never downgrades a COMPLETED payment', async () => {
+    seed(ctx, 'COMPLETED', 'CONFIRMED', { provider: 'MANUAL_MPESA' });
+    await repo.rejectManualMpesaPayment('pay-1', 'Code not found');
+    expect(ctx.payments.get('pay-1')?.status).toBe('COMPLETED');
+  });
+
+  it('createManualMpesaPayment records a new AWAITING_CONFIRMATION payment', async () => {
+    const create = vi.fn().mockResolvedValue({ id: 'pay-1', status: 'AWAITING_CONFIRMATION' });
+    const findFirst = vi.fn().mockResolvedValue(null);
+    const tx = {
+      payment: { create, findFirst },
+      order: { findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'order-1', status: 'PENDING', total: 1500 }) },
+      $queryRaw: vi.fn(),
+    };
+    const r = new PaymentRepository({ $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) } as never);
+    const res = await r.createManualMpesaPayment({ orderId: 'order-1', receiptNumber: 'SGH4K8L2MN', rawMessage: 'msg' });
+    expect(res.duplicate).toBe(false);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          provider: 'MANUAL_MPESA',
+          status: 'AWAITING_CONFIRMATION',
+          receiptNumber: 'SGH4K8L2MN',
+        }),
+      })
+    );
+  });
+
+  // One M-Pesa code is one real transaction: it can't pay for a second order.
+  it('createManualMpesaPayment rejects a code already used by another order', async () => {
+    const findFirst = vi
+      .fn()
+      .mockResolvedValueOnce(null) // no completed payment
+      .mockResolvedValueOnce({ id: 'other', orderId: 'order-2' }); // code seen on another order
+    const tx = {
+      payment: { create: vi.fn(), findFirst },
+      order: { findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'order-1', status: 'PENDING', total: 1500 }) },
+      $queryRaw: vi.fn(),
+    };
+    const r = new PaymentRepository({ $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) } as never);
+    await expect(
+      r.createManualMpesaPayment({ orderId: 'order-1', receiptNumber: 'DUP1234567', rawMessage: 'm' })
+    ).rejects.toThrow(/already been submitted/);
+  });
+
+  it('createManualMpesaPayment is idempotent when the same order resubmits the same code', async () => {
+    const findFirst = vi
+      .fn()
+      .mockResolvedValueOnce(null) // no completed payment
+      .mockResolvedValueOnce({ id: 'pay-1', orderId: 'order-1' }); // same code, same order
+    const tx = {
+      payment: { create: vi.fn(), findFirst, update: vi.fn() },
+      order: { findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'order-1', status: 'PENDING', total: 1500 }) },
+      $queryRaw: vi.fn(),
+    };
+    const r = new PaymentRepository({ $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) } as never);
+    const res = await r.createManualMpesaPayment({ orderId: 'order-1', receiptNumber: 'SAME123456', rawMessage: 'm' });
+    expect(res.duplicate).toBe(true);
+  });
+
+  it('createManualMpesaPayment rejects a submission for an order that is no longer pending', async () => {
+    const tx = {
+      payment: { create: vi.fn(), findFirst: vi.fn() },
+      order: { findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'order-1', status: 'CONFIRMED', total: 1500 }) },
+      $queryRaw: vi.fn(),
+    };
+    const r = new PaymentRepository({ $transaction: (fn: (value: typeof tx) => unknown) => fn(tx) } as never);
+    await expect(
+      r.createManualMpesaPayment({ orderId: 'order-1', receiptNumber: 'LATE123456', rawMessage: 'm' })
+    ).rejects.toThrow(/not awaiting payment/);
+  });
 });

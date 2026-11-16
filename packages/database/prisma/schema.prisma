@@ -33,6 +33,9 @@ enum OrderStatus {
 
 enum PaymentStatus {
   PENDING
+  /// Customer submitted an M-Pesa confirmation code; staff must verify it in
+  /// the bank/till statement before the order is confirmed. Manual flow only.
+  AWAITING_CONFIRMATION
   COMPLETED
   FAILED
   REFUNDED
@@ -43,6 +46,9 @@ enum PaymentProvider {
   MPESA
   /// Paid in cash to the rider. Nairobi deliveries only.
   CASH_ON_DELIVERY
+  /// Customer paid to the M-Pesa Paybill manually and submitted the code; a
+  /// staff member confirms it by hand. Used until a real gateway is wired up.
+  MANUAL_MPESA
 }
 
 enum CouponType {

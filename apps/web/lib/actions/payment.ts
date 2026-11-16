@@ -1,6 +1,8 @@
 'use server';
 
 import { loadViewableOrder } from '@/lib/order-access';
+import { getPaymentSettings } from '@/lib/payment-settings';
+import { extractMpesaCode } from '@/lib/payments/mpesa-code';
 import { getOrCreatePendingPayment } from '@/lib/payments/order-payment';
 import { buildCallbackUrl, initiateStkPush, normalizeMpesaPhone, MpesaInitiationError } from '@/lib/payments/mpesa';
 import { createStripeCheckoutSession } from '@/lib/payments/stripe';
@@ -206,6 +208,66 @@ export async function chooseCashOnDeliveryAction(
   }
 
   redirect(`/orders/${orderNumber}?cod=1`);
+}
+
+/**
+ * Customer paid to the M-Pesa Paybill out of band and pasted their
+ * confirmation code (or the whole SMS). We record it as AWAITING_CONFIRMATION;
+ * a staff member checks it against the real statement before the order is
+ * confirmed. No money is trusted here.
+ */
+export async function submitManualMpesaAction(
+  _prevState: PaymentActionState | null,
+  formData: FormData
+): Promise<PaymentActionState> {
+  const orderNumber = String(formData.get('orderNumber') ?? '');
+  const rawMessage = String(formData.get('mpesaMessage') ?? '').trim();
+
+  if (!rawMessage) {
+    return { error: 'Paste your M-Pesa confirmation message or code.' };
+  }
+  if (rawMessage.length > 1000) {
+    return { error: 'That message is too long. Paste just the M-Pesa confirmation SMS.' };
+  }
+
+  const limit = await rateLimit(`manual-mpesa:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
+  const code = extractMpesaCode(rawMessage);
+  if (!code) {
+    return {
+      error:
+        "We couldn't find an M-Pesa code in that. It looks like SGH4K8L2MN — paste the full confirmation SMS or just the code.",
+    };
+  }
+
+  try {
+    const { manualMpesa } = await getPaymentSettings();
+    if (!manualMpesa.enabled) {
+      return { error: 'M-Pesa Paybill payment is not available right now.' };
+    }
+
+    const order = await loadPayableOrder(orderNumber);
+    const repos = createRepositories();
+
+    const { duplicate } = await repos.payment.createManualMpesaPayment({
+      orderId: order.id,
+      receiptNumber: code,
+      rawMessage,
+    });
+
+    revalidatePath(`/orders/${orderNumber}/pay`);
+    return {
+      success: duplicate
+        ? 'We already have this code and are checking it. We will confirm your order shortly.'
+        : 'Thanks. We have your payment code and will confirm your order shortly.',
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not submit your payment code.';
+    return { error: message };
+  }
 }
 
 export async function simulatePaymentAction(

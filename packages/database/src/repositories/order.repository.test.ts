@@ -12,6 +12,7 @@ describe('OrderRepository', () => {
       update: vi.fn(),
       updateMany: vi.fn(),
       count: vi.fn(),
+      findMany: vi.fn(),
     },
     inventory: { findUnique: vi.fn(), update: vi.fn() },
     inventoryLog: { create: vi.fn() },
@@ -460,5 +461,28 @@ describe('OrderRepository', () => {
     // the global maxUses cap (there is none configured here) can apply.
     expect(mockDb.$queryRaw).not.toHaveBeenCalled();
     expect(mockDb.order.count).not.toHaveBeenCalled();
+  });
+
+  // Manual M-Pesa: an order whose customer has submitted a code that staff
+  // haven't checked yet must not be auto-cancelled, or its stock would be
+  // released out from under a payment about to be confirmed.
+  it('findAbandoned excludes orders with a manual payment awaiting confirmation', async () => {
+    mockDb.order.findMany.mockResolvedValue([]);
+    const cutoff = new Date('2026-11-16T00:00:00Z');
+
+    await repo.findAbandoned(cutoff);
+
+    expect(mockDb.order.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'PENDING',
+          NOT: {
+            payments: {
+              some: { provider: 'MANUAL_MPESA', status: 'AWAITING_CONFIRMATION' },
+            },
+          },
+        }),
+      })
+    );
   });
 });

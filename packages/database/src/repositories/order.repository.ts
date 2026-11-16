@@ -604,6 +604,14 @@ export class OrderRepository extends BaseRepository {
         status: 'PENDING',
         createdAt: { lt: olderThan },
         payments: { none: { status: 'COMPLETED' } },
+        // Don't auto-cancel an order whose customer has submitted an M-Pesa
+        // code that staff haven't checked yet — that would release the stock
+        // out from under a payment we are about to confirm.
+        NOT: {
+          payments: {
+            some: { provider: 'MANUAL_MPESA', status: 'AWAITING_CONFIRMATION' },
+          },
+        },
       },
       select: { id: true, orderNumber: true },
       orderBy: { createdAt: 'asc' },

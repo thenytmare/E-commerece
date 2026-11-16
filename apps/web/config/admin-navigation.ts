@@ -14,7 +14,9 @@ import {
   Megaphone,
   BellRing,
   Zap,
-  Timer
+  Timer,
+  CreditCard,
+  BadgeCheck
 } from 'lucide-react';
 
 // Register core Phase 1 modules here for now.
@@ -304,6 +306,46 @@ registerModule({
           href: '/admin/settings/store',
           icon: Settings,
           requiredPermissions: ['settings.read'],
+        }
+      ]
+    }
+  ]
+});
+
+registerModule({
+  id: 'payment-settings-module',
+  name: 'Payment Settings',
+  permissions: ['settings.write'],
+  routes: ['/admin/settings/payment'],
+  navigation: [
+    {
+      group: 'Settings',
+      items: [
+        {
+          title: 'Payment Settings',
+          href: '/admin/settings/payment',
+          icon: CreditCard,
+          requiredPermissions: ['settings.read'],
+        }
+      ]
+    }
+  ]
+});
+
+registerModule({
+  id: 'payment-confirmations-module',
+  name: 'Payment confirmations',
+  permissions: ['orders.write'],
+  routes: ['/admin/payments/confirmations'],
+  navigation: [
+    {
+      group: 'Sales',
+      items: [
+        {
+          title: 'Payment confirmations',
+          href: '/admin/payments/confirmations',
+          icon: BadgeCheck,
+          requiredPermissions: ['orders.write'],
         }
       ]
     }
