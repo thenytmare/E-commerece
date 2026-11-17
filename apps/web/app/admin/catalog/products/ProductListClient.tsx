@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -124,10 +124,33 @@ export function ProductListClient({
     [pathname, router, searchParams]
   );
 
+  // Search waits half a second after typing stops, then updates the address.
+  // It must only run when the admin actually changed the search. Before, it
+  // also ran after every page change and filter change, and sent the list
+  // back to page 1 (so "Next page" never stuck).
+  const urlSearch = searchParams.get('search') ?? '';
+  const lastSearch = useRef(urlSearch);
   useEffect(() => {
-    const timer = setTimeout(() => pushParams({ search: searchTerm || null }), 500);
+    // The address changed by itself (browser Back, Clear filters): follow it.
+    if (urlSearch !== lastSearch.current) {
+      lastSearch.current = urlSearch;
+      setSearchTerm(urlSearch);
+    }
+  }, [urlSearch]);
+  useEffect(() => {
+    if (searchTerm === lastSearch.current) return;
+    const timer = setTimeout(() => {
+      lastSearch.current = searchTerm;
+      pushParams({ search: searchTerm || null });
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm, pushParams]);
+
+  // The edit page gets the current filters and page, so Back and Save return
+  // to the same view instead of the unfiltered list.
+  const fromQuery = searchParams.toString();
+  const editHref = (id: string) =>
+    `/admin/catalog/products/${id}${fromQuery ? `?from=${encodeURIComponent(fromQuery)}` : ''}`;
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
@@ -328,12 +351,12 @@ export function ProductListClient({
   // Read-only roles previously saw every control, clicked it, and were
   // silently redirected to the dashboard with their work discarded.
   const bulkActions = !canWrite ? null : viewMode === 'deleted' ? (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => setBulkConfirm({ action: 'restore', ids: selectedIds })}
         disabled={isBulkProcessing}
-        className="px-3 py-1.5 border border-border bg-background rounded-md text-xs font-medium hover:bg-muted"
+        className="min-h-11 px-3 py-1.5 sm:min-h-0 border border-border bg-background rounded-md text-xs font-medium hover:bg-muted"
       >
         Restore
       </button>
@@ -342,19 +365,19 @@ export function ProductListClient({
           type="button"
           onClick={() => setBulkConfirm({ action: 'permanent-delete', ids: selectedIds })}
           disabled={isBulkProcessing}
-          className="px-3 py-1.5 border border-destructive/50 bg-destructive/10 rounded-md text-xs font-medium text-destructive hover:bg-destructive/20"
+          className="min-h-11 px-3 py-1.5 sm:min-h-0 border border-destructive/50 bg-destructive/10 rounded-md text-xs font-medium text-destructive hover:bg-destructive/20"
         >
           Delete Forever
         </button>
       ) : null}
     </div>
   ) : (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => setBulkConfirm({ action: 'activate', ids: selectedIds })}
         disabled={isBulkProcessing}
-        className="px-3 py-1.5 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-700 dark:text-green-400 hover:bg-green-600/20 flex items-center gap-1"
+        className="min-h-11 px-3 py-1.5 sm:min-h-0 border border-green-600/50 bg-green-600/10 rounded-md text-xs font-medium text-green-700 dark:text-green-400 hover:bg-green-600/20 flex items-center gap-1"
       >
         <Eye className="h-3 w-3" /> Show selected
       </button>
@@ -362,7 +385,7 @@ export function ProductListClient({
         type="button"
         onClick={() => setBulkConfirm({ action: 'deactivate', ids: selectedIds })}
         disabled={isBulkProcessing}
-        className="px-3 py-1.5 border border-muted-foreground/30 bg-muted rounded-md text-xs font-medium text-muted-foreground hover:bg-muted/80 flex items-center gap-1"
+        className="min-h-11 px-3 py-1.5 sm:min-h-0 border border-muted-foreground/30 bg-muted rounded-md text-xs font-medium text-muted-foreground hover:bg-muted/80 flex items-center gap-1"
       >
         <EyeOff className="h-3 w-3" /> Hide selected
       </button>
@@ -371,7 +394,7 @@ export function ProductListClient({
           type="button"
           onClick={() => setBulkConfirm({ action: 'soft-delete', ids: selectedIds })}
           disabled={isBulkProcessing}
-          className="px-3 py-1.5 border border-destructive/50 bg-destructive/10 rounded-md text-xs font-medium text-destructive hover:bg-destructive/20"
+          className="min-h-11 px-3 py-1.5 sm:min-h-0 border border-destructive/50 bg-destructive/10 rounded-md text-xs font-medium text-destructive hover:bg-destructive/20"
         >
           Delete Selected
         </button>
@@ -527,7 +550,7 @@ export function ProductListClient({
                 />
               )}
               {canWrite && viewMode === 'active' ? (
-                <Link href={`/admin/catalog/products/${item.id}`} className="inline-flex min-h-[44px] items-center px-3 text-sm font-medium text-primary">
+                <Link href={editHref(item.id)} className="inline-flex min-h-[44px] items-center px-3 text-sm font-medium text-primary">
                   Edit
                 </Link>
               ) : null}
@@ -576,7 +599,7 @@ export function ProductListClient({
               <>
                 {canWrite ? (
                   <Link
-                    href={`/admin/catalog/products/${item.id}`}
+                    href={editHref(item.id)}
                     className="p-1.5 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-muted"
                     title="Edit"
                   >

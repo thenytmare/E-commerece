@@ -17,10 +17,13 @@ export function ProductFormClient({
   initialData,
   categories,
   brands,
+  listHref = '/admin/catalog/products',
 }: {
   initialData: ProductFormData | null,
   categories: { id: string, name: string }[],
-  brands: { id: string, name: string }[]
+  brands: { id: string, name: string }[],
+  /** The products list as the admin left it, with filters and page. */
+  listHref?: string
 }) {
   const router = useRouter();
   // The page itself lets a products.read-only viewer open an existing
@@ -231,7 +234,7 @@ export function ProductFormClient({
       setIsSubmitting(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      router.push('/admin/catalog/products');
+      router.push(listHref);
     }
   };
 
@@ -627,7 +630,7 @@ export function ProductFormClient({
       <FormActions
         isSubmitting={isSubmitting}
         submitDisabled={!canWrite}
-        onCancel={() => router.push('/admin/catalog/products')}
+        onCancel={() => router.push(listHref)}
         submitText={initialData ? 'Update Product' : 'Create Product'}
       />
 

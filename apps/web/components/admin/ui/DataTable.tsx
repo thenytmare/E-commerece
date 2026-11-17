@@ -220,9 +220,9 @@ export function DataTable<T extends { id: string | number }>({
           )}
         </div>
         
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           {bulkActions && activeSelectedIds.length > 0 && (
-            <div className="flex items-center gap-2 mr-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:mr-2 sm:w-auto">
               <span className="text-sm text-muted-foreground mr-2">{activeSelectedIds.length} selected</span>
               {bulkActions}
             </div>
