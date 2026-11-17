@@ -113,7 +113,7 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
           >
             −
           </Button>
-          <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+          <span className="w-8 text-center text-sm font-medium tabular-nums" aria-live="polite">{item.quantity}</span>
           <Button
             type="button"
             variant="outline"

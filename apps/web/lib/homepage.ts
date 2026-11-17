@@ -13,8 +13,8 @@ export type HomepageSections = {
 export const defaultHomepageSections: HomepageSections = {
   hero: {
     enabled: true,
-    title: 'Prime Accessories Kenya',
-    subtitle: 'Premium Electronics',
+    title: 'Genuine phone and audio accessories',
+    subtitle: 'Earbuds, power banks, chargers and smart watches, delivered across Kenya.',
     ctaText: 'Shop Now',
     ctaLink: '/products',
     imageUrl: '',

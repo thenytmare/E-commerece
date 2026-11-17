@@ -22,7 +22,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   return (
     <main>
-      <Section spacing="sm" className="border-b border-border bg-card">
+      <Section spacing="sm" className="border-b border-border bg-card py-5 sm:py-12">
         <Container>
           <Heading as="h1" size="lg">
             All Products

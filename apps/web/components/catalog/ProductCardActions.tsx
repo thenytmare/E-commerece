@@ -30,7 +30,7 @@ type Props = {
   productUrl: string;
 };
 
-/** Green WhatsApp mark, drawn here so it needs no outside image. */
+/** WhatsApp mark, drawn here so it needs no outside image. */
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
@@ -90,7 +90,7 @@ export function ProductCardActions(props: Props) {
         ) : props.hasOptions || !props.variantId ? (
           <Link
             href={`/products/${props.productSlug}`}
-            className={`${main} bg-primary text-primary-foreground hover:bg-primary/90`}
+            className={`${main} bg-foreground text-background hover:bg-foreground/90`}
             aria-label={`Choose options for ${props.productName}`}
           >
             Choose
@@ -101,7 +101,7 @@ export function ProductCardActions(props: Props) {
             onClick={add}
             disabled={pending}
             aria-label={`Add ${props.productName} to cart`}
-            className={`${main} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-70`}
+            className={`${main} bg-foreground text-background hover:bg-foreground/90 disabled:opacity-70`}
           >
             {pending ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -129,7 +129,7 @@ export function ProductCardActions(props: Props) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Ask about ${props.productName} on WhatsApp`}
-          className={`${square} border-transparent bg-[#25D366] text-white hover:bg-[#1ebe5b]`}
+          className={`${square} border-border bg-background text-[#128C7E] hover:bg-muted dark:text-[#25D366]`}
         >
           <WhatsAppIcon className="h-5 w-5" />
         </a>

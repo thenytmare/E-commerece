@@ -33,8 +33,7 @@ export default async function PrivacyPage() {
           </li>
         </ul>
         <p>
-          We never see or store your full card details or your M-Pesa PIN — those are handled by
-          the payment provider.
+          We never see or store your M-Pesa PIN. It is entered on your phone and handled by M-Pesa.
         </p>
       </section>
 

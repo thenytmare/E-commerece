@@ -93,9 +93,9 @@ function Tile({ category, layout, showButton }: { category: CategoryCard; layout
           onError={() => setFailed(true)}
           className={
             category.hasOwnImage
-              ? 'object-cover transition-transform duration-500 group-hover:scale-[1.03]'
+              ? 'object-cover transition-transform duration-300 [@media(hover:hover)]:group-hover:scale-[1.03]'
               : // A stand-in product photo: the whole item on white, not a crop.
-                'bg-white object-contain p-8 pb-16 lg:p-12 lg:pb-20 transition-transform duration-500 group-hover:scale-[1.03]'
+                'bg-white object-contain p-8 pb-16 lg:p-12 lg:pb-20 transition-transform duration-300 [@media(hover:hover)]:group-hover:scale-[1.03]'
           }
         />
       ) : (

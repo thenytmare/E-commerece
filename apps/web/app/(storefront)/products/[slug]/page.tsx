@@ -2,6 +2,7 @@ import { ProductGrid } from '@/components/catalog/product-grid';
 import { ProductDetailView } from '@/components/catalog/ProductDetailView';
 import { ProductJsonLd } from '@/components/catalog/ProductJsonLd';
 import { StarRating } from '@/components/catalog/StarRating';
+import { ProductAssurances } from '@/components/catalog/product-assurances';
 import { ProductReviews } from '@/components/catalog/ProductReviews';
 import { WishlistButton } from '@/components/catalog/WishlistButton';
 import { getCatalogRepos } from '@/lib/catalog';
@@ -9,7 +10,7 @@ import { getStoreSettings } from '@/lib/store';
 import { getWishlistOwner } from '@/lib/wishlist-owner';
 import { getPublicProduct, getRatingSummary } from '@/lib/request-cache';
 import { toClientProductDetail } from '@/lib/catalog-dtos';
-import { Badge, Container, Heading, Section, Text } from '@repo/ui';
+import { Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -158,12 +159,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <Heading as="h1" size="lg">
                   {product.name}
                 </Heading>
-                {product.shortDescription && <Text variant="lead">{product.shortDescription}</Text>}
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{product.brand.name}</Badge>
-                  <Badge variant="outline">{product.category.name}</Badge>
-                  {product.isFeatured && <Badge>Featured</Badge>}
-                </div>
                 {ratingSummary.count > 0 && ratingSummary.average !== null ? (
                   <a href="#reviews" className="inline-flex items-center gap-2 text-sm hover:underline">
                     <StarRating value={ratingSummary.average} />
@@ -176,13 +171,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             }
             footer={
-              <WishlistButton
-                productId={product.id}
-                productSlug={product.slug}
-                initialSaved={isSaved}
-                showLabel
-                className="mt-4"
-              />
+              <div className="mt-6 space-y-5">
+                <ProductAssurances />
+                {product.shortDescription && <Text className="text-muted-foreground">{product.shortDescription}</Text>}
+                <WishlistButton
+                  productId={product.id}
+                  productSlug={product.slug}
+                  initialSaved={isSaved}
+                  showLabel
+                />
+              </div>
             }
           />
         </Container>

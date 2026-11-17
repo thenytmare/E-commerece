@@ -1,8 +1,8 @@
 import { ProductCardActions } from '@/components/catalog/ProductCardActions';
 import { ProductImage } from '@/components/catalog/product-image';
-import { discountPercent, formatPrice, toNumber } from '@/lib/format';
+import { formatPrice, toNumber } from '@/lib/format';
 import type { ProductListItem } from '@repo/database';
-import { Badge, Text } from '@repo/ui';
+import { Text } from '@repo/ui';
 import Link from 'next/link';
 
 interface ProductCardProps {
@@ -20,7 +20,6 @@ export function ProductCard({ product, priority, saved = false, whatsappNumber, 
   const defaultVariant = product.variants[0];
   const price = defaultVariant?.price ?? product.basePrice;
   const compareAt = defaultVariant?.compareAtPrice ?? product.compareAtPrice;
-  const discount = compareAt ? discountPercent(price, compareAt) : null;
   const featuredImage = product.images[0];
 
   // Stock status on the card itself, so a shopper doesn't click through only
@@ -52,7 +51,7 @@ export function ProductCard({ product, priority, saved = false, whatsappNumber, 
         ) : null}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3 pb-3 sm:p-4 sm:pb-3">
-        <Text variant="muted" className="text-xs font-medium text-primary">
+        <Text variant="muted" className="text-xs">
           {product.brand.name}
         </Text>
         <Text className="line-clamp-2 font-medium leading-snug">{product.name}</Text>
@@ -62,11 +61,6 @@ export function ProductCard({ product, priority, saved = false, whatsappNumber, 
             <Text variant="muted" className="text-sm line-through">
               {formatPrice(compareAt)}
             </Text>
-          ) : null}
-          {discount ? (
-            <Badge variant="destructive" className="text-[10px]">
-              -{discount}%
-            </Badge>
           ) : null}
         </div>
       </div>

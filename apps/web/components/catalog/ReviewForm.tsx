@@ -88,7 +88,7 @@ export function ReviewForm({
               onBlur={() => setHovered(0)}
               onClick={() => setRating(star)}
               disabled={pending}
-              className="rounded p-0.5"
+              className="rounded p-2"
             >
               <Star
                 className={`h-7 w-7 transition-colors ${

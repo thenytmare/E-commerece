@@ -36,7 +36,7 @@ export default async function TermsPage() {
       <section className="space-y-3">
         <h2>Payment</h2>
         <p>
-          We accept M-Pesa and major debit and credit cards. Your order is only confirmed once
+          We accept M-Pesa, and cash on delivery in Nairobi. An M-Pesa order is only confirmed once
           payment has cleared. Stock is held for you while payment is being completed.
         </p>
       </section>
@@ -44,8 +44,12 @@ export default async function TermsPage() {
       <section className="space-y-3">
         <h2>Warranty</h2>
         <p>
-          Products carry the manufacturer&apos;s warranty where one is offered. Warranty claims are
-          handled through us — keep your order number as proof of purchase.
+          Warranty covers only products bought from us, from the brands we sell, and only where the
+          manufacturer offers a warranty. Items bought from other shops, or from brands we do not
+          stock, are not covered.
+        </p>
+        <p>
+          Warranty claims are handled through us. Keep your order number as proof of purchase.
         </p>
       </section>
 

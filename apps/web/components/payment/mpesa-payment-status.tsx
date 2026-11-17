@@ -89,7 +89,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
 
   if (state === 'success') {
     return (
-      <div className="rounded-xl border border-green-600/30 bg-green-600/5 p-6 space-y-3">
+      <div role="status" className="rounded-xl border border-green-600/30 bg-green-600/5 p-6 space-y-3">
         <Text className="font-semibold text-green-700 dark:text-green-400">Payment received</Text>
         <Text variant="muted" className="text-sm">
           {detail?.receiptNumber
@@ -105,7 +105,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
 
   if (state === 'failed') {
     return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-3">
+      <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 space-y-3">
         <Text className="font-semibold text-destructive">Payment not completed</Text>
         <Text variant="muted" className="text-sm">
           {detail?.failureReason ?? 'The payment was not completed.'}
@@ -133,7 +133,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
 
   if (state === 'timeout') {
     return (
-      <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-6 space-y-3">
+      <div role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-6 space-y-3">
         <Text className="font-semibold">Still waiting for confirmation</Text>
         <Text variant="muted" className="text-sm">
           We haven&apos;t had a result from M-Pesa yet. If you completed the payment it will
@@ -153,7 +153,7 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 space-y-3">
+    <div role="status" aria-live="polite" className="rounded-xl border border-border bg-card p-6 space-y-3">
       <div className="flex items-center gap-3">
         <span
           className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
@@ -162,8 +162,11 @@ export function MpesaPaymentStatus({ paymentId, orderNumber, onRetry }: Props) {
         <Text className="font-semibold">Check your phone</Text>
       </div>
       <Text variant="muted" className="text-sm">
-        Enter your M-Pesa PIN on the prompt to complete payment. This page updates automatically
-        and your items remain saved if you leave this page.
+        Enter your M-Pesa PIN on the prompt to complete payment. The prompt lasts about a minute.
+        This page updates automatically and your items remain saved if you leave this page.
+      </Text>
+      <Text variant="muted" className="text-sm">
+        Only tap Try again if no prompt arrives. If money was taken, wait here and do not pay twice.
       </Text>
       <Button variant="outline" onClick={onRetry} className="w-full">Didn&apos;t receive a prompt? Try again</Button>
     </div>

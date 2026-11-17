@@ -221,7 +221,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
                     >
                       {item.name}
                     </Link>
-                    <p className="text-muted-foreground">SKU: {item.sku} · Qty: {item.quantity}</p>
+                    <p className="text-muted-foreground">Qty: {item.quantity}</p>
                   </div>
                   <span className="font-medium">
                     {formatPrice(

@@ -42,7 +42,7 @@ export function ProductImage({ src, alt, className, priority }: ProductImageProp
         alt={alt}
         fill
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        className="object-cover transition-transform duration-300 group-hover:scale-105"
+        className="object-cover transition-transform duration-200 [@media(hover:hover)]:group-hover:scale-[1.03]"
         priority={priority}
         onError={() => setHasError(true)}
       />

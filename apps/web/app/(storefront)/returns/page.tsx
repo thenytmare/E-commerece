@@ -43,9 +43,7 @@ export default async function ReturnsPage() {
       <section className="space-y-3">
         <h2>Refunds</h2>
         <p>
-          Approved refunds are sent back to the payment method you used. M-Pesa refunds usually
-          arrive within 1–3 working days; card refunds can take up to 10 working days depending on
-          your bank.
+          Approved refunds are sent back by M-Pesa. They usually arrive within 1–3 working days.
         </p>
       </section>
 

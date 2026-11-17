@@ -22,7 +22,7 @@ export async function BannerStrip({ position }: { position: string }) {
                 <img
                   src={banner.imageUrl}
                   alt={banner.title}
-                  className="h-32 w-full object-cover transition-transform group-hover:scale-105"
+                  className="h-32 w-full object-cover transition-transform duration-200 [@media(hover:hover)]:group-hover:scale-[1.03]"
                 />
               ) : null}
               <span className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2 text-sm font-medium text-white">

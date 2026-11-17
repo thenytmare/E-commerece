@@ -48,9 +48,9 @@ export async function SiteHeader() {
               (not just a magnifying-glass icon) to read as "browse", not just "search". */}
           {/* 44px tall on phones, so they are easy to tap. */}
           <Button variant="ghost" size="sm" asChild className="h-11 px-2 sm:px-3 md:hidden">
-            <Link href="/products" aria-label="Browse products">
+            <Link href="/products" aria-label="Search and browse products">
               <Search className="h-4 w-4" aria-hidden="true" />
-              <span className="ml-1.5 hidden min-[360px]:inline">Shop</span>
+              <span className="ml-1.5 hidden min-[360px]:inline">Search</span>
             </Link>
           </Button>
           <div className="hidden md:block">

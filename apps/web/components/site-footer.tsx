@@ -25,7 +25,7 @@ export async function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-border bg-card">
       <Container className="py-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.1fr_0.8fr_0.9fr_1.5fr]">
           <div className="space-y-3">
             <Link href="/" className="flex min-h-11 items-center gap-2 font-semibold tracking-tight">
               <Image
@@ -117,8 +117,17 @@ export async function SiteFooter() {
               </li>
               <li className="flex min-h-11 items-center gap-2 md:min-h-0 md:items-start">
                 <Mail className="h-4 w-4 shrink-0 md:mt-0.5" aria-hidden="true" />
-                <a href={`mailto:${store.email}`} className="inline-flex min-h-11 items-center break-all hover:text-foreground md:min-h-0">
-                  {store.email}
+                <a href={`mailto:${store.email}`} className="inline-flex min-h-11 min-w-0 items-center break-words hover:text-foreground md:min-h-0">
+                  {/* Break after the @ if it must wrap, never in the middle of a word. */}
+                  <span>
+                    {store.email.split('@')[0]}
+                    {store.email.includes('@') ? (
+                      <>
+                        @<wbr />
+                        {store.email.split('@').slice(1).join('@')}
+                      </>
+                    ) : null}
+                  </span>
                 </a>
               </li>
               <li className="flex min-h-11 items-center gap-2 md:min-h-0 md:items-start">
@@ -142,7 +151,7 @@ export async function SiteFooter() {
             &copy; {year} {store.name}. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
-            We accept <span className="font-medium text-foreground">M-Pesa</span> and major cards
+            We accept <span className="font-medium text-foreground">M-Pesa</span> and cash on delivery in Nairobi
           </p>
         </div>
       </Container>

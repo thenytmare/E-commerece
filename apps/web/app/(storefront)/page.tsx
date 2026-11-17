@@ -1,27 +1,25 @@
 import { ProductGrid } from '@/components/catalog/product-grid';
 import { ProductImage } from '@/components/catalog/product-image';
 import { BannerStrip } from '@/components/BannerStrip';
-import { getCatalogRepos } from '@/lib/catalog';
+import { TrustStrip } from '@/components/trust-strip';
+import { formatPrice } from '@/lib/format';
 import { getHomepageSections } from '@/lib/homepage';
 import { Button, Container, Heading, Section, Text } from '@repo/ui';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CategoryCards, MoreCategories } from '@/components/catalog/category-cards';
-import { getCachedActiveBrands, getCachedBrandBySlug, getCachedCategoryBySlug, getCachedCategoryCards } from '@/lib/catalog-cache';
+import { getCachedCategoryCards, getHomeProducts } from '@/lib/catalog-cache';
 
 export default async function HomePage() {
-  const repos = getCatalogRepos();
   const sections = await getHomepageSections();
 
-  const [categories, featured, newArrivals, bestSellers] = await Promise.all([
+  const [categories, { featured, newArrivals, bestSellers }] = await Promise.all([
     sections.featuredCategories.enabled ? getCachedCategoryCards() : Promise.resolve([]),
-    sections.featuredProducts.enabled
-      ? repos.product.findMany({ isFeatured: true, isActive: true, limit: 4 })
-      : Promise.resolve(null),
-    sections.newArrivals.enabled
-      ? repos.product.findMany({ isActive: true, limit: 4 })
-      : Promise.resolve(null),
-    sections.bestSellers.enabled ? repos.product.findBestSelling(4) : Promise.resolve(null),
+    getHomeProducts({
+      featured: sections.featuredProducts.enabled,
+      newArrivals: sections.newArrivals.enabled,
+      bestSellers: sections.bestSellers.enabled,
+    }),
   ]);
 
   // Up to five big tiles: the categories ticked "Show on the homepage", in
@@ -36,17 +34,17 @@ export default async function HomePage() {
   // What most shoppers actually see first when the hero has no admin-set
   // image: real stock, not a placeholder. Featured stock wins if curated;
   // new arrivals otherwise.
-  const heroProducts = (featured?.items ?? newArrivals?.items ?? []).slice(0, 3);
+  const spotlight = (featured ?? newArrivals ?? [])[0];
 
   return (
     <main>
-      {/* overflow-hidden on the hero: the tilted product pictures must never push the page wider than the screen. */}
+      {/* overflow-hidden on the hero: nothing in it may push the page wider than the screen. */}
       {sections.hero.enabled && (
         <Section spacing="lg" className="overflow-hidden border-b border-border bg-card">
           <Container>
             <div className="grid items-center gap-10 lg:grid-cols-[3fr_2fr] lg:gap-16">
               <div className="max-w-xl">
-                <Heading as="h1" size="2xl" className="mb-5">
+                <Heading as="h1" size="xl" className="mb-5">
                   {sections.hero.title}
                 </Heading>
                 <Text variant="lead" className="mb-8 max-w-md">
@@ -75,34 +73,27 @@ export default async function HomePage() {
                     priority
                   />
                 </div>
-              ) : heroProducts.length > 0 ? (
-                <div className="relative hidden h-80 lg:block" aria-hidden="true">
-                  <div className="absolute inset-0 rounded-lg bg-primary/10" />
-                  {heroProducts.map((product, index) => {
-                    const offsets = [
-                      'left-6 top-4 w-40 rotate-[-4deg]',
-                      'left-40 top-16 w-44 rotate-[3deg]',
-                      'left-[15.5rem] top-2 w-36 rotate-[-2deg]',
-                    ];
-                    return (
-                      <div
-                        key={product.id}
-                        className={`absolute overflow-hidden rounded-lg border border-border shadow-elevated ${offsets[index]}`}
-                      >
-                        <ProductImage
-                          src={product.images[0]?.url}
-                          alt={product.name}
-                          priority={index === 0}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
+              ) : spotlight ? (
+                // One product, shown straight and square. Several tilted photos of
+                // different styles looked like a scrapbook.
+                <Link href={`/products/${spotlight.slug}`} className="group hidden justify-self-end lg:block lg:w-full lg:max-w-sm">
+                  <div className="overflow-hidden rounded-2xl bg-muted">
+                    <ProductImage src={spotlight.images[0]?.url} alt={spotlight.name} priority />
+                  </div>
+                  <div className="mt-3 flex items-baseline justify-between gap-4">
+                    <span className="line-clamp-1 font-medium group-hover:underline">{spotlight.name}</span>
+                    <span className="shrink-0 text-sm text-muted-foreground">
+                      {formatPrice(spotlight.variants[0]?.price ?? spotlight.basePrice)}
+                    </span>
+                  </div>
+                </Link>
               ) : null}
             </div>
           </Container>
         </Section>
       )}
+
+      <TrustStrip />
 
       <BannerStrip position="homepage" />
 
@@ -137,12 +128,12 @@ export default async function HomePage() {
                 <Link href="/products">View all</Link>
               </Button>
             </div>
-            <ProductGrid products={featured.items} emptyMessage="No featured products yet." />
+            <ProductGrid products={featured} emptyMessage="No featured products yet." />
           </Container>
         </Section>
       )}
 
-      {sections.newArrivals.enabled && newArrivals && newArrivals.items.length > 0 && (
+      {sections.newArrivals.enabled && newArrivals && newArrivals.length > 0 && (
         <Section>
           <Container>
             <div className="mb-8 flex items-end justify-between gap-4">
@@ -156,7 +147,7 @@ export default async function HomePage() {
                 <Link href="/products">View all</Link>
               </Button>
             </div>
-            <ProductGrid products={newArrivals.items} emptyMessage="" />
+            <ProductGrid products={newArrivals} emptyMessage="" />
           </Container>
         </Section>
       )}
