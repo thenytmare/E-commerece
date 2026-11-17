@@ -14,7 +14,11 @@
  *   // => 'https://wa.me/254700000000'
  */
 export function buildWhatsAppLink(phone: string, message?: string): string {
-  const digits = phone.replace(/\D/g, '');
+  let digits = phone.replace(/\D/g, '');
+  // Numbers are often saved the way people write them in Kenya (0712 345 678
+  // or 712345678). wa.me needs the country code and no leading zero.
+  if (digits.length === 10 && digits.startsWith('0')) digits = `254${digits.slice(1)}`;
+  else if (digits.length === 9 && /^[17]/.test(digits)) digits = `254${digits}`;
   const base = `https://wa.me/${digits}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }

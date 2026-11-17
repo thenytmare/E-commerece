@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MediaDialog } from './MediaDialog';
 import { optionPath, type MediaOption } from './media-options';
+import { shrinkImage } from './compress-image';
 
 type Upload = { id: string; file: File; status: 'queued' | 'uploading' | 'done' | 'error'; error?: string };
 type Props = { folderId?: string | null; categoryId?: string | null; imagesOnly?: boolean; onUploadComplete: () => void };
@@ -38,7 +39,7 @@ export function MediaUploader({ folderId, categoryId, imagesOnly, onUploadComple
     let succeeded = false;
     for (const item of batch) {
       setUploads(prev => prev.map(u => u.id === item.id ? { ...u, status: 'uploading', error: undefined } : u));
-      const body = new FormData(); body.append('file', item.file);
+      const body = new FormData(); body.append('file', await shrinkImage(item.file));
       if (category) body.append('categoryId', category);
       if (folder) body.append('folderId', folder);
       try {
@@ -68,7 +69,7 @@ export function MediaUploader({ folderId, categoryId, imagesOnly, onUploadComple
       setUploads([]); setError(''); setOpen(true);
     }}>Upload files</button>
     {open && <MediaDialog title="Upload files" onClose={() => { if (!busyRef.current) setOpen(false); }}>
-      <p className="text-sm text-muted-foreground">Choose a product category, then select several files or an entire folder. Maximum 10 MB per file.</p>
+      <p className="text-sm text-muted-foreground">Choose a product category, then select several files or an entire folder. Maximum 10 MB per file. Large photos are made smaller before they are sent.</p>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">Product category
@@ -83,10 +84,10 @@ export function MediaUploader({ folderId, categoryId, imagesOnly, onUploadComple
         </label>
       </div>
       <div className="rounded border-2 border-dashed p-6 text-center space-y-3" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); add(e.dataTransfer.files); }}>
-        <p>Drop files here or browse your computer.</p>
+        <p>Drop files here, or choose them from your device. On a phone you can pick from your gallery or take a photo.</p>
         <div className="flex justify-center gap-3">
-          <button type="button" disabled={busy || !ready} onClick={() => fileRef.current?.click()} className="rounded border px-3 py-2 disabled:opacity-50">Choose files</button>
-          <button type="button" disabled={busy || !ready} onClick={() => directoryRef.current?.click()} className="rounded border px-3 py-2 disabled:opacity-50">Choose folder</button>
+          <button type="button" disabled={busy || !ready} onClick={() => fileRef.current?.click()} className="min-h-11 rounded border px-4 py-2 disabled:opacity-50">Choose files</button>
+          <button type="button" disabled={busy || !ready} onClick={() => directoryRef.current?.click()} className="hidden rounded border px-3 py-2 disabled:opacity-50 md:block">Choose folder</button>
         </div>
       </div>
       <input ref={fileRef} aria-label="Files to upload" type="file" multiple hidden accept={imagesOnly ? 'image/*' : 'image/*,.pdf,.txt,.csv'} onChange={e => { add(e.target.files); e.target.value = ''; }} />

@@ -288,7 +288,7 @@ export function ProductActions({
                 type="button"
                 onClick={() => handleAddToCart()}
                 disabled={adding}
-                className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-foreground px-3 font-semibold text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
+                className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg bg-primary px-3 font-semibold text-primary-foreground transition-[color,background-color,transform] duration-150 hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
               >
                 {justAdded ? <Check className="h-5 w-5 shrink-0" /> : <ShoppingCart className="h-5 w-5 shrink-0" />}
                 <span className="truncate">{adding ? 'Adding...' : justAdded ? 'Added' : 'Add to cart'}</span>
@@ -298,7 +298,7 @@ export function ProductActions({
                 type="button"
                 onClick={handleOrderNow}
                 disabled={adding}
-                className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border-2 border-foreground px-3 font-semibold text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-50"
+                className="flex min-h-[48px] items-center justify-center gap-2 rounded-lg border-2 border-primary px-3 font-semibold text-primary transition-[color,background-color,transform] duration-150 hover:bg-primary/10 active:scale-[0.98] disabled:opacity-50"
               >
                 <Zap className="h-5 w-5 shrink-0" />
                 <span className="truncate">Buy now</span>
@@ -346,7 +346,7 @@ export function ProductActions({
             type="button"
             onClick={() => handleAddToCart()}
             disabled={adding}
-            className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-foreground px-5 py-2.5 font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
+            className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-[color,background-color,transform] duration-150 hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
           >
             {justAdded ? <Check className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />}
             {adding ? 'Adding...' : justAdded ? 'Added' : 'Add to cart'}
@@ -355,4 +355,4 @@ export function ProductActions({
       )}
     </div>
   );
-}
+}

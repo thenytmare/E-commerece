@@ -78,7 +78,7 @@ export function ProductCardActions(props: Props) {
   };
 
   const main =
-    'inline-flex h-11 min-w-0 flex-1 sm:h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-1 text-[13px] font-semibold min-[380px]:px-1.5 sm:px-2 sm:text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    'inline-flex h-11 min-w-0 flex-1 sm:h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-1 text-[13px] font-semibold min-[380px]:px-1.5 sm:px-2 sm:text-sm transition-[color,background-color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
   return (
     <div className="px-2 pb-2.5 min-[380px]:px-3 min-[380px]:pb-3 sm:px-4 sm:pb-4">
@@ -90,7 +90,7 @@ export function ProductCardActions(props: Props) {
         ) : props.hasOptions || !props.variantId ? (
           <Link
             href={`/products/${props.productSlug}`}
-            className={`${main} bg-foreground text-background hover:bg-foreground/90`}
+            className={`${main} bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]`}
             aria-label={`Choose options for ${props.productName}`}
           >
             Choose
@@ -101,7 +101,7 @@ export function ProductCardActions(props: Props) {
             onClick={add}
             disabled={pending}
             aria-label={`Add ${props.productName} to cart`}
-            className={`${main} bg-foreground text-background hover:bg-foreground/90 disabled:opacity-70`}
+            className={`${main} bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] disabled:opacity-70`}
           >
             {pending ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

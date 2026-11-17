@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { FormSection } from '@/components/admin/forms/FormSection';
 import { FormField } from '@/components/admin/forms/FormField';
 import { FormActions } from '@/components/admin/forms/FormActions';
 import { ValidationSummary } from '@/components/admin/forms/ValidationSummary';
 import { MediaPicker } from '@/components/admin/media/MediaPicker';
+import { shrinkImage } from '@/components/admin/media/compress-image';
 import { createProductAction, updateProductAction } from '@/lib/actions/admin-products';
-import { Image as ImageIcon, X, GripVertical, Trash, Plus, Star, Palette } from 'lucide-react';
+import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Trash, Plus, Star, Palette, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { ProductFormData } from '@/lib/admin/catalog-dtos';
 import { usePermissions } from '@/lib/hooks/use-permissions';
@@ -29,6 +30,14 @@ export function ProductFormClient({
   const { can } = usePermissions();
   const canWrite = can('products.write');
   const canEditStock = can('inventory.write');
+  const canUpload = can('media.write');
+
+  // Photos sent straight from this device (gallery or camera) to this product.
+  // They are still saved in the media library, but no folder or category has
+  // to be chosen first: they take this product's category.
+  const deviceFileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
   const [stock, setStock] = useState(String(initialData?.stock ?? 0));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,6 +83,44 @@ export function ProductFormClient({
 
   const setImageVariant = (imageIndex: number, variantIndex: number | null) => {
     setImages(prev => prev.map((img, i) => i === imageIndex ? { ...img, variantIndex } : img));
+  };
+
+  const uploadFromDevice = async (files: FileList | null) => {
+    const chosen = Array.from(files ?? []).filter(file => file.type.startsWith('image/'));
+    if (chosen.length === 0) {
+      setUploadMessage('Choose image files.');
+      return;
+    }
+    setUploading(true);
+    setUploadMessage(null);
+    const problems: string[] = [];
+    for (const original of chosen) {
+      try {
+        const body = new FormData();
+        body.append('file', await shrinkImage(original));
+        if (categoryId) body.append('categoryId', categoryId);
+        const res = await fetch('/api/admin/media/upload', { method: 'POST', body });
+        const data = await res.json();
+        if (!res.ok || !data?.media?.url) throw new Error(data?.error || 'Upload failed.');
+        setImages(prev => [...prev, { url: data.media.url as string, variantIndex: null }]);
+      } catch (err) {
+        problems.push(`${original.name}: ${err instanceof Error ? err.message : 'Upload failed.'}`);
+      }
+    }
+    setUploading(false);
+    setUploadMessage(problems.length ? problems.join(' ') : null);
+  };
+
+  // Moves one image to a new place. The first place is the main photo.
+  const moveImage = (from: number, to: number) => {
+    setImages(prev => {
+      if (to < 0 || to >= prev.length || from === to) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      if (item === undefined) return prev;
+      next.splice(to, 0, item);
+      return next;
+    });
   };
 
   const handleDragStart = (index: number) => {
@@ -204,53 +251,90 @@ export function ProductFormClient({
       )}
 
       <fieldset disabled={!canWrite} className="space-y-6 border-0 p-0 m-0 min-w-0">
-      <FormSection title="Product Gallery" description="Add multiple images. Drag to reorder. First image is featured. Assign images to color variants below.">
-        <div className="flex flex-wrap gap-3">
+      <FormSection title="Product Gallery" description="Upload photos straight from your phone or computer, or pick ones already in the library. On a computer, drag to reorder. On a phone, use the arrow buttons under each image. The first image is the main one. Assign images to color variants below.">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
           {images.map((img, i) => (
-            <div
-              key={i}
-              draggable
-              onDragStart={() => handleDragStart(i)}
-              onDragOver={(e) => handleDragOver(e, i)}
-              onDragEnd={handleDragEnd}
-              className={`relative group w-24 h-24 rounded-lg overflow-hidden border-2 ${i === 0 ? 'border-primary' : 'border-border'} bg-muted cursor-grab active:cursor-grabbing ${dragIndex === i ? 'opacity-50' : ''}`}
-            >
-              <img src={img.url} alt={`Product ${i + 1}`} className="w-full h-full object-cover" />
-              {i === 0 && (
-                <span className="absolute top-0.5 left-0.5 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
-                  <Star className="h-3 w-3 fill-current" />
-                </span>
-              )}
-              {/* Variant color dot indicator */}
-              {img.variantIndex !== null && colorVariants[img.variantIndex] && (
-                <span 
-                  className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white shadow-sm"
-                  style={{ backgroundColor: colorVariants[img.variantIndex]?.hex }}
-                  title={colorVariants[img.variantIndex]?.name || `Variant ${img.variantIndex + 1}`}
-                />
-              )}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1">
-                <button type="button" onClick={() => { setPickerIndex(i); setPickerOpen(true); }} className="p-1 bg-white/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="Replace">
-                  <ImageIcon className="h-3.5 w-3.5 text-foreground" />
-                </button>
-                <button type="button" onClick={() => removeImage(i)} className="p-1 bg-white/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="Remove">
-                  <Trash className="h-3.5 w-3.5 text-destructive" />
-                </button>
-                <GripVertical className="h-3.5 w-3.5 text-white opacity-0 group-hover:opacity-100 transition-opacity absolute top-0.5 right-0.5" />
+            <div key={i} className="sm:w-28">
+              {/* Dragging works on a computer. On a phone, use the buttons underneath. */}
+              <div
+                draggable
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={(e) => handleDragOver(e, i)}
+                onDragEnd={handleDragEnd}
+                className={`relative aspect-square overflow-hidden rounded-lg border-2 ${i === 0 ? 'border-primary' : 'border-border'} bg-muted sm:cursor-grab sm:active:cursor-grabbing ${dragIndex === i ? 'opacity-50' : ''}`}
+              >
+                <img src={img.url} alt={`Product ${i + 1}`} className="h-full w-full object-cover" />
+                {i === 0 && (
+                  <span className="absolute left-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                    <Star className="h-3 w-3 fill-current" />
+                  </span>
+                )}
+                {/* Variant color dot indicator */}
+                {img.variantIndex !== null && colorVariants[img.variantIndex] && (
+                  <span
+                    className="absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-white shadow-sm"
+                    style={{ backgroundColor: colorVariants[img.variantIndex]?.hex }}
+                    title={colorVariants[img.variantIndex]?.name || `Variant ${img.variantIndex + 1}`}
+                  />
+                )}
               </div>
+              <div className="mt-1 flex items-center gap-1">
+                <button type="button" onClick={() => moveImage(i, i - 1)} disabled={i === 0} aria-label={`Move image ${i + 1} earlier`} className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border disabled:opacity-30 sm:h-8">
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button type="button" onClick={() => { setPickerIndex(i); setPickerOpen(true); }} aria-label={`Replace image ${i + 1}`} className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border sm:h-8">
+                  <ImageIcon className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button type="button" onClick={() => removeImage(i)} aria-label={`Remove image ${i + 1}`} className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border sm:h-8">
+                  <Trash className="h-4 w-4 text-destructive" aria-hidden="true" />
+                </button>
+                <button type="button" onClick={() => moveImage(i, i + 1)} disabled={i === images.length - 1} aria-label={`Move image ${i + 1} later`} className="inline-flex h-11 min-w-0 flex-1 items-center justify-center rounded-md border border-border disabled:opacity-30 sm:h-8">
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+              {i > 0 && (
+                <button type="button" onClick={() => moveImage(i, 0)} className="mt-1 inline-flex h-11 w-full items-center justify-center rounded-md text-xs font-medium text-primary hover:bg-muted sm:h-8">
+                  Make main photo
+                </button>
+              )}
             </div>
           ))}
+          {canUpload && (
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={() => deviceFileRef.current?.click()}
+              className="flex aspect-square w-full items-center justify-center self-start rounded-lg border-2 border-dashed border-primary/60 bg-primary/5 transition-colors hover:bg-primary/10 disabled:opacity-60 sm:h-28 sm:w-28"
+            >
+              <div className="px-1 text-center">
+                <Upload className="mx-auto mb-1 h-6 w-6 text-primary" aria-hidden="true" />
+                <span className="text-xs font-medium text-primary">{uploading ? 'Uploading…' : 'Upload photos'}</span>
+              </div>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => { setPickerIndex(null); setPickerOpen(true); }}
-            className="w-24 h-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/20 hover:border-primary hover:bg-muted/40 transition-colors"
+            className="flex aspect-square w-full items-center justify-center self-start rounded-lg border-2 border-dashed border-border bg-muted/20 transition-colors hover:border-primary hover:bg-muted/40 sm:h-28 sm:w-28"
           >
-            <div className="text-center">
-              <ImageIcon className="h-6 w-6 mx-auto text-muted-foreground/50 mb-0.5" />
-              <span className="text-[10px] text-muted-foreground">Add Image</span>
+            <div className="px-1 text-center">
+              <ImageIcon className="mx-auto mb-1 h-6 w-6 text-muted-foreground/60" aria-hidden="true" />
+              <span className="text-xs text-muted-foreground">From library</span>
             </div>
           </button>
+          <input
+            ref={deviceFileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            aria-label="Photos to upload from this device"
+            onChange={e => { void uploadFromDevice(e.target.files); e.target.value = ''; }}
+          />
         </div>
+
+        {uploadMessage && <p role="alert" className="mt-2 text-sm text-destructive">{uploadMessage}</p>}
+        {uploading && <p role="status" className="mt-2 text-sm text-muted-foreground">Uploading photos. Stay on this page until they appear.</p>}
 
         {/* Variant image assignment — dropdown per image */}
         {hasVariants && images.length > 0 && (
