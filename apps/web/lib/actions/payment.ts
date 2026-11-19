@@ -5,11 +5,13 @@ import { getPaymentSettings } from '@/lib/payment-settings';
 import { extractMpesaCode } from '@/lib/payments/mpesa-code';
 import { getOrCreatePendingPayment } from '@/lib/payments/order-payment';
 import { buildCallbackUrl, initiateStkPush, normalizeMpesaPhone, MpesaInitiationError } from '@/lib/payments/mpesa';
+import { initiateIntasendStk, IntasendInitiationError } from '@/lib/payments/intasend';
 import { createStripeCheckoutSession } from '@/lib/payments/stripe';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { createRepositories, type OrderDetail } from '@repo/database';
 import {
   isCashOnDeliveryAvailable,
+  isIntasendConfigured,
   isMpesaConfigured,
   isPaymentDevMode,
   isStripeConfigured,
@@ -119,7 +121,10 @@ export async function initiateMpesaPaymentAction(
   }
 
   try {
-    if (!isMpesaConfigured()) {
+    // IntaSend is used when its keys are set. Otherwise the direct Safaricom
+    // (Daraja) set-up is used, as before.
+    const useIntasend = isIntasendConfigured();
+    if (!useIntasend && !isMpesaConfigured()) {
       if (isPaymentDevMode()) {
         return { error: 'Use dev payment simulation — M-Pesa keys not configured' };
       }
@@ -128,7 +133,7 @@ export async function initiateMpesaPaymentAction(
 
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
-    const callbackUrl = buildCallbackUrl();
+    const callbackUrl = useIntasend ? '' : buildCallbackUrl();
     const promptLimit = await rateLimit(`mpesa-prompt:${order.id}`, 1, 90_000);
     if (!promptLimit.allowed) return { error: 'A prompt was recently requested for this order. Check your phone or wait 90 seconds before trying again.' };
     const payment = await getOrCreatePendingPayment(order, 'MPESA', 'stk_push');
@@ -139,25 +144,44 @@ export async function initiateMpesaPaymentAction(
         ? order.total.toNumber()
         : Number(order.total);
 
-    const stk = await initiateStkPush({
-      phone,
-      amount: total,
-      orderNumber: order.orderNumber,
-      callbackUrl,
-    }).catch(async (error) => {
+    // Both routes give back the same few things: the provider's reference for
+    // this prompt, the phone, the whole-shilling amount, and a metadata marker.
+    const started = useIntasend
+      ? initiateIntasendStk({ phone, amount: total, reference: order.orderNumber }).then((result) => ({
+          requestId: result.invoiceId,
+          phone: result.phone,
+          amount: result.amount,
+          metadata: { gateway: 'intasend', invoiceId: result.invoiceId } as Record<string, unknown>,
+        }))
+      : initiateStkPush({
+          phone,
+          amount: total,
+          orderNumber: order.orderNumber,
+          callbackUrl,
+        }).then((result) => ({
+          requestId: result.checkoutRequestId,
+          phone: result.phone,
+          amount: result.amount,
+          metadata: { merchantRequestId: result.merchantRequestId } as Record<string, unknown>,
+        }));
+
+    const stk = await started.catch(async (error) => {
       // Never mark an earlier, possibly accepted prompt failed when a retry
       // is rejected, or when the network result is ambiguous.
-      if (error instanceof MpesaInitiationError && !payment.externalId) {
+      if (
+        (error instanceof MpesaInitiationError || error instanceof IntasendInitiationError) &&
+        !payment.externalId
+      ) {
         await repos.payment.markFailed(payment.id, undefined, error.message);
       }
       throw error;
     });
 
     await repos.payment.recordStkRequest(payment.id, {
-      checkoutRequestId: stk.checkoutRequestId,
+      checkoutRequestId: stk.requestId,
       payerPhone: stk.phone,
       metadata: {
-        merchantRequestId: stk.merchantRequestId,
+        ...stk.metadata,
         requestedAmount: stk.amount,
         orderTotal: total,
         // Daraja only accepts whole shillings; flag any rounding so

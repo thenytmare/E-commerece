@@ -12,6 +12,13 @@ export interface PaymentConfig {
   /** Public HTTPS origin, independent of local storefront/auth URLs. */
   mpesaCallbackBaseUrl?: string;
   mpesaEnv: 'sandbox' | 'production';
+  /** IntaSend keys. The publishable key is sent with each request; the secret key never leaves the server. */
+  intasendPublishableKey?: string;
+  intasendSecretKey?: string;
+  /** The "challenge" text set in the IntaSend dashboard. Every webhook carries it back. */
+  intasendWebhookChallenge?: string;
+  /** 'sandbox' uses IntaSend's test system. Anything else but 'live' is treated as sandbox. */
+  intasendEnv: 'sandbox' | 'live';
   paymentDevMode: boolean;
 }
 
@@ -29,6 +36,10 @@ export function getPaymentConfig(): PaymentConfig {
     mpesaCallbackSecret: process.env.MPESA_CALLBACK_SECRET,
     mpesaCallbackBaseUrl: process.env.MPESA_CALLBACK_BASE_URL,
     mpesaEnv: process.env.MPESA_ENV === 'production' ? 'production' : 'sandbox',
+    intasendPublishableKey: process.env.INTASEND_PUBLISHABLE_KEY,
+    intasendSecretKey: process.env.INTASEND_SECRET_KEY,
+    intasendWebhookChallenge: process.env.INTASEND_WEBHOOK_CHALLENGE,
+    intasendEnv: process.env.INTASEND_ENV === 'live' ? 'live' : 'sandbox',
     paymentDevMode: process.env.PAYMENT_DEV_MODE === 'true',
   };
 }
@@ -46,6 +57,19 @@ export function isMpesaConfigured(): boolean {
       // Without the callback secret there is no authenticated way for
       // Safaricom to report the result, so M-Pesa is not usable.
       process.env.MPESA_CALLBACK_SECRET
+  );
+}
+
+/**
+ * IntaSend M-Pesa prompts. All three values are needed. Without the webhook
+ * challenge there is no safe way to hear back from IntaSend quickly, so the
+ * option stays off rather than half working.
+ */
+export function isIntasendConfigured(): boolean {
+  return Boolean(
+    process.env.INTASEND_PUBLISHABLE_KEY &&
+      process.env.INTASEND_SECRET_KEY &&
+      process.env.INTASEND_WEBHOOK_CHALLENGE
   );
 }
 

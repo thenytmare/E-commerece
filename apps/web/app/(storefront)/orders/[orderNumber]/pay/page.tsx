@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/format';
 import {
   deliveryZoneLabel,
   isCashOnDeliveryAvailable,
+  isIntasendConfigured,
   isMpesaConfigured,
   isPaymentDevMode,
   isStripeConfigured,
@@ -43,7 +44,8 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
   }
 
   const stripeEnabled = isStripeConfigured();
-  const mpesaEnabled = isMpesaConfigured();
+  // The M-Pesa prompt shows if either route is set up: IntaSend or direct Safaricom.
+  const mpesaEnabled = isIntasendConfigured() || isMpesaConfigured();
   const { manualMpesa } = await getPaymentSettings();
   const devMode = isPaymentDevMode() && !stripeEnabled && !mpesaEnabled && !manualMpesa.enabled;
   const codEnabled = isCashOnDeliveryAvailable(order.deliveryZone);

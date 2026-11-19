@@ -1,6 +1,7 @@
 import { createRepositories, type Payment } from '@repo/database';
 import { describeMpesaFailure } from '@repo/utils';
 import { queryStkStatus, type ParsedMpesaCallback } from '@/lib/payments/mpesa';
+import { isIntasendPayment, settleIntasendPayment } from '@/lib/payments/intasend-settlement';
 
 export type SettlementOutcome = 'completed' | 'failed' | 'pending' | 'noop';
 
@@ -24,6 +25,11 @@ export async function settleMpesaPayment(
   // Already terminal — nothing to do (duplicate/late callback).
   if (payment.status === 'COMPLETED' || payment.status === 'REFUNDED') {
     return 'noop';
+  }
+
+  // A prompt that went through IntaSend is checked with IntaSend, not Safaricom.
+  if (isIntasendPayment(payment)) {
+    return settleIntasendPayment(payment, hint?.checkoutRequestId);
   }
 
   // Every prompt ever issued for this payment, newest first. A customer who

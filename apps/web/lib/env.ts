@@ -57,6 +57,10 @@ const OPTIONAL_FEATURE_GROUPS: readonly OptionalFeatureGroup[] = [
     vars: ['MPESA_CONSUMER_KEY', 'MPESA_CONSUMER_SECRET', 'MPESA_SHORTCODE', 'MPESA_PASSKEY', 'MPESA_CALLBACK_SECRET'],
   },
   {
+    label: 'IntaSend M-Pesa payments',
+    vars: ['INTASEND_PUBLISHABLE_KEY', 'INTASEND_SECRET_KEY', 'INTASEND_WEBHOOK_CHALLENGE'],
+  },
+  {
     label: 'Outbound email (SMTP)',
     vars: ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'],
     // The older single connection string covers all three.

@@ -19,6 +19,7 @@ export {
   getPaymentConfig,
   isStripeConfigured,
   isMpesaConfigured,
+  isIntasendConfigured,
   isPaymentDevMode,
   type PaymentConfig,
 } from './payment-env';

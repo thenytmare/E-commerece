@@ -193,6 +193,19 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 Webhook endpoint: `POST /api/webhooks/mpesa`
 
+### M-Pesa (IntaSend)
+
+If these are set, the M-Pesa prompt at checkout goes through IntaSend instead of Daraja.
+
+| Variable | Source |
+|----------|--------|
+| `INTASEND_ENV` | `sandbox` while testing, `live` for real money |
+| `INTASEND_PUBLISHABLE_KEY` | IntaSend dashboard, API keys |
+| `INTASEND_SECRET_KEY` | IntaSend dashboard, API keys |
+| `INTASEND_WEBHOOK_CHALLENGE` | Any long random text you make up. Use the same text in the IntaSend webhook form |
+
+Webhook address to give IntaSend: `https://your-domain/api/webhooks/intasend`
+
 ---
 
 ## Development commands

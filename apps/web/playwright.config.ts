@@ -116,6 +116,9 @@ export default defineConfig({
       MPESA_SHORTCODE: '',
       MPESA_PASSKEY: '',
       MPESA_CALLBACK_SECRET: '',
+      INTASEND_PUBLISHABLE_KEY: '',
+      INTASEND_SECRET_KEY: '',
+      INTASEND_WEBHOOK_CHALLENGE: '',
     },
   },
 });
