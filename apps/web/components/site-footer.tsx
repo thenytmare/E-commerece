@@ -1,4 +1,5 @@
 import { getStoreSettings } from '@/lib/store';
+import { IntasendBadge } from '@/components/payment/intasend-badge';
 import { Container } from '@repo/ui';
 import { buildWhatsAppLink } from '@repo/utils';
 import Image from 'next/image';
@@ -150,9 +151,12 @@ export async function SiteFooter() {
           <p className="text-sm text-muted-foreground">
             &copy; {year} {store.name}. All rights reserved.
           </p>
-          <p className="text-sm text-muted-foreground">
-            We accept <span className="font-medium text-foreground">M-Pesa</span> and cash on delivery in Nairobi
-          </p>
+          <div className="flex flex-col gap-3 sm:items-end">
+            <p className="text-sm text-muted-foreground">
+              We accept <span className="font-medium text-foreground">M-Pesa</span> and cash on delivery in Nairobi
+            </p>
+            <IntasendBadge />
+          </div>
         </div>
       </Container>
     </footer>

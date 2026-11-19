@@ -15,6 +15,7 @@ import { Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { IntasendBadge } from '@/components/payment/intasend-badge';
 
 interface PayOrderPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -105,6 +106,9 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
               devMode={devMode}
               cancelled={query.cancelled === '1'}
             />
+            <div className="mt-6 flex justify-center">
+              <IntasendBadge />
+            </div>
             <p className="mt-4 text-center text-sm"><Link href="/cart" className="underline">Back to cart — your items are saved</Link></p>
             <Text variant="muted" className="mt-6 text-center text-xs">
               {deliveryZoneLabel(order.deliveryZone)}
