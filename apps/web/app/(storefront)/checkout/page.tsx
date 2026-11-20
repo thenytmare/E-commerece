@@ -1,7 +1,9 @@
-import { CheckoutForm } from '@/components/checkout/checkout-form';
-import { CheckoutSummary } from '@/components/checkout/checkout-summary';
-import { requireAuth } from '@/lib/actions/auth';
+import { CheckoutClient } from '@/components/checkout/CheckoutClient';
+import { calculateOrderTotals } from '@/lib/checkout';
+import { auth } from '@/auth';
 import { resolveCart } from '@/lib/cart';
+import { isCartItemAvailable } from '@/lib/cart-view';
+import { getStoreSettings } from '@/lib/store';
 import { createRepositories } from '@repo/database';
 import { Container, Grid, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
@@ -14,15 +16,38 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const session = await requireAuth('/login?callbackUrl=/checkout');
+  // Guests can check out; an account is optional.
+  const session = await auth();
   const { cart } = await resolveCart();
 
   if (!cart || cart.items.length === 0) {
     redirect('/cart');
   }
 
+  // A hidden or removed product blocks checkout. Send the customer back to the
+  // cart, where it is marked "No longer available".
+  if (cart.items.some((item) => !isCartItemAvailable(item))) {
+    redirect('/cart');
+  }
+
   const repos = createRepositories();
-  const addresses = await repos.address.findByUserId(session.user.id);
+  const addresses = session?.user?.id
+    ? await repos.address.findByUserId(session.user.id)
+    : [];
+
+  // Totals and line items are computed here (server) and handed to the
+  // client component as plain numbers — the cart/checkout helpers depend on
+  // `next/headers` and cannot be pulled into a client bundle.
+  const { subtotal, unitPrices } = await calculateOrderTotals(cart);
+  const store = await getStoreSettings();
+  const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const lines = cart.items.map((item) => ({
+    id: item.id,
+    name: item.variant.product.name,
+    quantity: item.quantity,
+    // Uses the same flash-sale-aware price the order will be charged at.
+    lineTotal: unitPrices.get(item.variantId)! * item.quantity,
+  }));
 
   return (
     <main>
@@ -42,8 +67,14 @@ export default async function CheckoutPage() {
       <Section>
         <Container>
           <Grid cols={1} gap="lg" className="lg:grid-cols-[1fr_360px]">
-            <CheckoutForm addresses={addresses} />
-            <CheckoutSummary cart={cart} />
+            <CheckoutClient
+              isGuest={!session?.user?.id}
+              addresses={addresses}
+              subtotal={subtotal}
+              storeAddress={store.address}
+              itemCount={itemCount}
+              lines={lines}
+            />
           </Grid>
         </Container>
       </Section>

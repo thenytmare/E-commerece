@@ -18,7 +18,7 @@ function buildPageUrl(basePath: string, page: number, searchParams: Record<strin
   if (page > 1) {
     params.set('page', String(page));
   }
-  const query = params.toString();
+  const query = params.toString().replace(/%2C/gi, ',');
   return query ? `${basePath}?${query}` : basePath;
 }
 

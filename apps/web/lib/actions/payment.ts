@@ -1,11 +1,23 @@
 'use server';
 
-import { requireAuth } from '@/lib/actions/auth';
+import { loadViewableOrder } from '@/lib/order-access';
+import { getPaymentSettings } from '@/lib/payment-settings';
+import { extractMpesaCode } from '@/lib/payments/mpesa-code';
 import { getOrCreatePendingPayment } from '@/lib/payments/order-payment';
-import { initiateStkPush, normalizeMpesaPhone } from '@/lib/payments/mpesa';
+import { buildCallbackUrl, initiateStkPush, normalizeMpesaPhone, MpesaInitiationError } from '@/lib/payments/mpesa';
+import { initiateIntasendStk, IntasendInitiationError } from '@/lib/payments/intasend';
+import { initializePaystackTransaction, PaystackInitiationError } from '@/lib/payments/paystack';
 import { createStripeCheckoutSession } from '@/lib/payments/stripe';
+import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { createRepositories, type OrderDetail } from '@repo/database';
-import { isMpesaConfigured, isPaymentDevMode, isStripeConfigured } from '@repo/config';
+import {
+  isCashOnDeliveryAvailable,
+  isIntasendConfigured,
+  isMpesaConfigured,
+  isPaystackConfigured,
+  isPaymentDevMode,
+  isStripeConfigured,
+} from '@repo/config';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -13,12 +25,15 @@ import { z } from 'zod';
 export type PaymentActionState = {
   error?: string;
   success?: string;
+  /** Set when an STK push was accepted, so the UI can poll for the result. */
+  paymentId?: string;
 };
 
 async function loadPayableOrder(orderNumber: string): Promise<OrderDetail> {
-  const session = await requireAuth();
   const repos = createRepositories();
-  const order = await repos.order.findByOrderNumberForUser(orderNumber, session.user.id);
+  // Authorised either by owning account or, for a guest order, this browser's
+  // signed cookie — a guest still has to be able to pay for what they ordered.
+  const order = await loadViewableOrder(orderNumber);
 
   if (!order) {
     throw new Error('Order not found');
@@ -38,12 +53,18 @@ async function loadPayableOrder(orderNumber: string): Promise<OrderDetail> {
 export async function initiateStripePaymentAction(
   orderNumber: string
 ): Promise<PaymentActionState> {
+  // Defense in depth — bounded by provider-side limits already, but nothing
+  // stopped a script from hammering this action directly.
+  const limit = await rateLimit(`stripe-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
   let checkoutUrl: string | undefined;
 
   try {
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
-    const payment = await getOrCreatePendingPayment(order, 'STRIPE', 'card');
 
     if (!isStripeConfigured()) {
       if (isPaymentDevMode()) {
@@ -51,6 +72,8 @@ export async function initiateStripePaymentAction(
       }
       return { error: 'Card payments are not available right now' };
     }
+
+    const payment = await getOrCreatePendingPayment(order, 'STRIPE', 'card');
 
     const checkoutSession = await createStripeCheckoutSession(order, payment.id);
     if (!checkoutSession.url) {
@@ -67,8 +90,48 @@ export async function initiateStripePaymentAction(
   redirect(checkoutUrl);
 }
 
+export async function initiatePaystackPaymentAction(
+  orderNumber: string
+): Promise<PaymentActionState> {
+  const limit = await rateLimit(`paystack-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
+  let authorizationUrl: string | undefined;
+
+  try {
+    const order = await loadPayableOrder(orderNumber);
+    const repos = createRepositories();
+
+    if (!isPaystackConfigured()) {
+      if (isPaymentDevMode()) {
+        return { error: 'Use dev payment simulation — Paystack keys not configured' };
+      }
+      return { error: 'Paystack is not available right now' };
+    }
+
+    const payment = await getOrCreatePendingPayment(order, 'PAYSTACK', 'paystack_checkout');
+
+    const result = await initializePaystackTransaction({
+      order,
+      paymentId: payment.id,
+    });
+
+    await repos.payment.updateExternalId(payment.id, result.reference);
+    authorizationUrl = result.authorizationUrl;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Payment failed';
+    return { error: message };
+  }
+
+  redirect(authorizationUrl);
+}
+
 const mpesaPhoneSchema = z.object({
-  phone: z.string().min(10, 'Enter a valid phone number'),
+  // Shape check only — normalizeMpesaPhone does the authoritative
+  // validation (correct prefix and exact length).
+  phone: z.string().trim().min(9, 'Enter a valid Kenyan mobile number'),
 });
 
 export async function initiateMpesaPaymentAction(
@@ -82,45 +145,198 @@ export async function initiateMpesaPaymentAction(
     return { error: parsed.error.issues[0]?.message ?? 'Invalid phone number' };
   }
 
-  try {
-    const order = await loadPayableOrder(orderNumber);
-    const repos = createRepositories();
-    const payment = await getOrCreatePendingPayment(order, 'MPESA', 'stk_push');
+  // Defense in depth — bounded by provider-side limits already, but nothing
+  // stopped a script from hammering this action directly.
+  const limit = await rateLimit(`mpesa-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
 
-    if (!isMpesaConfigured()) {
+  // Validate the phone before creating any records.
+  let phone: string;
+  try {
+    phone = normalizeMpesaPhone(parsed.data.phone);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Invalid phone number' };
+  }
+
+  try {
+    // IntaSend is used when its keys are set. Otherwise the direct Safaricom
+    // (Daraja) set-up is used, as before.
+    const useIntasend = isIntasendConfigured();
+    if (!useIntasend && !isMpesaConfigured()) {
       if (isPaymentDevMode()) {
         return { error: 'Use dev payment simulation — M-Pesa keys not configured' };
       }
       return { error: 'M-Pesa is not available right now' };
     }
 
+    const order = await loadPayableOrder(orderNumber);
+    const repos = createRepositories();
+    const callbackUrl = useIntasend ? '' : buildCallbackUrl();
+    const promptLimit = await rateLimit(`mpesa-prompt:${order.id}`, 1, 90_000);
+    if (!promptLimit.allowed) return { error: 'A prompt was recently requested for this order. Check your phone or wait 90 seconds before trying again.' };
+    const payment = await getOrCreatePendingPayment(order, 'MPESA', 'stk_push');
+
+    // Amount always comes from the persisted order, never the browser.
     const total =
       typeof order.total === 'object' && 'toNumber' in order.total
         ? order.total.toNumber()
         : Number(order.total);
 
-    const stk = await initiateStkPush({
-      phone: normalizeMpesaPhone(parsed.data.phone),
-      amount: total,
-      orderNumber: order.orderNumber,
-      paymentId: payment.id,
+    // Both routes give back the same few things: the provider's reference for
+    // this prompt, the phone, the whole-shilling amount, and a metadata marker.
+    const started = useIntasend
+      ? initiateIntasendStk({ phone, amount: total, reference: order.orderNumber }).then((result) => ({
+          requestId: result.invoiceId,
+          phone: result.phone,
+          amount: result.amount,
+          metadata: { gateway: 'intasend', invoiceId: result.invoiceId } as Record<string, unknown>,
+        }))
+      : initiateStkPush({
+          phone,
+          amount: total,
+          orderNumber: order.orderNumber,
+          callbackUrl,
+        }).then((result) => ({
+          requestId: result.checkoutRequestId,
+          phone: result.phone,
+          amount: result.amount,
+          metadata: { merchantRequestId: result.merchantRequestId } as Record<string, unknown>,
+        }));
+
+    const stk = await started.catch(async (error) => {
+      // Never mark an earlier, possibly accepted prompt failed when a retry
+      // is rejected, or when the network result is ambiguous.
+      if (
+        (error instanceof MpesaInitiationError || error instanceof IntasendInitiationError) &&
+        !payment.externalId
+      ) {
+        await repos.payment.markFailed(payment.id, undefined, error.message);
+      }
+      throw error;
     });
 
-    await repos.payment.updateExternalId(payment.id, stk.checkoutRequestId);
+    await repos.payment.recordStkRequest(payment.id, {
+      checkoutRequestId: stk.requestId,
+      payerPhone: stk.phone,
+      metadata: {
+        ...stk.metadata,
+        requestedAmount: stk.amount,
+        orderTotal: total,
+        // Daraja only accepts whole shillings; flag any rounding so
+        // reconciliation can spot a charged/ordered mismatch.
+        amountRounded: stk.amount !== total,
+      },
+    });
 
     revalidatePath(`/orders/${orderNumber}/pay`);
     return {
-      success: 'STK push sent. Enter your M-Pesa PIN on your phone to complete payment.',
+      success: 'Check your phone and enter your M-Pesa PIN to complete payment.',
+      paymentId: payment.id,
     };
   } catch (error) {
+    console.error('M-Pesa STK initiation failed', {
+      orderNumber,
+      error: error instanceof Error ? error.message : 'unknown',
+    });
     const message = error instanceof Error ? error.message : 'M-Pesa payment failed';
+    return { error: message };
+  }
+}
+
+/**
+ * Customer chose to pay the rider in cash. Nairobi deliveries only: the
+ * repository re-checks that and confirms the order so its stock stays held.
+ */
+export async function chooseCashOnDeliveryAction(
+  orderNumber: string
+): Promise<PaymentActionState> {
+  const limit = await rateLimit(`cod-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
+  try {
+    const order = await loadPayableOrder(orderNumber);
+    if (!isCashOnDeliveryAvailable(order.deliveryZone)) {
+      return { error: 'Cash on Delivery is only available for Nairobi deliveries' };
+    }
+    await createRepositories().order.placeCashOnDelivery(order.id);
+
+    revalidatePath(`/orders/${orderNumber}`);
+    revalidatePath('/account/orders');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not confirm Cash on Delivery';
+    return { error: message };
+  }
+
+  redirect(`/orders/${orderNumber}?cod=1`);
+}
+
+/**
+ * Customer paid to the M-Pesa Paybill out of band and pasted their
+ * confirmation code (or the whole SMS). We record it as AWAITING_CONFIRMATION;
+ * a staff member checks it against the real statement before the order is
+ * confirmed. No money is trusted here.
+ */
+export async function submitManualMpesaAction(
+  _prevState: PaymentActionState | null,
+  formData: FormData
+): Promise<PaymentActionState> {
+  const orderNumber = String(formData.get('orderNumber') ?? '');
+  const rawMessage = String(formData.get('mpesaMessage') ?? '').trim();
+
+  if (!rawMessage) {
+    return { error: 'Paste your M-Pesa confirmation message or code.' };
+  }
+  if (rawMessage.length > 1000) {
+    return { error: 'That message is too long. Paste just the M-Pesa confirmation SMS.' };
+  }
+
+  const limit = await rateLimit(`manual-mpesa:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
+  const code = extractMpesaCode(rawMessage);
+  if (!code) {
+    return {
+      error:
+        "We couldn't find an M-Pesa code in that. It looks like SGH4K8L2MN — paste the full confirmation SMS or just the code.",
+    };
+  }
+
+  try {
+    const { manualMpesa } = await getPaymentSettings();
+    if (!manualMpesa.enabled) {
+      return { error: 'M-Pesa Paybill payment is not available right now.' };
+    }
+
+    const order = await loadPayableOrder(orderNumber);
+    const repos = createRepositories();
+
+    const { duplicate } = await repos.payment.createManualMpesaPayment({
+      orderId: order.id,
+      receiptNumber: code,
+      rawMessage,
+    });
+
+    revalidatePath(`/orders/${orderNumber}/pay`);
+    return {
+      success: duplicate
+        ? 'We already have this code and are checking it. We will confirm your order shortly.'
+        : 'Thanks. We have your payment code and will confirm your order shortly.',
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not submit your payment code.';
     return { error: message };
   }
 }
 
 export async function simulatePaymentAction(
   orderNumber: string,
-  provider: 'STRIPE' | 'MPESA'
+  provider: 'STRIPE' | 'MPESA' | 'PAYSTACK'
 ): Promise<PaymentActionState> {
   if (!isPaymentDevMode()) {
     return { error: 'Simulated payments are disabled' };
@@ -129,7 +345,12 @@ export async function simulatePaymentAction(
   try {
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
-    const method = provider === 'STRIPE' ? 'card_dev' : 'mpesa_dev';
+    const method =
+      provider === 'STRIPE'
+        ? 'card_dev'
+        : provider === 'MPESA'
+          ? 'mpesa_dev'
+          : 'paystack_dev';
     const payment = await getOrCreatePendingPayment(order, provider, method);
 
     await repos.payment.completePayment(payment.id, `dev_${provider.toLowerCase()}_${Date.now()}`, {

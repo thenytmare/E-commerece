@@ -71,10 +71,10 @@ openssl rand -base64 32
 [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
 ```
 
-The default `DATABASE_URL` in `.env.example` matches the Docker Compose PostgreSQL service:
+Set `DATABASE_URL` to match the PostgreSQL credentials you choose in `.env` for Docker Compose. Replace the password placeholder below (URL-encode special characters):
 
 ```
-postgresql://prime_accessories_kenya:prime_accessories_kenya@localhost:5432/prime_accessories_kenya?schema=public
+postgresql://prime_accessories_kenya:<database-password>@localhost:5432/prime_accessories_kenya?schema=public
 ```
 
 ---
@@ -192,6 +192,31 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `MPESA_ENV` | `sandbox` or `production` |
 
 Webhook endpoint: `POST /api/webhooks/mpesa`
+
+### M-Pesa (IntaSend)
+
+If these are set, the M-Pesa prompt at checkout goes through IntaSend instead of Daraja.
+
+| Variable | Source |
+|----------|--------|
+| `INTASEND_ENV` | `sandbox` while testing, `live` for real money |
+| `INTASEND_PUBLISHABLE_KEY` | IntaSend dashboard, API keys |
+| `INTASEND_SECRET_KEY` | IntaSend dashboard, API keys |
+| `INTASEND_WEBHOOK_CHALLENGE` | Any long random text you make up. Use the same text in the IntaSend webhook form |
+
+Webhook address to give IntaSend: `https://your-domain/api/webhooks/intasend`
+
+### Paystack (Card & M-Pesa)
+
+Paystack provides a hosted checkout supporting both Card (Visa, Mastercard) and M-Pesa in Kenya.
+
+| Variable | Source |
+|----------|--------|
+| `PAYSTACK_SECRET_KEY` | [Paystack Dashboard → Settings → API Keys & Webhooks](https://dashboard.paystack.com/#/settings/developer) |
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Paystack Dashboard |
+
+Webhook address to set in Paystack Dashboard: `https://your-domain/api/webhooks/paystack`
+Callback URL to set in Paystack Dashboard: `https://your-domain/api/payments/paystack/callback`
 
 ---
 

@@ -1,0 +1,51 @@
+# This is your configuration file for Continue
+# https://docs.continue.dev/reference
+
+name: Main Config
+version: 1.0.0
+schema: v1
+
+# Define which models can be used
+# https://docs.continue.dev/customization/models
+models:
+  - name: DeepSeek Coder
+    provider: openai
+    model: deepseek-coder
+    apiKey: YOUR_DEEPSEEK_API_KEY_HERE
+    apiBase: https://api.deepseek.com/v1
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 128000
+      maxTokens: 8192
+    capabilities:
+      - tool_use
+
+  - name: DeepSeek Chat
+    provider: openai
+    model: deepseek-chat
+    apiKey: sk-5b310f1c140a4a9b9a048ae5671875ea
+    apiBase: https://api.deepseek.com/v1
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 128000
+      maxTokens: 8192
+    capabilities:
+      - tool_use
+
+# Optional: Set default model
+defaultModel: DeepSeek Coder
+
+# Optional: Context providers
+contextProviders:
+  - name: code
+  - name: docs
+  - name: diff
+  - name: terminal
+  - name: problems
+  - name: folder

@@ -1,5 +1,5 @@
 import { requireAuth } from '@/lib/actions/auth';
-import { formatPrice } from '@/lib/format';
+import { formatDate, formatPrice } from '@/lib/format';
 import { createRepositories } from '@repo/database';
 import { Badge, Button, Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
@@ -65,7 +65,7 @@ export default async function AccountOrdersPage() {
                       <div>
                         <Text className="font-mono font-medium">{order.orderNumber}</Text>
                         <Text variant="muted" className="text-sm">
-                          {order.createdAt.toLocaleDateString('en-KE')} · {order.items.length}{' '}
+                          {formatDate(order.createdAt)} · {order.items.length}{' '}
                           item{order.items.length === 1 ? '' : 's'}
                         </Text>
                       </div>

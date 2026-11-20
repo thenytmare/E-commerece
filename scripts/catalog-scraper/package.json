@@ -1,0 +1,13 @@
+{
+  "name": "catalog-scraper",
+  "private": true,
+  "type": "module",
+  "description": "One-off scraper that builds a realistic catalogue for load testing. Not part of the app.",
+  "scripts": {
+    "scrape": "node scrape-detra.mjs",
+    "scrape:trial": "node scrape-detra.mjs --limit 5"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}
