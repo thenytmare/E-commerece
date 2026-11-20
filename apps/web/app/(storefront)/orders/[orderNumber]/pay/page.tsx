@@ -2,11 +2,13 @@ import { PaymentMethodPicker } from '@/components/payment/payment-method-picker'
 import { loadViewableOrder } from '@/lib/order-access';
 import { getPaymentSettings } from '@/lib/payment-settings';
 import { formatPrice } from '@/lib/format';
+import { settlePaystackPayment } from '@/lib/payments/paystack-settlement';
 import {
   deliveryZoneLabel,
   isCashOnDeliveryAvailable,
   isIntasendConfigured,
   isMpesaConfigured,
+  isPaystackConfigured,
   isPaymentDevMode,
   isStripeConfigured,
 } from '@repo/config';
@@ -19,7 +21,7 @@ import { IntasendBadge } from '@/components/payment/intasend-badge';
 
 interface PayOrderPageProps {
   params: Promise<{ orderNumber: string }>;
-  searchParams: Promise<{ cancelled?: string }>;
+  searchParams: Promise<{ cancelled?: string; paystack_ref?: string; reference?: string }>;
 }
 
 export async function generateMetadata({ params }: PayOrderPageProps): Promise<Metadata> {
@@ -39,16 +41,40 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
     notFound();
   }
 
+  // Handle return from Paystack checkout:
+  const paystackRef = query.paystack_ref ?? query.reference;
+  if (paystackRef) {
+    const paystackPayment = order.payments.find(
+      (p) => p.provider === 'PAYSTACK' && p.status === 'PENDING'
+    );
+    if (paystackPayment) {
+      try {
+        const outcome = await settlePaystackPayment(paystackPayment, paystackRef);
+        if (outcome === 'completed') {
+          redirect(`/orders/${orderNumber}?paid=1`);
+        }
+      } catch (err) {
+        console.error('Failed to verify Paystack payment on return', err);
+      }
+    }
+  }
+
   const completedPayment = await repos.payment.findCompletedByOrderId(order.id);
   if (order.status !== 'PENDING' || completedPayment) {
     redirect(`/orders/${orderNumber}`);
   }
 
   const stripeEnabled = isStripeConfigured();
+  const paystackEnabled = isPaystackConfigured();
   // The M-Pesa prompt shows if either route is set up: IntaSend or direct Safaricom.
   const mpesaEnabled = isIntasendConfigured() || isMpesaConfigured();
   const { manualMpesa } = await getPaymentSettings();
-  const devMode = isPaymentDevMode() && !stripeEnabled && !mpesaEnabled && !manualMpesa.enabled;
+  const devMode =
+    isPaymentDevMode() &&
+    !stripeEnabled &&
+    !mpesaEnabled &&
+    !paystackEnabled &&
+    !manualMpesa.enabled;
   const codEnabled = isCashOnDeliveryAvailable(order.deliveryZone);
 
   // Surface this order's existing manual submission so the picker can show the
@@ -85,6 +111,7 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
               total={Number(order.total)}
               stripeEnabled={stripeEnabled}
               mpesaEnabled={mpesaEnabled}
+              paystackEnabled={paystackEnabled}
               codEnabled={codEnabled}
               manualMpesa={
                 manualMpesa.enabled
@@ -105,10 +132,8 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
               // environment that had real provider keys set.
               devMode={devMode}
               cancelled={query.cancelled === '1'}
+              mpesaBadge={<IntasendBadge wide />}
             />
-            <div className="mt-6 flex justify-center">
-              <IntasendBadge />
-            </div>
             <p className="mt-4 text-center text-sm"><Link href="/cart" className="underline">Back to cart — your items are saved</Link></p>
             <Text variant="muted" className="mt-6 text-center text-xs">
               {deliveryZoneLabel(order.deliveryZone)}

@@ -13,15 +13,19 @@ import { getPaymentConfig, isIntasendConfigured } from '@repo/config';
 const BASE = 'https://intasend-prod-static.s3.amazonaws.com/img/trust-badges';
 const ALT = 'IntaSend Secure Payments (PCI-DSS Compliant)';
 
-export function IntasendBadge({ className = '' }: { className?: string }) {
+export function IntasendBadge({ className = '', wide = false }: { className?: string; wide?: boolean }) {
   if (!isIntasendConfigured() || getPaymentConfig().intasendEnv !== 'live') return null;
+
+  // `wide` stretches the badge across its container (the payment page).
+  // Otherwise it stays small, for the footer.
+  const size = wide ? 'w-full' : 'w-full max-w-[220px]';
 
   return (
     <a
       href="https://intasend.com/security"
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-block ${className}`}
+      className={`${wide ? 'block w-full' : 'inline-block'} ${className}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -29,7 +33,7 @@ export function IntasendBadge({ className = '' }: { className?: string }) {
         alt={ALT}
         width={375}
         loading="lazy"
-        className="h-auto w-full max-w-[220px] dark:hidden"
+        className={`h-auto ${size} dark:hidden`}
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -37,7 +41,7 @@ export function IntasendBadge({ className = '' }: { className?: string }) {
         alt={ALT}
         width={375}
         loading="lazy"
-        className="hidden h-auto w-full max-w-[220px] dark:block"
+        className={`hidden h-auto ${size} dark:block`}
       />
       <span className="mt-1 block text-center text-xs text-muted-foreground">Secured by IntaSend Payments</span>
     </a>

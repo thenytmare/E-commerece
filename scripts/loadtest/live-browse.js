@@ -16,7 +16,10 @@ import { Trend } from 'k6/metrics';
 const BASE = (__ENV.BASE_URL || 'https://primeaccessorieskenya.store').replace(/\/+$/, '');
 const VUS = Number(__ENV.VUS || 20);
 const SEARCHES = ['earbuds', 'charger', 'power bank', 'watch', 'speaker', 'oraimo', 'cable'];
-const HEADERS = { 'User-Agent': 'PrimeLoadTest/1.0 (k6)' };
+// Ask for compressed pages, as every browser does. Without this header k6
+// downloads each page uncompressed (about 10 times larger), so the test ends up
+// measuring the tester's own internet line instead of the shop.
+const HEADERS = { 'User-Agent': 'PrimeLoadTest/1.0 (k6)', 'Accept-Encoding': 'gzip, deflate, br' };
 
 export const options = {
   scenarios: {

@@ -20,6 +20,7 @@ export {
   isStripeConfigured,
   isMpesaConfigured,
   isIntasendConfigured,
+  isPaystackConfigured,
   isPaymentDevMode,
   type PaymentConfig,
 } from './payment-env';
@@ -40,4 +41,5 @@ export {
   type DeliveryLocation,
 } from './delivery';
 export * from './stripe-amount';
+export * from './paystack-amount';
 export * from './product-input';

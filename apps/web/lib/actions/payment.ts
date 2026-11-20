@@ -6,6 +6,7 @@ import { extractMpesaCode } from '@/lib/payments/mpesa-code';
 import { getOrCreatePendingPayment } from '@/lib/payments/order-payment';
 import { buildCallbackUrl, initiateStkPush, normalizeMpesaPhone, MpesaInitiationError } from '@/lib/payments/mpesa';
 import { initiateIntasendStk, IntasendInitiationError } from '@/lib/payments/intasend';
+import { initializePaystackTransaction, PaystackInitiationError } from '@/lib/payments/paystack';
 import { createStripeCheckoutSession } from '@/lib/payments/stripe';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { createRepositories, type OrderDetail } from '@repo/database';
@@ -13,6 +14,7 @@ import {
   isCashOnDeliveryAvailable,
   isIntasendConfigured,
   isMpesaConfigured,
+  isPaystackConfigured,
   isPaymentDevMode,
   isStripeConfigured,
 } from '@repo/config';
@@ -86,6 +88,44 @@ export async function initiateStripePaymentAction(
   }
 
   redirect(checkoutUrl);
+}
+
+export async function initiatePaystackPaymentAction(
+  orderNumber: string
+): Promise<PaymentActionState> {
+  const limit = await rateLimit(`paystack-payment:${await clientIdentifier()}`, 10, 5 * 60_000);
+  if (!limit.allowed) {
+    return { error: retryMessage(limit.retryAfterSeconds) };
+  }
+
+  let authorizationUrl: string | undefined;
+
+  try {
+    const order = await loadPayableOrder(orderNumber);
+    const repos = createRepositories();
+
+    if (!isPaystackConfigured()) {
+      if (isPaymentDevMode()) {
+        return { error: 'Use dev payment simulation — Paystack keys not configured' };
+      }
+      return { error: 'Paystack is not available right now' };
+    }
+
+    const payment = await getOrCreatePendingPayment(order, 'PAYSTACK', 'paystack_checkout');
+
+    const result = await initializePaystackTransaction({
+      order,
+      paymentId: payment.id,
+    });
+
+    await repos.payment.updateExternalId(payment.id, result.reference);
+    authorizationUrl = result.authorizationUrl;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Payment failed';
+    return { error: message };
+  }
+
+  redirect(authorizationUrl);
 }
 
 const mpesaPhoneSchema = z.object({
@@ -296,7 +336,7 @@ export async function submitManualMpesaAction(
 
 export async function simulatePaymentAction(
   orderNumber: string,
-  provider: 'STRIPE' | 'MPESA'
+  provider: 'STRIPE' | 'MPESA' | 'PAYSTACK'
 ): Promise<PaymentActionState> {
   if (!isPaymentDevMode()) {
     return { error: 'Simulated payments are disabled' };
@@ -305,7 +345,12 @@ export async function simulatePaymentAction(
   try {
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
-    const method = provider === 'STRIPE' ? 'card_dev' : 'mpesa_dev';
+    const method =
+      provider === 'STRIPE'
+        ? 'card_dev'
+        : provider === 'MPESA'
+          ? 'mpesa_dev'
+          : 'paystack_dev';
     const payment = await getOrCreatePendingPayment(order, provider, method);
 
     await repos.payment.completePayment(payment.id, `dev_${provider.toLowerCase()}_${Date.now()}`, {

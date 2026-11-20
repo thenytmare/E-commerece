@@ -19,6 +19,9 @@ export interface PaymentConfig {
   intasendWebhookChallenge?: string;
   /** 'sandbox' uses IntaSend's test system. Anything else but 'live' is treated as sandbox. */
   intasendEnv: 'sandbox' | 'live';
+  /** Paystack keys. The secret key is used on the server; public key for browser elements/verification. */
+  paystackSecretKey?: string;
+  paystackPublicKey?: string;
   paymentDevMode: boolean;
 }
 
@@ -40,6 +43,8 @@ export function getPaymentConfig(): PaymentConfig {
     intasendSecretKey: process.env.INTASEND_SECRET_KEY,
     intasendWebhookChallenge: process.env.INTASEND_WEBHOOK_CHALLENGE,
     intasendEnv: process.env.INTASEND_ENV === 'live' ? 'live' : 'sandbox',
+    paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
+    paystackPublicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? process.env.PAYSTACK_PUBLIC_KEY,
     paymentDevMode: process.env.PAYMENT_DEV_MODE === 'true',
   };
 }
@@ -71,6 +76,14 @@ export function isIntasendConfigured(): boolean {
       process.env.INTASEND_SECRET_KEY &&
       process.env.INTASEND_WEBHOOK_CHALLENGE
   );
+}
+
+/**
+ * Paystack payments. At minimum, the secret key is required on the server to initialize
+ * transactions and verify webhooks.
+ */
+export function isPaystackConfigured(): boolean {
+  return Boolean(process.env.PAYSTACK_SECRET_KEY);
 }
 
 /** Dev-only simulated payments when provider keys are not set */

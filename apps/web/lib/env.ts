@@ -61,6 +61,10 @@ const OPTIONAL_FEATURE_GROUPS: readonly OptionalFeatureGroup[] = [
     vars: ['INTASEND_PUBLISHABLE_KEY', 'INTASEND_SECRET_KEY', 'INTASEND_WEBHOOK_CHALLENGE'],
   },
   {
+    label: 'Paystack payments',
+    vars: ['PAYSTACK_SECRET_KEY'],
+  },
+  {
     label: 'Outbound email (SMTP)',
     vars: ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'],
     // The older single connection string covers all three.

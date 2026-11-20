@@ -206,6 +206,18 @@ If these are set, the M-Pesa prompt at checkout goes through IntaSend instead of
 
 Webhook address to give IntaSend: `https://your-domain/api/webhooks/intasend`
 
+### Paystack (Card & M-Pesa)
+
+Paystack provides a hosted checkout supporting both Card (Visa, Mastercard) and M-Pesa in Kenya.
+
+| Variable | Source |
+|----------|--------|
+| `PAYSTACK_SECRET_KEY` | [Paystack Dashboard → Settings → API Keys & Webhooks](https://dashboard.paystack.com/#/settings/developer) |
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Paystack Dashboard |
+
+Webhook address to set in Paystack Dashboard: `https://your-domain/api/webhooks/paystack`
+Callback URL to set in Paystack Dashboard: `https://your-domain/api/payments/paystack/callback`
+
 ---
 
 ## Development commands

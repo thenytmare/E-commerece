@@ -3,6 +3,7 @@
 import {
   chooseCashOnDeliveryAction,
   initiateMpesaPaymentAction,
+  initiatePaystackPaymentAction,
   initiateStripePaymentAction,
   simulatePaymentAction,
   submitManualMpesaAction,
@@ -11,7 +12,7 @@ import {
 import { formatPrice } from '@/lib/format';
 import { Button, Input, Text } from '@repo/ui';
 import { Check, Copy } from 'lucide-react';
-import { useActionState, useEffect, useState, useTransition } from 'react';
+import { useActionState, useEffect, useState, useTransition, type ReactNode } from 'react';
 import { MpesaPaymentStatus } from './mpesa-payment-status';
 
 const initialState: PaymentActionState = {};
@@ -36,6 +37,7 @@ interface PaymentMethodPickerProps {
   total: number;
   stripeEnabled: boolean;
   mpesaEnabled: boolean;
+  paystackEnabled?: boolean;
   /** Cash on Delivery — Nairobi deliveries only. */
   codEnabled: boolean;
   /** Manual M-Pesa Paybill config, or null when the method is off. */
@@ -44,6 +46,8 @@ interface PaymentMethodPickerProps {
   manualStatus?: 'AWAITING_CONFIRMATION' | 'FAILED' | null;
   devMode: boolean;
   cancelled?: boolean;
+  /** Trust badge shown under the M-Pesa prompt. Built on the server, so it is passed in. */
+  mpesaBadge?: ReactNode;
 }
 
 /** A copyable value row for the Paybill card. */
@@ -88,11 +92,13 @@ export function PaymentMethodPicker({
   total,
   stripeEnabled,
   mpesaEnabled,
+  paystackEnabled,
   codEnabled,
   manualMpesa,
   manualStatus,
   devMode,
   cancelled,
+  mpesaBadge,
 }: PaymentMethodPickerProps) {
   const [manualState, manualSubmitAction, manualPending] = useActionState(
     submitManualMpesaAction,
@@ -103,10 +109,12 @@ export function PaymentMethodPicker({
     initialState
   );
   const [isStripePending, startStripeTransition] = useTransition();
+  const [isPaystackPending, startPaystackTransition] = useTransition();
   const [isSimulating, startSimulateTransition] = useTransition();
   const [isCodPending, startCodTransition] = useTransition();
   const [codError, setCodError] = useState<string | null>(null);
   const [stripeError, setStripeError] = useState<string | null>(null);
+  const [paystackError, setPaystackError] = useState<string | null>(null);
 
   // Once an STK push is accepted we swap the form for the live status panel.
   const [trackingPaymentId, setTrackingPaymentId] = useState<string | null>(initialPaymentId ?? null);
@@ -116,6 +124,19 @@ export function PaymentMethodPicker({
       setTrackingPaymentId(mpesaState.paymentId);
     }
   }, [mpesaState]);
+
+  const handlePaystack = () => {
+    setPaystackError(null);
+    startPaystackTransition(async () => {
+      try {
+        const result = await initiatePaystackPaymentAction(orderNumber);
+        if (result?.error) setPaystackError(result.error);
+      } catch (error) {
+        if (error && typeof error === 'object' && 'digest' in error) throw error;
+        setPaystackError('Could not start Paystack checkout. Please try again.');
+      }
+    });
+  };
 
   const handleStripe = () => {
     setStripeError(null);
@@ -142,7 +163,7 @@ export function PaymentMethodPicker({
     });
   };
 
-  const handleSimulate = (provider: 'STRIPE' | 'MPESA') => {
+  const handleSimulate = (provider: 'STRIPE' | 'MPESA' | 'PAYSTACK') => {
     startSimulateTransition(async () => {
       await simulatePaymentAction(orderNumber, provider);
     });
@@ -162,6 +183,46 @@ export function PaymentMethodPicker({
         <p className="text-sm text-muted-foreground" role="status">
           Payment was cancelled. Choose a method below to try again.
         </p>
+      ) : null}
+
+      {mpesaEnabled ? (
+        trackingPaymentId ? (
+          <MpesaPaymentStatus
+            paymentId={trackingPaymentId}
+            orderNumber={orderNumber}
+            onRetry={() => setTrackingPaymentId(null)}
+          />
+        ) : (
+          <div className="rounded-xl border border-border bg-card p-6">
+            <Text className="mb-3 font-semibold">Pay with M-Pesa</Text>
+            <Text variant="muted" className="mb-4 text-sm">
+              You will receive an STK push on your phone to enter your PIN.
+            </Text>
+            <form action={mpesaAction} className="space-y-4">
+              <input type="hidden" name="orderNumber" value={orderNumber} />
+              <Input
+                name="phone"
+                label="M-Pesa phone number"
+                type="tel"
+                placeholder="07XX XXX XXX"
+                required
+                disabled={mpesaPending}
+              />
+              {mpesaState?.error ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {mpesaState.error}
+                </p>
+              ) : null}
+              <Button type="submit" className="w-full" isLoading={mpesaPending}>
+                Send STK push
+              </Button>
+            </form>
+          </div>
+        )
+      ) : null}
+
+      {mpesaEnabled ? (
+        <div className="empty:hidden">{mpesaBadge}</div>
       ) : null}
 
       {manualMpesa ? (
@@ -266,6 +327,33 @@ export function PaymentMethodPicker({
         )
       ) : null}
 
+      {paystackEnabled ? (
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="mb-2 flex items-center justify-between">
+            <Text className="font-semibold">Pay with Paystack</Text>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center rounded bg-blue-600/10 px-2 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                Card
+              </span>
+              <span className="inline-flex items-center rounded bg-green-600/10 px-2 py-0.5 text-xs font-semibold text-green-600 dark:text-green-400">
+                M-Pesa
+              </span>
+            </div>
+          </div>
+          <Text variant="muted" className="mb-4 text-sm">
+            Fast, secure checkout via Paystack. Pay easily with Card (Visa, Mastercard) or M-Pesa.
+          </Text>
+          <Button onClick={handlePaystack} isLoading={isPaystackPending} className="w-full">
+            Pay with Paystack
+          </Button>
+          {paystackError ? (
+            <p className="mt-3 text-sm text-destructive" role="alert">
+              {paystackError} You can try again, or choose another method.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {stripeEnabled ? (
         <div className="rounded-xl border border-border bg-card p-6">
           <Text className="mb-3 font-semibold">Pay with card</Text>
@@ -281,42 +369,6 @@ export function PaymentMethodPicker({
             </p>
           ) : null}
         </div>
-      ) : null}
-
-      {mpesaEnabled ? (
-        trackingPaymentId ? (
-          <MpesaPaymentStatus
-            paymentId={trackingPaymentId}
-            orderNumber={orderNumber}
-            onRetry={() => setTrackingPaymentId(null)}
-          />
-        ) : (
-          <div className="rounded-xl border border-border bg-card p-6">
-            <Text className="mb-3 font-semibold">Pay with M-Pesa</Text>
-            <Text variant="muted" className="mb-4 text-sm">
-              You will receive an STK push on your phone to enter your PIN.
-            </Text>
-            <form action={mpesaAction} className="space-y-4">
-              <input type="hidden" name="orderNumber" value={orderNumber} />
-              <Input
-                name="phone"
-                label="M-Pesa phone number"
-                type="tel"
-                placeholder="07XX XXX XXX"
-                required
-                disabled={mpesaPending}
-              />
-              {mpesaState?.error ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {mpesaState.error}
-                </p>
-              ) : null}
-              <Button type="submit" className="w-full" isLoading={mpesaPending}>
-                Send STK push
-              </Button>
-            </form>
-          </div>
-        )
       ) : null}
 
       {codEnabled ? (
@@ -350,6 +402,13 @@ export function PaymentMethodPicker({
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
+              onClick={() => handleSimulate('PAYSTACK')}
+              isLoading={isSimulating}
+            >
+              Simulate Paystack
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => handleSimulate('STRIPE')}
               isLoading={isSimulating}
             >
@@ -366,7 +425,7 @@ export function PaymentMethodPicker({
         </div>
       ) : null}
 
-      {!stripeEnabled && !mpesaEnabled && !codEnabled && !manualMpesa && !devMode ? (
+      {!stripeEnabled && !mpesaEnabled && !paystackEnabled && !codEnabled && !manualMpesa && !devMode ? (
         <div className="rounded-xl border border-border bg-muted/30 p-6 text-center">
           <Text variant="muted">No payment methods are configured. Contact support.</Text>
         </div>

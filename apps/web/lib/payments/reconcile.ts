@@ -1,6 +1,7 @@
 import { createRepositories, type Payment } from '@repo/database';
 import { settleMpesaPayment } from '@/lib/payments/mpesa-settlement';
 import { settleStripePayment } from '@/lib/payments/stripe-settlement';
+import { settlePaystackPayment } from '@/lib/payments/paystack-settlement';
 
 /**
  * How long a payment may sit PENDING before we re-check it with the provider.
@@ -85,6 +86,9 @@ async function runReconciliation(
   // repository methods, so this inherits their idempotency for free.
   const stripePending = await repos.payment.findStalePending('STRIPE', staleBefore, BATCH_SIZE);
   await settleAll(stripePending, settleStripePayment, summary);
+
+  const paystackPending = await repos.payment.findStalePending('PAYSTACK', staleBefore, BATCH_SIZE);
+  await settleAll(paystackPending, settlePaystackPayment, summary);
 
   // Release stock held by orders that were never paid for.
   const abandonedBefore = new Date(Date.now() - ABANDON_AFTER_HOURS * 3_600_000);

@@ -44,6 +44,7 @@ enum PaymentStatus {
 enum PaymentProvider {
   STRIPE
   MPESA
+  PAYSTACK
   /// Paid in cash to the rider. Nairobi deliveries only.
   CASH_ON_DELIVERY
   /// Customer paid to the M-Pesa Paybill manually and submitted the code; a

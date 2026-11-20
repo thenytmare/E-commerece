@@ -9,7 +9,7 @@ function orderTotal(order: OrderDetail): number {
 /** Ensure a pending payment exists for the order and provider */
 export async function getOrCreatePendingPayment(
   order: OrderDetail,
-  provider: 'STRIPE' | 'MPESA',
+  provider: 'STRIPE' | 'MPESA' | 'PAYSTACK',
   method: string
 ) {
   const repos = createRepositories();
