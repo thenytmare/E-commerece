@@ -18,7 +18,7 @@ export function IntasendBadge({ className = '', wide = false }: { className?: st
 
   // `wide` stretches the badge across its container (the payment page).
   // Otherwise it stays small, for the footer.
-  const size = wide ? 'w-full' : 'w-full max-w-[220px]';
+  const size = 'w-full';
 
   return (
     <a

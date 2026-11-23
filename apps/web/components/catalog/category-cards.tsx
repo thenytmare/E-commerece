@@ -26,7 +26,7 @@ import { useState } from 'react';
  * section stays short however many categories the admin picks.
  *
  * The photo is the one chosen in the admin (Category Image). Until one is
- * chosen, a product photo stands in, shown whole on a soft background.
+ * chosen, a product photo stands in. Either way it fills the tile.
  */
 
 const ICONS: [RegExp, LucideIcon][] = [
@@ -91,12 +91,9 @@ function Tile({ category, layout, showButton }: { category: CategoryCard; layout
           // hosts it doesn't know and would otherwise break the page.
           unoptimized={!photo.startsWith('/')}
           onError={() => setFailed(true)}
-          className={
-            category.hasOwnImage
-              ? 'object-cover transition-transform duration-300 [@media(hover:hover)]:group-hover:scale-[1.03]'
-              : // A stand-in product photo: the whole item on white, not a crop.
-                'bg-white object-contain p-8 pb-16 lg:p-12 lg:pb-20 transition-transform duration-300 [@media(hover:hover)]:group-hover:scale-[1.03]'
-          }
+          // Both kinds of photo fill the whole tile. A stand-in product photo
+          // used to be shown small on white, which left empty bands around it.
+          className="object-cover transition-transform duration-300 [@media(hover:hover)]:group-hover:scale-[1.03]"
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted/40">
@@ -105,7 +102,7 @@ function Tile({ category, layout, showButton }: { category: CategoryCard; layout
       )}
 
       {/* Keeps the label readable on the admin's own photos. */}
-      {photo && category.hasOwnImage && (
+      {photo && (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
       )}
 

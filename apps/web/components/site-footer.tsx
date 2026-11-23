@@ -156,8 +156,11 @@ export async function SiteFooter() {
             <p className="text-center text-sm text-muted-foreground sm:text-right">
               We accept <span className="font-medium text-foreground">M-Pesa</span> and cash on delivery in Nairobi
             </p>
-            <IntasendBadge />
-            <PaystackBadge className="w-full max-w-[260px]" />
+            {/* Both badges share one width and sit side by side, so they line up. */}
+            <div className="flex flex-wrap items-start justify-center gap-3 sm:justify-end">
+              <IntasendBadge className="w-[240px]" />
+              <PaystackBadge className="w-[240px]" />
+            </div>
           </div>
         </div>
       </Container>
