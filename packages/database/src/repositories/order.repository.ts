@@ -525,6 +525,9 @@ export class OrderRepository extends BaseRepository {
         type: ORDER_CONFIRMATION_JOB,
         payload: { orderId: order.id },
         uniqueKey: `order-confirmation:${order.id}`,
+        // A short wait so the email sees a pay-on-delivery choice, which is
+        // saved just after the order is created.
+        runAt: new Date(Date.now() + 15_000),
       });
 
       return tx.order.findUniqueOrThrow({
@@ -923,7 +926,7 @@ function generateOrderNumber(): string {
   for (let i = 0; i < 6; i += 1) {
     suffix += ORDER_NUMBER_ALPHABET[bytes[i]! % ORDER_NUMBER_ALPHABET.length];
   }
-  return `TV-${date}-${suffix}`;
+  return `PA-${date}-${suffix}`;
 }
 
 export type { Order, OrderStatus };

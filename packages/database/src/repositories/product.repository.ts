@@ -381,7 +381,18 @@ export class ProductRepository extends BaseRepository {
             const brand = await tx.brand.findUnique({ where: { id: brandId }, select: { name: true } });
             const skuPrefix = (brand?.name ?? 'PRD').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
             const namePart = name.replace(/[^A-Z0-9]/gi, '').slice(0, 4).toUpperCase();
-            const usedSkus = new Set(existingVariants.map((v) => v.sku));
+            // SKUs must be unique across the whole shop, not just this product.
+            // Two products from the same brand whose names start the same way
+            // (for example "Soundcore Liberty" and "Soundcore Life") share a
+            // prefix, so check every SKU already taken with it.
+            const takenElsewhere = await tx.productVariant.findMany({
+              where: { sku: { startsWith: `${skuPrefix}-${namePart}-` } },
+              select: { sku: true },
+            });
+            const usedSkus = new Set([
+              ...existingVariants.map((v) => v.sku),
+              ...takenElsewhere.map((v) => v.sku),
+            ]);
             let nextIndex = existingVariants.length + 1;
             let defaultNeeded = !existingVariants.some((v) => v.isDefault);
 
@@ -472,6 +483,8 @@ export class ProductRepository extends BaseRepository {
   async duplicate(id: string): Promise<Product> {
     const src = await this.db.product.findUnique({ where: { id }, include: { variants: { include: { inventory: true } }, images: true } });
     if (!src) throw new Error('Product not found');
+    // A product can be copied more than once, so each copy needs its own SKUs.
+    const copyTag = Date.now().toString(36).toUpperCase();
     return this.db.product.create({
       data: {
         name: `${src.name} (Copy)`,
@@ -486,7 +499,7 @@ export class ProductRepository extends BaseRepository {
         status: 'draft',
         isActive: false,
         isFeatured: false,
-        variants: { create: src.variants.map((v) => ({ sku: `${v.sku}-COPY`, price: v.price, compareAtPrice: v.compareAtPrice, attributes: v.attributes as Prisma.InputJsonValue, isDefault: v.isDefault, inventory: v.inventory ? { create: { quantity: 0, lowStockThreshold: v.inventory.lowStockThreshold } } : undefined })) },
+        variants: { create: src.variants.map((v) => ({ sku: `${v.sku}-COPY-${copyTag}`, price: v.price, compareAtPrice: v.compareAtPrice, attributes: v.attributes as Prisma.InputJsonValue, isDefault: v.isDefault, inventory: v.inventory ? { create: { quantity: 0, lowStockThreshold: v.inventory.lowStockThreshold } } : undefined })) },
         images: { create: src.images.map((img, i) => ({ url: img.url, alt: img.alt, sortOrder: i, isFeatured: img.isFeatured })) },
       },
     });
