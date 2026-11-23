@@ -6,7 +6,8 @@ import { addressSchema } from '@/lib/validations/checkout';
 import { rememberGuestOrder } from '@/lib/guest-orders';
 import { clientIdentifier, rateLimit, retryMessage } from '@/lib/rate-limit';
 import { createRepositories } from '@repo/database';
-import { deliveryFeeFor, isDeliveryZone } from '@repo/config';
+import { deliveryFeeFor, isCashOnDeliveryAvailable, isDeliveryZone } from '@repo/config';
+import { getPaymentSettings } from '@/lib/payment-settings';
 import { getStoreSettings } from '@/lib/store';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -127,7 +128,19 @@ export async function placeOrderAction(
 
   const couponCode = String(formData.get('couponCode') ?? '').trim() || undefined;
 
+  // Nairobi customers choose here whether to pay now or pay the rider in cash.
+  // Checked before the order exists, so nobody ends up with an order on a
+  // method that is not allowed.
+  const payOnDelivery = formData.get('paymentChoice') === 'cod';
+  if (payOnDelivery) {
+    const { methods } = await getPaymentSettings();
+    if (!methods.cod || !isCashOnDeliveryAvailable(deliveryZone)) {
+      return { error: 'Pay on delivery is only available for Nairobi deliveries.' };
+    }
+  }
+
   let orderNumber: string;
+  let orderId: string;
   try {
     const order = await repos.order.createFromCart({
       cart,
@@ -140,6 +153,7 @@ export async function placeOrderAction(
       deliveryLocation,
     });
     orderNumber = order.orderNumber;
+    orderId = order.id;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to place order';
     return { error: message };
@@ -159,5 +173,21 @@ export async function placeOrderAction(
   // throwing, so catching it here would swallow the redirect and leave the
   // customer on the checkout form with their order already created, their
   // stock already reserved, and their cart already emptied.
+  if (payOnDelivery) {
+    try {
+      await repos.order.placeCashOnDelivery(orderId);
+      revalidatePath('/account/orders');
+    } catch (error) {
+      // The order exists, so never lose it. Send the customer to the payment
+      // page instead, where they can still pay.
+      console.error('Could not set Cash on Delivery at checkout', {
+        orderNumber,
+        error: error instanceof Error ? error.message : 'unknown',
+      });
+      redirect(`/orders/${orderNumber}/pay`);
+    }
+    redirect(`/orders/${orderNumber}?cod=1`);
+  }
+
   redirect(`/orders/${orderNumber}/pay`);
 }

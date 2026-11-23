@@ -9,6 +9,8 @@ import type { AppliedCoupon } from './CheckoutClient';
 export interface CheckoutSummaryLine {
   id: string;
   name: string;
+  /** Chosen options in words, such as "Colour: Black". */
+  detail?: string;
   quantity: number;
   lineTotal: number;
 }
@@ -71,8 +73,11 @@ export function CheckoutSummary({
       <div className="mt-4 space-y-3 border-t border-border pt-4">
         {lines.map((line) => (
           <div key={line.id} className="flex justify-between gap-4 text-sm">
-            <span className="line-clamp-1 text-muted-foreground">
-              {line.name} × {line.quantity}
+            <span className="min-w-0 text-muted-foreground">
+              <span className="line-clamp-1">
+                {line.name} × {line.quantity}
+              </span>
+              {line.detail ? <span className="block text-xs">{line.detail}</span> : null}
             </span>
             <span className="shrink-0 font-medium">{formatPrice(line.lineTotal)}</span>
           </div>

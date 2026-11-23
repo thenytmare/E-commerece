@@ -53,6 +53,19 @@ describe('paymentSettingsSchema', () => {
     });
   });
 
+  it('reads the other payment method switches, off when not ticked', () => {
+    const { data } = parseFormData(
+      paymentSettingsSchema,
+      paymentForm({ mpesaStkEnabled: 'on', codEnabled: 'on' })
+    );
+    expect(data).toMatchObject({
+      mpesaStkEnabled: true,
+      cardEnabled: false,
+      paystackEnabled: false,
+      codEnabled: true,
+    });
+  });
+
   it('keeps the optional account name when given', () => {
     const { data, fieldErrors } = parseFormData(
       paymentSettingsSchema,

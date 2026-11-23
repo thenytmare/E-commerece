@@ -1,6 +1,7 @@
 import type { MailMessage } from '@/lib/mail';
 import { formatPrice } from '@/lib/format';
 import { renderEmailHtml, type EmailContent } from '@/lib/jobs/email-layout';
+import { variantLabel } from '@/lib/variant-label';
 
 /**
  * Shop email bodies. Each message has a plain-text version and a branded HTML
@@ -70,12 +71,24 @@ export interface ConfirmationOrder {
   orderNumber: string;
   isGuest: boolean;
   total: { toNumber(): number } | number | string;
-  items: { name: string; quantity: number; price: { toNumber(): number } | number | string }[];
+  items: {
+    name: string;
+    quantity: number;
+    price: { toNumber(): number } | number | string;
+    /** The chosen colour and other options, saved when the order was placed. */
+    attributesSnapshot?: unknown;
+  }[];
   deliveryZone: string;
+  /** True when the customer chose to pay the rider in cash. */
+  cashOnDelivery?: boolean;
 }
 
 export function orderConfirmationEmail(to: string, order: ConfirmationOrder): MailMessage {
-  const lines = order.items.map((item) => `- ${item.name} x ${item.quantity}: ${formatPrice(Number(item.price) * item.quantity)}`);
+  const itemName = (item: ConfirmationOrder['items'][number]) => {
+    const detail = variantLabel(item.attributesSnapshot, ', ');
+    return detail ? `${item.name} (${detail})` : item.name;
+  };
+  const lines = order.items.map((item) => `- ${itemName(item)} x ${item.quantity}: ${formatPrice(Number(item.price) * item.quantity)}`);
   const link = `${baseUrl()}/orders/${encodeURIComponent(order.orderNumber)}`;
   const delivery = order.deliveryZone === 'PICKUP' ? 'Pick up from the shop' : 'Delivery';
   const access = order.isGuest ? 'Open it in the same browser you ordered with.' : 'Sign in to see it.';
@@ -90,9 +103,16 @@ export function orderConfirmationEmail(to: string, order: ConfirmationOrder): Ma
       `Total: ${formatPrice(order.total)}`,
       `Delivery: ${delivery}`,
       '',
-      'If you have not paid yet, you can finish payment from your order page:',
-      link,
-      access,
+      ...(order.cashOnDelivery
+        ? [
+            'You chose to pay the rider in cash on delivery.',
+            'We will call you shortly to confirm your order before we send it.',
+            '',
+            'See your order here:',
+            link,
+            access,
+          ]
+        : ['If you have not paid yet, you can finish payment from your order page:', link, access]),
       '',
       'We will let you know when your order is on its way.',
     ].join('\n'),
@@ -103,14 +123,16 @@ export function orderConfirmationEmail(to: string, order: ConfirmationOrder): Ma
       ],
       lines: [
         ...order.items.map((item) => ({
-          label: `${item.name} x ${item.quantity}`,
+          label: `${itemName(item)} x ${item.quantity}`,
           value: formatPrice(Number(item.price) * item.quantity),
         })),
         { label: 'Delivery', value: delivery },
         { label: 'Total', value: formatPrice(order.total) },
       ],
       button: { label: 'View your order', url: link },
-      footnote: `If you have not paid yet, you can finish payment from your order page. ${access} We will let you know when your order is on its way.`,
+      footnote: order.cashOnDelivery
+        ? `You chose to pay the rider in cash. We will call you shortly to confirm your order before we send it. ${access}`
+        : `If you have not paid yet, you can finish payment from your order page. ${access} We will let you know when your order is on its way.`,
     }),
   };
 }

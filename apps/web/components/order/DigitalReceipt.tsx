@@ -8,6 +8,8 @@ import { formatPrice } from '@/lib/format';
 type OrderItem = {
   id: string;
   name: string;
+  /** Chosen options in words, such as "Colour: Black". */
+  detail?: string;
   sku: string;
   quantity: number;
   price: number;
@@ -141,6 +143,7 @@ export function DigitalReceipt(props: ReceiptProps) {
                 <tr key={item.id} className="border-b border-gray-100">
                   <td className="py-3">
                     <p className="font-medium">{item.name}</p>
+                    {item.detail ? <p className="text-xs text-gray-500">{item.detail}</p> : null}
                   </td>
                   <td className="py-3 text-center text-gray-500 text-xs font-mono">{item.sku}</td>
                   <td className="py-3 text-center">{item.quantity}</td>
@@ -210,4 +213,4 @@ export function DigitalReceipt(props: ReceiptProps) {
       `}</style>
     </div>
   );
-}
+}

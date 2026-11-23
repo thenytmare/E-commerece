@@ -13,7 +13,7 @@ export function ProductAssurances() {
       <li className="flex items-start gap-3 p-3">
         <Truck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span>
-          Nairobi delivery is same day or next working day. Free over {formatPrice(FREE_SHIPPING_THRESHOLD_KES)}.{' '}
+          Same-day delivery in Nairobi. Free over {formatPrice(FREE_SHIPPING_THRESHOLD_KES)}.{' '}
           <Link href="/shipping" className="underline underline-offset-2 hover:text-primary">
             Delivery details
           </Link>
@@ -22,7 +22,7 @@ export function ProductAssurances() {
       <li className="flex items-start gap-3 p-3">
         <RotateCcw className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span>
-          Return unused items within 7 days.{' '}
+          Faulty or wrong item? Tell us within 48 hours and we replace or refund it.{' '}
           <Link href="/returns" className="underline underline-offset-2 hover:text-primary">
             Returns policy
           </Link>

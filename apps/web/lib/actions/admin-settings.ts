@@ -70,6 +70,10 @@ export async function updatePaymentSettingsAction(
   }
   const {
     manualMpesaEnabled,
+    mpesaStkEnabled,
+    cardEnabled,
+    paystackEnabled,
+    codEnabled,
     businessName,
     paybillNumber,
     accountNumber,
@@ -80,6 +84,12 @@ export async function updatePaymentSettingsAction(
 
   try {
     await repos.siteSetting.upsert('payment', {
+      methods: {
+        mpesaStk: mpesaStkEnabled,
+        card: cardEnabled,
+        paystack: paystackEnabled,
+        cod: codEnabled,
+      },
       manualMpesa: {
         enabled: manualMpesaEnabled,
         businessName: businessName ?? '',
@@ -101,6 +111,10 @@ export async function updatePaymentSettingsAction(
       entityId: 'payment',
       metadata: {
         manualMpesaEnabled,
+        mpesaStkEnabled,
+        cardEnabled,
+        paystackEnabled,
+        codEnabled,
         paybillNumber,
         accountNumber,
       },

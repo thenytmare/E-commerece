@@ -48,6 +48,8 @@ interface PaymentMethodPickerProps {
   cancelled?: boolean;
   /** Trust badge shown under the M-Pesa prompt. Built on the server, so it is passed in. */
   mpesaBadge?: ReactNode;
+  /** "Secured by Paystack" badge shown under the Paystack option. */
+  paystackBadge?: ReactNode;
 }
 
 /** A copyable value row for the Paybill card. */
@@ -99,6 +101,7 @@ export function PaymentMethodPicker({
   devMode,
   cancelled,
   mpesaBadge,
+  paystackBadge,
 }: PaymentMethodPickerProps) {
   const [manualState, manualSubmitAction, manualPending] = useActionState(
     submitManualMpesaAction,
@@ -351,6 +354,7 @@ export function PaymentMethodPicker({
               {paystackError} You can try again, or choose another method.
             </p>
           ) : null}
+          <div className="mt-4 empty:hidden">{paystackBadge}</div>
         </div>
       ) : null}
 

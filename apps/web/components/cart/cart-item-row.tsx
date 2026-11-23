@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useState, useTransition } from 'react';
 
 import type { CartItem } from '@/lib/cart-view';
+import { variantLabel } from '@/lib/variant-label';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -18,21 +19,13 @@ interface CartItemRowProps {
   unitPrice: number;
 }
 
-function formatVariantAttributes(attributes: unknown): string {
-  if (!attributes || typeof attributes !== 'object') {
-    return '';
-  }
-  return Object.entries(attributes as Record<string, string>)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(' · ');
-}
 
 export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const product = item.product;
   const image = item.image;
-  const variantLabel = formatVariantAttributes(item.variant.attributes);
+  const optionsText = variantLabel(item.variant.attributes);
   const lineTotal = unitPrice * item.quantity;
   const isDiscounted = unitPrice < item.variant.price;
 
@@ -77,9 +70,9 @@ export function CartItemRow({ item, unitPrice }: CartItemRowProps) {
         </div>
         <div className="min-w-0 space-y-1">
           <Text className="font-medium leading-snug">{product.name}</Text>
-          {variantLabel ? (
+          {optionsText ? (
             <Text variant="muted" className="text-sm">
-              {variantLabel}
+              {optionsText}
             </Text>
           ) : null}
           <Text variant="muted" className="text-sm">

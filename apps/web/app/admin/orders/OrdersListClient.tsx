@@ -14,6 +14,7 @@ import { Eye, XCircle } from 'lucide-react';
 import { OrderStatusForm } from '@/components/admin/order-status-form';
 import { ShipmentForm } from '@/components/admin/ShipmentForm';
 import { deliveryZoneLabel } from '@repo/config/delivery';
+import { variantLabel } from '@/lib/variant-label';
 
 const orderStatusBadgeMap: Record<string, StatusType> = {
   PENDING: 'pending',
@@ -370,6 +371,11 @@ export function OrdersListClient({
                     <li key={item.id} className="py-2.5 flex justify-between items-start gap-4">
                       <div>
                         <span className="text-sm font-medium text-foreground">{item.name}</span>
+                        {variantLabel(item.attributesSnapshot) ? (
+                          <span className="mt-0.5 block text-sm font-semibold text-primary">
+                            {variantLabel(item.attributesSnapshot)}
+                          </span>
+                        ) : null}
                         <span className="text-xs text-muted-foreground block mt-0.5">
                           SKU: {item.sku} • Qty: {item.quantity}
                         </span>

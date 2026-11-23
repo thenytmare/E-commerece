@@ -7,6 +7,8 @@ import { Button, Input, Text } from '@repo/ui';
 import { useActionState, useState } from 'react';
 import type { AppliedCoupon, DeliveryChoice } from './CheckoutClient';
 import { DeliveryOptions } from './delivery-options';
+import { isCashOnDeliveryAvailable } from '@repo/config/delivery';
+import { Banknote, PhoneCall, Smartphone } from 'lucide-react';
 
 const initialState: CheckoutActionState = {};
 
@@ -15,6 +17,7 @@ interface CheckoutFormProps {
   addresses: Address[];
   subtotal: number;
   storeAddress: string;
+  codEnabled: boolean;
   delivery: DeliveryChoice;
   onDeliveryChange: (value: DeliveryChoice) => void;
   appliedCoupon: AppliedCoupon | null;
@@ -26,6 +29,7 @@ export function CheckoutForm({
   addresses,
   subtotal,
   storeAddress,
+  codEnabled,
   delivery,
   onDeliveryChange,
   appliedCoupon,
@@ -41,6 +45,10 @@ export function CheckoutForm({
 
   const zone = delivery.zone;
   const isPickup = zone === 'PICKUP';
+  // Nairobi customers can choose to pay the rider in cash instead of paying now.
+  const canPayOnDelivery = codEnabled && zone !== null && isCashOnDeliveryAvailable(zone);
+  const [payChoice, setPayChoice] = useState<'online' | 'cod'>('online');
+  const payOnDelivery = canPayOnDelivery && payChoice === 'cod';
   const deliveryReady = zone !== null && (isPickup || Boolean(delivery.location));
   // Saved addresses only make sense when something is being delivered.
   const showSavedAddresses = addresses.length > 0 && !isPickup;
@@ -96,6 +104,7 @@ export function CheckoutForm({
           value={delivery}
           onChange={onDeliveryChange}
           storeAddress={storeAddress}
+          codEnabled={codEnabled}
           disabled={pending}
           zoneError={state?.fieldErrors?.deliveryZone}
           locationError={state?.fieldErrors?.deliveryLocation}
@@ -260,6 +269,67 @@ export function CheckoutForm({
         ) : null}
       </div>
 
+      {canPayOnDelivery ? (
+        <fieldset className="border-border bg-card rounded-xl border p-6">
+          <legend className="sr-only">How would you like to pay?</legend>
+          <Text className="mb-4 font-semibold">How would you like to pay?</Text>
+          <div className="grid gap-3">
+            {(
+              [
+                {
+                  value: 'online',
+                  Icon: Smartphone,
+                  title: 'Pay now',
+                  text: 'M-Pesa or another method on the next page.',
+                },
+                {
+                  value: 'cod',
+                  Icon: Banknote,
+                  title: 'Pay on delivery',
+                  text: 'Pay the rider in cash when your order arrives.',
+                },
+              ] as const
+            ).map(({ value, Icon, title, text }) => (
+              <label
+                key={value}
+                className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                  payChoice === value
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    : 'border-border hover:border-muted-foreground'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentChoice"
+                  value={value}
+                  checked={payChoice === value}
+                  onChange={() => setPayChoice(value)}
+                  disabled={pending}
+                  className="mt-1 h-4 w-4 accent-[hsl(var(--primary))]"
+                />
+                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                <span className="text-sm">
+                  <span className="block font-medium">{title}</span>
+                  <span className="text-muted-foreground">{text}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {payOnDelivery ? (
+            <p
+              className="mt-4 flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-sm"
+              role="status"
+            >
+              <PhoneCall className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              <span>
+                We will call you on the phone number in your delivery details to confirm your order before we send it.
+                Please keep your phone close.
+              </span>
+            </p>
+          ) : null}
+        </fieldset>
+      ) : null}
+
       <div className="border-border bg-card rounded-xl border p-6">
         <Input
           name="notes"
@@ -290,7 +360,7 @@ export function CheckoutForm({
         isLoading={pending}
         disabled={!deliveryReady}
       >
-        Continue to payment
+        {payOnDelivery ? 'Place order' : 'Continue to payment'}
       </Button>
     </form>
   );

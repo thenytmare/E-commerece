@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Returns & refunds',
-  description: 'How to return an item and how refunds are processed.',
+  description: 'Returns for faulty or wrong items, and how refunds are processed.',
 };
 
 export default async function ReturnsPage() {
@@ -13,30 +13,45 @@ export default async function ReturnsPage() {
   return (
     <PolicyPage
       title="Returns & refunds"
-      intro="What to do if something arrives faulty, damaged, or isn't what you expected."
+      intro="We accept returns only when an item arrives faulty or we send the wrong item."
     >
       <section className="space-y-3">
-        <h2>Return window</h2>
+        <h2>When you can return an item</h2>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>The item arrives faulty or does not work.</li>
+          <li>The item arrives damaged.</li>
+          <li>We sent the wrong item, colour or model.</li>
+        </ul>
         <p>
-          You can return an item within 7 days of delivery, provided it is unused and in its
-          original packaging with all accessories included.
+          Tell us within 48 hours of delivery. We will replace the item or give you a full refund,
+          including delivery costs.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2>Faulty or damaged items</h2>
-        <p>
-          If an item arrives faulty or damaged, contact us within 48 hours of delivery. We will
-          arrange a replacement or a full refund, including delivery costs.
-        </p>
+        <h2>What we can&apos;t accept</h2>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Change of mind. We do not take back an item because you no longer want it or chose the
+            wrong one.
+          </li>
+          <li>
+            Unused items that have been unboxed. Once a box is opened, we cannot sell the item as
+            new again.
+          </li>
+          <li>Damage caused after delivery, such as drops, water or misuse.</li>
+          <li>Faulty or wrong items reported more than 48 hours after delivery.</li>
+          <li>Items sent back without their original box and accessories.</li>
+        </ul>
+        <p>Please check your order carefully before you open it.</p>
       </section>
 
       <section className="space-y-3">
-        <h2>How to start a return</h2>
+        <h2>How to report a problem</h2>
         <ol className="list-decimal space-y-1 pl-5">
           <li>Contact us on {store.phone} or {store.email} with your order number.</li>
-          <li>Tell us which item you are returning and why.</li>
-          <li>We will confirm the return address and next steps.</li>
+          <li>Tell us what is wrong. A photo or short video helps us sort it out faster.</li>
+          <li>We will confirm the next steps and how to send the item back.</li>
         </ol>
       </section>
 
@@ -45,15 +60,6 @@ export default async function ReturnsPage() {
         <p>
           Approved refunds are sent back by M-Pesa. They usually arrive within 1–3 working days.
         </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2>What we can&apos;t accept</h2>
-        <ul className="list-disc space-y-1 pl-5">
-          <li>Items with physical damage caused after delivery.</li>
-          <li>Items missing their original packaging or accessories.</li>
-          <li>Items returned more than 7 days after delivery.</li>
-        </ul>
       </section>
     </PolicyPage>
   );

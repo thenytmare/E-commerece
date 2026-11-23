@@ -45,7 +45,7 @@ export default async function ShippingPage() {
       <section className="space-y-3">
         <h2>Delivery times</h2>
         <ul className="list-disc space-y-1 pl-5">
-          <li>Nairobi and surrounding areas: same day or next working day.</li>
+          <li>Nairobi and surrounding areas: same day.</li>
           <li>Major towns: 1–3 working days.</li>
           <li>Other locations: 2–5 working days.</li>
         </ul>

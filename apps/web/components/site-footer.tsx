@@ -1,4 +1,5 @@
 import { getStoreSettings } from '@/lib/store';
+import { PaystackBadge } from '@/components/payment/paystack-badge';
 import { IntasendBadge } from '@/components/payment/intasend-badge';
 import { Container } from '@repo/ui';
 import { buildWhatsAppLink } from '@repo/utils';
@@ -147,15 +148,16 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-10 flex flex-col items-center gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-center text-sm text-muted-foreground sm:text-left">
             &copy; {year} {store.name}. All rights reserved.
           </p>
-          <div className="flex flex-col gap-3 sm:items-end">
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col items-center gap-3 sm:items-end">
+            <p className="text-center text-sm text-muted-foreground sm:text-right">
               We accept <span className="font-medium text-foreground">M-Pesa</span> and cash on delivery in Nairobi
             </p>
             <IntasendBadge />
+            <PaystackBadge className="w-full max-w-[260px]" />
           </div>
         </div>
       </Container>

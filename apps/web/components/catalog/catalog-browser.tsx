@@ -78,13 +78,27 @@ function CategoryList({
           onClick={onPick}
           aria-current={isActive ? 'page' : undefined}
           className={cn(
-            'flex min-h-11 items-center justify-between gap-3 rounded-md px-3 text-sm transition-colors',
-            // Chosen: dark text (orange on the tint was too faint) with an orange bar on the left.
-            isActive ? 'bg-primary/10 font-semibold text-foreground shadow-[inset_3px_0_0_hsl(var(--primary))]' : 'text-foreground hover:bg-muted'
+            'flex min-h-11 items-center justify-between gap-3 rounded-lg px-3 text-sm transition-colors',
+            // Chosen: a soft orange tint with a fine orange outline and bold dark text.
+            // The count turns into a small orange badge. No bar down the side.
+            isActive
+              ? 'bg-primary/10 font-semibold text-foreground ring-1 ring-inset ring-primary/30'
+              : 'text-foreground hover:bg-muted'
           )}
         >
           <span className="truncate">{name}</span>
-          {count !== undefined && <span className="shrink-0 text-xs text-muted-foreground">{count}</span>}
+          {count !== undefined && (
+            <span
+              className={cn(
+                'shrink-0 text-xs tabular-nums',
+                isActive
+                  ? 'rounded-full bg-primary px-2 py-0.5 font-semibold text-primary-foreground'
+                  : 'text-muted-foreground'
+              )}
+            >
+              {count}
+            </span>
+          )}
         </Link>
       </li>
     );

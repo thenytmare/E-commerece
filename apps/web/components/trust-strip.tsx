@@ -12,7 +12,7 @@ export function TrustStrip() {
     { Icon: ShieldCheck, title: 'Genuine products', text: 'Original stock from trusted brands' },
     { Icon: Truck, title: 'Delivery across Kenya', text: `Free on orders over ${formatPrice(FREE_SHIPPING_THRESHOLD_KES)}` },
     { Icon: Wallet, title: 'Pay your way', text: 'M-Pesa or Nairobi cash on delivery' },
-    { Icon: RotateCcw, title: '7-day returns', text: 'On unused items' },
+    { Icon: RotateCcw, title: 'Faulty item cover', text: 'Replaced or refunded if it arrives faulty' },
   ];
 
   return (

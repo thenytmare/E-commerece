@@ -10,6 +10,7 @@ import { addToCartAction } from '@/lib/actions/cart';
 import { BackInStockForm } from './BackInStockForm';
 import { buildWhatsAppLink } from '@repo/utils';
 import { formatDateTime, formatPrice } from '@/lib/format';
+import { attributeName } from '@/lib/variant-label';
 
 interface Props {
   product: ClientProductDetail;
@@ -119,7 +120,7 @@ export function ProductActions({
     return [...groups.entries()].filter(([, options]) => options.length > 1);
   })();
 
-  const labelFor = (key: string) => key.charAt(0).toUpperCase() + key.slice(1).replace(/[_-]/g, ' ');
+  const labelFor = attributeName;
 
   const handleAddToCart = async (): Promise<boolean> => {
     if (!inStock || !selected) return false;
@@ -162,27 +163,48 @@ export function ProductActions({
 
   return (
     <div className="space-y-5">
-      {/* Color swatches */}
+      {/* Colours: a dot plus the colour's name, so it is clear in words what
+          the customer is ordering. */}
       {variantColors.length > 1 && (
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Color:</span>
-          {variantColors.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onVariantChange?.(c.id)}
-              // after: stretches the tap area to 44px without changing the dot.
-              className={`relative h-7 w-7 rounded-full border-2 transition-colors after:absolute after:-inset-2 ${
-                selected?.id === c.id
-                  ? 'border-primary ring-2 ring-primary/30'
-                  : 'border-border hover:border-muted-foreground'
-              }`}
-              style={{ backgroundColor: c.hex ?? '#cccccc' }}
-              title={c.name}
-              aria-pressed={selected?.id === c.id}
-              aria-label={c.name || 'color'}
-            />
-          ))}
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">
+            Colour:{' '}
+            <span className="font-semibold text-foreground">
+              {variantColors.find((c) => c.id === selected?.id)?.name || 'Choose a colour'}
+            </span>
+          </p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Colour">
+            {variantColors.map((c) => {
+              const isSelected = selected?.id === c.id;
+              const colourVariant = product.variants.find((v) => v.id === c.id);
+              const colourAvailable = colourVariant?.inventory
+                ? colourVariant.inventory.quantity - colourVariant.inventory.reserved > 0
+                : false;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => onVariantChange?.(c.id)}
+                  aria-pressed={isSelected}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3.5 text-sm transition-colors sm:min-h-9 ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 font-medium ring-1 ring-primary'
+                      : 'border-border hover:border-muted-foreground'
+                  } ${colourAvailable ? '' : 'text-muted-foreground'}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-6 w-6 shrink-0 rounded-full border border-black/10 dark:border-white/20"
+                    style={{ backgroundColor: c.hex ?? '#cccccc' }}
+                  />
+                  <span className={colourAvailable ? '' : 'line-through decoration-1'}>
+                    {c.name || 'Colour'}
+                  </span>
+                  {!colourAvailable && <span className="sr-only">(out of stock)</span>}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

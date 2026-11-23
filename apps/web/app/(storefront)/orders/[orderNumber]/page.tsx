@@ -8,6 +8,8 @@ import { Badge, Button, Container, Heading, Section, Text } from '@repo/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { variantLabel } from '@/lib/variant-label';
+import { PhoneCall } from 'lucide-react';
 
 interface OrderPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -88,6 +90,7 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
     items: order.items.map((item) => ({
       id: item.id,
       name: item.name,
+      detail: variantLabel(item.attributesSnapshot),
       sku: item.sku,
       quantity: item.quantity,
       price: typeof item.price === 'object' && 'toNumber' in item.price ? item.price.toNumber() : Number(item.price),
@@ -127,9 +130,18 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
           ) : null}
           {codPayment ? (
             <Text className="mt-3 text-sm text-green-700 dark:text-green-400">
-              Your order is confirmed. Please have {formatPrice(order.total)} ready to pay the rider
-              on delivery.
+              Your order is placed. Please have {formatPrice(order.total)} ready to pay the rider on
+              delivery.
             </Text>
+          ) : null}
+          {codPayment && order.status === 'CONFIRMED' ? (
+            <p className="mt-3 flex items-start gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-sm">
+              <PhoneCall className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              <span>
+                We will call you shortly to confirm your order before we send it. Please keep your
+                phone close.
+              </span>
+            </p>
           ) : null}
           {awaitingPayment ? (
             <div className="mt-4">
@@ -221,6 +233,9 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
                     >
                       {item.name}
                     </Link>
+                    {variantLabel(item.attributesSnapshot) ? (
+                      <p className="text-muted-foreground">{variantLabel(item.attributesSnapshot)}</p>
+                    ) : null}
                     <p className="text-muted-foreground">Qty: {item.quantity}</p>
                   </div>
                   <span className="font-medium">

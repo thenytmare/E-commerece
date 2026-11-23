@@ -133,6 +133,10 @@ export const storeSettingsSchema = z.object({
 export const paymentSettingsSchema = z
   .object({
     manualMpesaEnabled: checkbox,
+    mpesaStkEnabled: checkbox,
+    cardEnabled: checkbox,
+    paystackEnabled: checkbox,
+    codEnabled: checkbox,
     businessName: optionalText,
     // Safaricom Paybill numbers are 5–7 digits. Keep it digits-only so a
     // customer can type it straight into the M-Pesa menu.

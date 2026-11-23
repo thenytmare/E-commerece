@@ -5,7 +5,6 @@ import { formatPrice } from '@/lib/format';
 import { settlePaystackPayment } from '@/lib/payments/paystack-settlement';
 import {
   deliveryZoneLabel,
-  isCashOnDeliveryAvailable,
   isIntasendConfigured,
   isMpesaConfigured,
   isPaystackConfigured,
@@ -18,6 +17,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { IntasendBadge } from '@/components/payment/intasend-badge';
+import { PaystackBadge } from '@/components/payment/paystack-badge';
 
 interface PayOrderPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -64,18 +64,27 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
     redirect(`/orders/${orderNumber}`);
   }
 
-  const stripeEnabled = isStripeConfigured();
-  const paystackEnabled = isPaystackConfigured();
-  // The M-Pesa prompt shows if either route is set up: IntaSend or direct Safaricom.
-  const mpesaEnabled = isIntasendConfigured() || isMpesaConfigured();
-  const { manualMpesa } = await getPaymentSettings();
+  const { manualMpesa, methods } = await getPaymentSettings();
+  // A method shows when its keys are set AND the owner has not switched it off
+  // in the admin panel.
+  const stripeConfigured = isStripeConfigured();
+  const paystackConfigured = isPaystackConfigured();
+  // The M-Pesa prompt works through either route: IntaSend or direct Safaricom.
+  const mpesaConfigured = isIntasendConfigured() || isMpesaConfigured();
+  const stripeEnabled = stripeConfigured && methods.card;
+  const paystackEnabled = paystackConfigured && methods.paystack;
+  const mpesaEnabled = mpesaConfigured && methods.mpesaStk;
+  // Dev simulation is only for shops with no real provider keys at all, so
+  // switching a method off never opens it.
   const devMode =
     isPaymentDevMode() &&
-    !stripeEnabled &&
-    !mpesaEnabled &&
-    !paystackEnabled &&
+    !stripeConfigured &&
+    !mpesaConfigured &&
+    !paystackConfigured &&
     !manualMpesa.enabled;
-  const codEnabled = isCashOnDeliveryAvailable(order.deliveryZone);
+  // Pay on delivery is chosen at checkout, before the customer reaches this
+  // page, so it is not offered here.
+  const codEnabled = false;
 
   // Surface this order's existing manual submission so the picker can show the
   // "awaiting confirmation" panel or let the customer resubmit a rejected code.
@@ -133,6 +142,7 @@ export default async function PayOrderPage({ params, searchParams }: PayOrderPag
               devMode={devMode}
               cancelled={query.cancelled === '1'}
               mpesaBadge={<IntasendBadge wide />}
+              paystackBadge={<PaystackBadge />}
             />
             <p className="mt-4 text-center text-sm"><Link href="/cart" className="underline">Back to cart — your items are saved</Link></p>
             <Text variant="muted" className="mt-6 text-center text-xs">

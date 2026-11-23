@@ -28,6 +28,8 @@ interface CheckoutClientProps {
   subtotal: number;
   /** Shown in the shop pickup box. */
   storeAddress: string;
+  /** False when the owner has switched Cash on Delivery off in the admin panel. */
+  codEnabled?: boolean;
   itemCount: number;
   lines: CheckoutSummaryLine[];
 }
@@ -43,6 +45,7 @@ export function CheckoutClient({
   addresses,
   subtotal,
   storeAddress,
+  codEnabled = true,
   itemCount,
   lines,
 }: CheckoutClientProps) {
@@ -59,6 +62,7 @@ export function CheckoutClient({
         addresses={addresses}
         subtotal={subtotal}
         storeAddress={storeAddress}
+        codEnabled={codEnabled}
         delivery={delivery}
         onDeliveryChange={setDelivery}
         appliedCoupon={appliedCoupon}

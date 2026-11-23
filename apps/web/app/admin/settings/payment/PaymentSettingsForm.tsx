@@ -12,16 +12,60 @@ import type { PaymentSettings } from '@/lib/payment-settings';
 
 type Props = {
   settings: PaymentSettings;
+  /** Whether the keys for each gateway are set on the server. */
+  connected: { mpesaStk: boolean; card: boolean; paystack: boolean };
 };
+
+/** One on/off row in the "Ways to pay" list. */
+function MethodSwitch({
+  name,
+  title,
+  description,
+  defaultChecked,
+  note,
+  noteTone = 'muted',
+}: {
+  name: string;
+  title: string;
+  description: string;
+  defaultChecked: boolean;
+  note?: string;
+  noteTone?: 'muted' | 'warn';
+}) {
+  return (
+    <label className="flex items-start gap-3 rounded-md border border-border bg-background px-4 py-3">
+      <input
+        type="checkbox"
+        name={name}
+        defaultChecked={defaultChecked}
+        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+      />
+      <span className="text-sm">
+        <span className="font-medium text-foreground">{title}</span>
+        <span className="block text-muted-foreground">{description}</span>
+        {note ? (
+          <span
+            className={`mt-1 block text-xs ${
+              noteTone === 'warn' ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground'
+            }`}
+          >
+            {note}
+          </span>
+        ) : null}
+      </span>
+    </label>
+  );
+}
 
 const inputClass =
   'w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors';
 
-export function PaymentSettingsForm({ settings }: Props) {
+export function PaymentSettingsForm({ settings, connected }: Props) {
   const router = useRouter();
   const { can } = usePermissions();
   const canWrite = can('settings.write');
   const manual = settings.manualMpesa;
+  const methods = settings.methods;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,26 +108,54 @@ export function PaymentSettingsForm({ settings }: Props) {
 
       <fieldset disabled={!canWrite} className="space-y-6 border-0 p-0 m-0 min-w-0">
         <FormSection
+          title="Ways to pay"
+          description="Tick the methods customers can use on the payment page. Untick one to hide it. Card and M-Pesa prompt also need their keys set on the server."
+        >
+          <div className="grid gap-3">
+            <MethodSwitch
+              name="mpesaStkEnabled"
+              title="M-Pesa prompt (STK push)"
+              description="The customer gets a prompt on their phone and enters their PIN. Confirmed automatically."
+              defaultChecked={methods.mpesaStk}
+              note={connected.mpesaStk ? 'Connected.' : 'Not connected yet. Add the payment keys on the server and it will show.'}
+              noteTone={connected.mpesaStk ? 'muted' : 'warn'}
+            />
+            <MethodSwitch
+              name="manualMpesaEnabled"
+              title="M-Pesa Paybill (manual)"
+              description="The customer pays to your Paybill and pastes the M-Pesa code. You confirm it by hand. Needs the Paybill and account number below."
+              defaultChecked={manual.enabled}
+            />
+            <MethodSwitch
+              name="cardEnabled"
+              title="Card (Stripe)"
+              description="Visa and Mastercard through Stripe's secure page."
+              defaultChecked={methods.card}
+              note={connected.card ? 'Connected.' : 'Not connected yet. Add the Stripe keys on the server and it will show.'}
+              noteTone={connected.card ? 'muted' : 'warn'}
+            />
+            <MethodSwitch
+              name="paystackEnabled"
+              title="Paystack (card and M-Pesa)"
+              description="Paystack's secure checkout page. Customers can pay by card or M-Pesa."
+              defaultChecked={methods.paystack}
+              note={connected.paystack ? 'Connected.' : 'Not connected yet. Add the Paystack keys on the server and it will show.'}
+              noteTone={connected.paystack ? 'muted' : 'warn'}
+            />
+            <MethodSwitch
+              name="codEnabled"
+              title="Cash on Delivery"
+              description="The customer pays the rider in cash. Offered for Nairobi deliveries only."
+              defaultChecked={methods.cod}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection
           title="M-Pesa Paybill (manual)"
-          description="Customers pay to this Paybill and submit the M-Pesa confirmation code. A staff member checks the code against your statement and confirms the order under Sales › Payment confirmations."
+          description="Details shown when M-Pesa Paybill is ticked above. Customers pay to this Paybill and submit the M-Pesa confirmation code. A staff member checks the code against your statement and confirms the order under Sales › Payment confirmations."
         >
           <div className="grid gap-6">
-            <label className="flex items-start gap-3 rounded-md border border-border bg-background px-4 py-3">
-              <input
-                type="checkbox"
-                name="manualMpesaEnabled"
-                defaultChecked={manual.enabled}
-                className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
-              />
-              <span className="text-sm">
-                <span className="font-medium text-foreground">Show M-Pesa Paybill at checkout</span>
-                <span className="block text-muted-foreground">
-                  When on, customers see the Paybill details and a box to paste their M-Pesa code on
-                  the payment page. Needs the Paybill and account number below.
-                </span>
-              </span>
-            </label>
-
             <FormField
               id="businessName"
               label="Paying to (business name)"

@@ -16,6 +16,8 @@ interface DeliveryOptionsProps {
   value: DeliveryChoice;
   onChange: (value: DeliveryChoice) => void;
   storeAddress: string;
+  /** Hide the Cash on Delivery hint when the owner has switched it off. */
+  codEnabled?: boolean;
   disabled?: boolean;
   zoneError?: string;
   locationError?: string;
@@ -35,6 +37,7 @@ export function DeliveryOptions({
   value,
   onChange,
   storeAddress,
+  codEnabled = true,
   disabled,
   zoneError,
   locationError,
@@ -189,9 +192,9 @@ export function DeliveryOptions({
               {locationError}
             </p>
           ) : null}
-          {isCashOnDeliveryAvailable(zone) ? (
+          {codEnabled && isCashOnDeliveryAvailable(zone) ? (
             <Text variant="muted" className="text-xs">
-              Cash on Delivery is available for Nairobi deliveries. You can choose it on the next step.
+              Pay on delivery is available for Nairobi. You can choose it below.
             </Text>
           ) : null}
         </div>

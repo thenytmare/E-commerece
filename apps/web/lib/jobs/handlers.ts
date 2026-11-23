@@ -70,7 +70,8 @@ export const jobHandlers: Record<string, JobHandler> = {
           total: true,
           deliveryZone: true,
           user: { select: { email: true } },
-          items: { select: { name: true, quantity: true, price: true }, orderBy: { id: 'asc' } },
+          items: { select: { name: true, quantity: true, price: true, attributesSnapshot: true }, orderBy: { id: 'asc' } },
+          payments: { select: { provider: true } },
         },
       });
       // Optional email: with no mail server set up, skip it instead of
@@ -86,6 +87,7 @@ export const jobHandlers: Record<string, JobHandler> = {
           total: order.total,
           items: order.items,
           deliveryZone: order.deliveryZone ?? '',
+          cashOnDelivery: order.payments.some((p) => p.provider === 'CASH_ON_DELIVERY'),
         })
       );
     },

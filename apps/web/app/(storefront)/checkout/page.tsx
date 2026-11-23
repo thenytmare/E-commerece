@@ -3,6 +3,8 @@ import { calculateOrderTotals } from '@/lib/checkout';
 import { auth } from '@/auth';
 import { resolveCart } from '@/lib/cart';
 import { isCartItemAvailable } from '@/lib/cart-view';
+import { getPaymentSettings } from '@/lib/payment-settings';
+import { variantLabel } from '@/lib/variant-label';
 import { getStoreSettings } from '@/lib/store';
 import { createRepositories } from '@repo/database';
 import { Container, Grid, Heading, Section, Text } from '@repo/ui';
@@ -40,10 +42,12 @@ export default async function CheckoutPage() {
   // `next/headers` and cannot be pulled into a client bundle.
   const { subtotal, unitPrices } = await calculateOrderTotals(cart);
   const store = await getStoreSettings();
+  const { methods } = await getPaymentSettings();
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
   const lines = cart.items.map((item) => ({
     id: item.id,
     name: item.variant.product.name,
+    detail: variantLabel(item.variant.attributes),
     quantity: item.quantity,
     // Uses the same flash-sale-aware price the order will be charged at.
     lineTotal: unitPrices.get(item.variantId)! * item.quantity,
@@ -72,6 +76,7 @@ export default async function CheckoutPage() {
               addresses={addresses}
               subtotal={subtotal}
               storeAddress={store.address}
+              codEnabled={methods.cod}
               itemCount={itemCount}
               lines={lines}
             />

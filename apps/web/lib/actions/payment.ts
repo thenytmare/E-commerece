@@ -66,6 +66,11 @@ export async function initiateStripePaymentAction(
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
 
+    // The shop owner can switch a method off in the admin panel.
+    if (!(await getPaymentSettings()).methods.card) {
+      return { error: 'Card payments are not available right now' };
+    }
+
     if (!isStripeConfigured()) {
       if (isPaymentDevMode()) {
         return { error: 'Use dev payment simulation — Stripe keys not configured' };
@@ -103,6 +108,10 @@ export async function initiatePaystackPaymentAction(
   try {
     const order = await loadPayableOrder(orderNumber);
     const repos = createRepositories();
+
+    if (!(await getPaymentSettings()).methods.paystack) {
+      return { error: 'Paystack is not available right now' };
+    }
 
     if (!isPaystackConfigured()) {
       if (isPaymentDevMode()) {
@@ -163,6 +172,9 @@ export async function initiateMpesaPaymentAction(
   try {
     // IntaSend is used when its keys are set. Otherwise the direct Safaricom
     // (Daraja) set-up is used, as before.
+    if (!(await getPaymentSettings()).methods.mpesaStk) {
+      return { error: 'M-Pesa prompts are not available right now. Please choose another way to pay.' };
+    }
     const useIntasend = isIntasendConfigured();
     if (!useIntasend && !isMpesaConfigured()) {
       if (isPaymentDevMode()) {
@@ -259,6 +271,9 @@ export async function chooseCashOnDeliveryAction(
 
   try {
     const order = await loadPayableOrder(orderNumber);
+    if (!(await getPaymentSettings()).methods.cod) {
+      return { error: 'Cash on Delivery is not available right now' };
+    }
     if (!isCashOnDeliveryAvailable(order.deliveryZone)) {
       return { error: 'Cash on Delivery is only available for Nairobi deliveries' };
     }
