@@ -7,6 +7,7 @@ import { ShoppingCart, Zap, Check, AlertTriangle } from 'lucide-react';
 // `Zap` doubles as the Order Now icon and the flash-sale marker.
 import type { ClientProductDetail } from '@/lib/catalog-dtos';
 import { addToCartAction } from '@/lib/actions/cart';
+import { trackAddToCart, trackViewContent } from '@/lib/meta-pixel-events';
 import { BackInStockForm } from './BackInStockForm';
 import { buildWhatsAppLink } from '@repo/utils';
 import { formatDateTime, formatPrice } from '@/lib/format';
@@ -76,6 +77,13 @@ export function ProductActions({
   const compareAt = onFlashSale ? listPrice : regularCompareAt;
   const discount = calcDiscount(price, compareAt);
 
+  // One ViewContent per product page, not per colour/size switch — that's
+  // what Meta's own examples do, and it keeps the event count meaningful.
+  useEffect(() => {
+    trackViewContent({ contentId: product.id, contentName: product.name, value: product.basePrice });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
+
   const available = selected?.inventory
     ? Math.max(0, selected.inventory.quantity - selected.inventory.reserved)
     : 0;
@@ -141,6 +149,7 @@ export function ProductActions({
     }
 
     setJustAdded(true);
+    trackAddToCart({ contentId: product.id, contentName: product.name, value: price, quantity });
     router.refresh();
     return true;
   };

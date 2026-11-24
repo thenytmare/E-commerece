@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { shippingFor, type DeliveryZone } from '@repo/config/delivery';
 import { CheckoutForm } from './checkout-form';
 import { CheckoutSummary, type CheckoutSummaryLine } from './checkout-summary';
 import type { Address } from '@repo/database';
+import { trackInitiateCheckout } from '@/lib/meta-pixel-events';
 
 export interface AppliedCoupon {
   code: string;
@@ -51,6 +52,16 @@ export function CheckoutClient({
 }: CheckoutClientProps) {
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [delivery, setDelivery] = useState<DeliveryChoice>({ zone: null, location: null });
+
+  // Once per visit to the checkout page, not once per field filled in.
+  useEffect(() => {
+    trackInitiateCheckout({
+      contentIds: lines.map((line) => line.id),
+      value: subtotal,
+      numItems: itemCount,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // null until a delivery option (and, if needed, a location) is chosen.
   const shipping = delivery.zone ? shippingFor(subtotal, delivery.zone, delivery.location) : null;

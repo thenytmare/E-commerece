@@ -19,6 +19,9 @@
  */
 export function getContentSecurityPolicy(nonce: string): string {
   const sentryDsn = process.env.SENTRY_DSN ?? '';
+  // NEXT_PUBLIC_ vars are plain env vars on the server too, so this check
+  // works here even though the Meta Pixel itself only runs in the browser.
+  const metaPixelEnabled = Boolean(process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim());
 
   // Mirrors the same derivation next.config.ts used to do for its (now
   // removed) static CSP header — see that file's `sentryIngestHost` comment
@@ -34,11 +37,11 @@ export function getContentSecurityPolicy(nonce: string): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline'${metaPixelEnabled ? ' https://connect.facebook.net' : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    `connect-src 'self'${sentryIngestHost ? ` https://${sentryIngestHost}` : ''}`,
+    `connect-src 'self'${sentryIngestHost ? ` https://${sentryIngestHost}` : ''}${metaPixelEnabled ? ' https://www.facebook.com' : ''}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

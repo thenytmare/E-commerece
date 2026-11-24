@@ -9,6 +9,7 @@ import { createRepositories } from '@repo/database';
 import { deliveryFeeFor, isCashOnDeliveryAvailable, isDeliveryZone } from '@repo/config';
 import { getPaymentSettings } from '@/lib/payment-settings';
 import { getStoreSettings } from '@/lib/store';
+import { reportPurchase } from '@/lib/meta-conversions-api';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -176,6 +177,7 @@ export async function placeOrderAction(
   if (payOnDelivery) {
     try {
       await repos.order.placeCashOnDelivery(orderId);
+      void reportPurchase(orderId);
       revalidatePath('/account/orders');
     } catch (error) {
       // The order exists, so never lose it. Send the customer to the payment

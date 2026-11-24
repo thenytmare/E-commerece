@@ -1,6 +1,7 @@
 import { CatalogBrowser } from '@/components/catalog/catalog-browser';
 import { Pagination } from '@/components/catalog/pagination';
 import { ProductGrid } from '@/components/catalog/product-grid';
+import { SearchTracker } from '@/components/analytics/SearchTracker';
 import { loadCatalogPage, SORT_OPTIONS, type CatalogSearchParams } from '@/lib/catalog';
 import { Container, Heading, Section } from '@repo/ui';
 import type { Metadata } from 'next';
@@ -22,6 +23,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   return (
     <main>
+      <SearchTracker query={filters.search} />
       <Section spacing="sm" className="border-b border-border bg-card py-5 sm:py-12">
         <Container>
           <Heading as="h1" size="lg">

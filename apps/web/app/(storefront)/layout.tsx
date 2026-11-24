@@ -1,10 +1,11 @@
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { StorefrontTracker } from '@/components/analytics/StorefrontTracker';
+import { MetaPixel } from '@/components/analytics/MetaPixel';
 import { AnnouncementBar } from '@/components/AnnouncementBar';
 import { CookieConsent } from '@/components/CookieConsent';
 
-export default function StorefrontLayout({ children }: { children: React.ReactNode }) {
+export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hidden until a keyboard user tabs to it: jumps past the header. */}
@@ -17,6 +18,7 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
       <AnnouncementBar />
       <SiteHeader />
       <StorefrontTracker />
+      <MetaPixel />
       <div id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         {children}
       </div>

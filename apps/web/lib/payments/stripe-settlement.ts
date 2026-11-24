@@ -1,6 +1,7 @@
 import { createRepositories, type Payment } from '@repo/database';
 import { retrieveStripeCheckoutSession } from '@/lib/payments/stripe';
 import { checkStripeSession } from '@repo/config';
+import { reportPurchase } from '@/lib/meta-conversions-api';
 
 export type SettlementOutcome = 'completed' | 'failed' | 'pending' | 'noop';
 
@@ -63,6 +64,7 @@ export async function settleStripePayment(payment: Payment): Promise<SettlementO
       paymentStatus: session.payment_status,
       verifiedVia: 'session_retrieve',
     });
+    void reportPurchase(payment.orderId);
     return 'completed';
   }
 

@@ -2,6 +2,7 @@ import { createRepositories, type Payment } from '@repo/database';
 import { describeMpesaFailure } from '@repo/utils';
 import { queryStkStatus, type ParsedMpesaCallback } from '@/lib/payments/mpesa';
 import { isIntasendPayment, settleIntasendPayment } from '@/lib/payments/intasend-settlement';
+import { reportPurchase } from '@/lib/meta-conversions-api';
 
 export type SettlementOutcome = 'completed' | 'failed' | 'pending' | 'noop';
 
@@ -83,6 +84,7 @@ export async function settleMpesaPayment(
           payerPhone: hint?.phone,
         }
       );
+      void reportPurchase(payment.orderId);
       return 'completed';
     }
 

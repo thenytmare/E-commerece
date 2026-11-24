@@ -4,6 +4,7 @@ import {
   verifyPaystackTransaction,
   type PaystackTransactionData,
 } from '@/lib/payments/paystack';
+import { reportPurchase } from '@/lib/meta-conversions-api';
 
 export type PaystackSettlementOutcome = 'completed' | 'failed' | 'pending' | 'noop';
 
@@ -106,6 +107,7 @@ export async function settlePaystackPayment(
         },
         { receiptNumber, payerPhone }
       );
+      void reportPurchase(payment.orderId);
       return 'completed';
     }
 

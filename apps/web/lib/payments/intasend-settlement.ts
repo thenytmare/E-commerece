@@ -1,6 +1,7 @@
 import { createRepositories, type Payment } from '@repo/database';
 import { toMpesaAmount } from '@repo/utils';
 import { queryIntasendStatus, type IntasendStatus } from '@/lib/payments/intasend';
+import { reportPurchase } from '@/lib/meta-conversions-api';
 
 export type IntasendSettlementOutcome = 'completed' | 'failed' | 'pending' | 'noop';
 
@@ -94,6 +95,7 @@ export async function settleIntasendPayment(
         },
         { receiptNumber: verdict.receipt, payerPhone: verdict.phone }
       );
+      void reportPurchase(payment.orderId);
       return 'completed';
     }
 
