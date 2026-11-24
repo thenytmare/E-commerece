@@ -50,17 +50,28 @@ export const metadata: Metadata = {
     locale: 'en_KE',
     title: `${siteName} — Premium Electronics`,
     description: siteDescription,
-    images: ['/images/logo.png'],
+    // The square mark, not the tall logo.png — a social-media preview crops
+    // to a wide box, and the extra top/bottom padding in logo.png pushed the
+    // mark off-centre or cut it in half.
+    images: ['/images/icon-512.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${siteName} — Premium Electronics`,
     description: siteDescription,
-    images: ['/images/logo.png'],
+    images: ['/images/icon-512.png'],
   },
   icons: {
-    icon: '/images/logo.png',
-    apple: '/images/logo.png',
+    // logo.png is 819x1024, a tall rectangle. Browsers and Google squash a
+    // favicon into a square box, which stretched the mark. These are
+    // pre-cropped to square so the tab icon and search-result icon look
+    // right instead of distorted.
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/images/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/images/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/images/apple-touch-icon.png',
   },
   robots: {
     index: true,
