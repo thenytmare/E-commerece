@@ -197,6 +197,18 @@ export async function requireAuth(redirectTo = '/login') {
   return session;
 }
 
+/**
+ * Starts the Google OAuth redirect. Any guest cart/wishlist merge for a
+ * Google sign-in happens in the `events.signIn` hook in auth.ts, not here —
+ * unlike the credentials flow above, Auth.js handles the whole round trip to
+ * Google and back itself, so there's no point after signIn() succeeds and
+ * before the redirect for this action to run further code.
+ */
+export async function signInWithGoogleAction(formData: FormData): Promise<void> {
+  const callbackUrl = String(formData.get('callbackUrl') ?? '/');
+  await signIn('google', { redirectTo: callbackUrl });
+}
+
 export async function requireAdmin() {
   const { auth } = await import('@/auth');
   const { canAccessAdmin } = await import('@/lib/auth/rbac');

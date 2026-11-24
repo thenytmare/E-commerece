@@ -5,11 +5,22 @@ import { createRepositories, prisma } from '@repo/database';
 import bcrypt from 'bcryptjs';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { authConfig } from './auth.config';
 import { loginSchema } from './lib/validations/auth';
 import { rateLimit } from './lib/rate-limit';
+import { mergeGuestCartForUser } from './lib/cart';
 
 const repos = createRepositories();
+
+/**
+ * "Sign in with Google" only appears, and only runs, once both are set.
+ * Leaving either unset keeps the site exactly as it was — email/password
+ * only — so this is safe to ship ahead of the Google Cloud side being ready.
+ */
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleEnabled = Boolean(googleClientId && googleClientSecret);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -70,7 +81,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    // `allowDangerousEmailAccountLinking` sounds alarming, but it's the right
+    // setting here: Google only hands back an email in the first place once
+    // it has verified it, so a customer who registered with a password and
+    // later taps "Continue with Google" using the same address is let
+    // straight into their existing account, rather than hitting an
+    // "OAuthAccountNotLinked" error and wondering if they have two accounts.
+    ...(googleEnabled
+      ? [
+          Google({
+            clientId: googleClientId!,
+            clientSecret: googleClientSecret!,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
   ],
+  events: {
+    // Runs after every successful sign-in, credentials or Google alike. The
+    // credentials flow (lib/actions/auth.ts) already merges the guest cart
+    // itself before calling signIn(), so this is a safe no-op for it the
+    // second time — the guest-cart cookie is already cleared by then. For
+    // Google, Auth.js handles the whole redirect round trip itself, so this
+    // event is the only place left to do the merge.
+    async signIn({ user }) {
+      if (!user.id) return;
+      try {
+        await mergeGuestCartForUser(user.id);
+      } catch (error) {
+        console.error('Guest cart merge failed on sign-in:', error);
+      }
+    },
+  },
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
