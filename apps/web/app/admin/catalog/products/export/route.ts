@@ -3,6 +3,17 @@ import { createRepositories } from '@repo/database';
 import { requirePermission } from '@/lib/actions/auth';
 import { formatPrice, formatDate } from '@/lib/format';
 import PDFDocument from 'pdfkit';
+import * as PDFKit from 'pdfkit';
+import Helvetica from 'pdfkit/standard-fonts/Helvetica';
+import HelveticaBold from 'pdfkit/standard-fonts/HelveticaBold';
+
+// PDFKit 0.21 can be bundled without its package-relative font directory.
+// Register the only standard fonts this route uses so PDF generation does not
+// depend on whether the deployment bundler kept pdfkit external.
+const { registerStdFonts } = PDFKit as unknown as {
+  registerStdFonts: (...fonts: unknown[]) => void;
+};
+registerStdFonts(Helvetica, HelveticaBold);
 
 // pdfkit needs Node's Buffer/fs, so this route can't run on the Edge runtime.
 export const runtime = 'nodejs';
