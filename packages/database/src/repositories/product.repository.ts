@@ -611,4 +611,79 @@ export class ProductRepository extends BaseRepository {
     const r = await this.db.product.deleteMany({ where: { id: { in: ids } } });
     return r.count;
   }
+
+  /**
+   * Every product matching the admin list's filters, in one go — for the
+   * "Download PDF" export. Unlike adminFindMany(), this is never clamped to
+   * MAX_PAGE_SIZE, so the PDF always has every row the admin filtered for,
+   * not just the first page of them.
+   */
+  async adminFindAllForExport(filters: {
+    search?: string;
+    brandId?: string;
+    categoryId?: string;
+    isFeatured?: boolean;
+    isActive?: boolean;
+    status?: string;
+  } = {}): Promise<
+    {
+      id: string;
+      name: string;
+      basePrice: Prisma.Decimal;
+      isActive: boolean;
+      isFeatured: boolean;
+      status: string;
+      deletedAt: Date | null;
+      brand: { name: string } | null;
+      category: { name: string } | null;
+      availableStock: number;
+    }[]
+  > {
+    // Same filter logic as adminFindMany() above — kept in step with it so
+    // the PDF always matches what the admin sees on screen.
+    const where: Prisma.ProductWhereInput =
+      filters.status === 'archived' ? { deletedAt: { not: null } } : { deletedAt: null };
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { slug: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+    if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.brandId) where.brandId = filters.brandId;
+    if (filters.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
+    if (filters.isActive !== undefined) where.isActive = filters.isActive;
+    if (filters.status && filters.status !== 'archived') where.status = filters.status;
+
+    const products = await this.db.product.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        basePrice: true,
+        isActive: true,
+        isFeatured: true,
+        status: true,
+        deletedAt: true,
+        brand: { select: { name: true } },
+        category: { select: { name: true } },
+        variants: {
+          select: {
+            inventory: { select: { quantity: true, reserved: true } },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return products.map((product) => {
+      const { variants, ...rest } = product;
+      const availableStock = variants.reduce(
+        (sum, variant) =>
+          sum + Math.max(0, (variant.inventory?.quantity ?? 0) - (variant.inventory?.reserved ?? 0)),
+        0
+      );
+      return { ...rest, availableStock };
+    });
+  }
 }

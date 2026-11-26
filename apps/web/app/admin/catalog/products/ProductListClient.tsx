@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DataTable, ColumnDef } from '@/components/admin/ui/DataTable';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Edit, Trash, Eye, EyeOff, Star, RotateCcw } from 'lucide-react';
+import { Edit, Trash, Eye, EyeOff, Star, RotateCcw, Download } from 'lucide-react';
 import {
   deleteProductAction,
   restoreProductAction,
@@ -151,6 +151,16 @@ export function ProductListClient({
   const fromQuery = searchParams.toString();
   const editHref = (id: string) =>
     `/admin/catalog/products/${id}${fromQuery ? `?from=${encodeURIComponent(fromQuery)}` : ''}`;
+
+  // Carries the same search/brand/category/status/featured/visibility filters
+  // the admin currently has open, so the PDF always matches what's on screen.
+  // Page, sort and direction don't apply to an export — it's every matching
+  // row, not one page of them.
+  const exportParams = new URLSearchParams(searchParams);
+  exportParams.delete('page');
+  exportParams.delete('sort');
+  exportParams.delete('dir');
+  const exportHref = `/admin/catalog/products/export?${exportParams.toString()}`;
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
@@ -497,6 +507,14 @@ export function ProductListClient({
             Clear filters
           </button>
         )}
+
+        <a
+          href={exportHref}
+          className="ml-auto flex items-center gap-1.5 min-h-11 px-3 py-1.5 sm:min-h-0 border border-border bg-background rounded-md text-xs font-medium hover:bg-muted"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Download PDF
+        </a>
       </div>
 
       <DataTable

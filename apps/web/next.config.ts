@@ -21,6 +21,12 @@ const sentryDsn = process.env.SENTRY_DSN ?? '';
 const nextConfig: NextConfig = {
   ...(process.env.STANDALONE_BUILD === 'true' ? { output: 'standalone' as const } : {}),
   transpilePackages: ['@repo/ui', '@repo/utils', '@repo/database', '@repo/config'],
+  // pdfkit loads its built-in font files from disk relative to its own
+  // __dirname at runtime. Left to webpack, that __dirname gets rewritten and
+  // font loading breaks ("path argument must be of type string... Received
+  // an instance of URL"). Marking it external keeps it a plain Node require,
+  // so its own __dirname stays correct.
+  serverExternalPackages: ['pdfkit'],
   images: {
     formats: ['image/avif', 'image/webp'],
     // Optimised images are re-checked after a day, not every minute.
