@@ -1,0 +1,252 @@
+{
+  "site": "https://www.qualityaccessories.store",
+  "sitemapProducts": 420,
+  "categories": [
+    {
+      "slug": "jbl",
+      "name": "JBL Kenya",
+      "products": 24,
+      "kind": "brand"
+    },
+    {
+      "slug": "oraimo",
+      "name": "Oraimo Kenya",
+      "products": 24,
+      "kind": "brand"
+    },
+    {
+      "slug": "original-pods",
+      "name": "ORIGINAL PODS",
+      "products": 24,
+      "kind": "type"
+    },
+    {
+      "slug": "charging-solutions",
+      "name": "CHARGING SOLUTIONS",
+      "products": 24,
+      "kind": "type"
+    },
+    {
+      "slug": "anker",
+      "name": "Anker Kenya",
+      "products": 24,
+      "kind": "brand"
+    },
+    {
+      "slug": "smart-watches",
+      "name": "SMART WATCHES",
+      "products": 24,
+      "kind": "type"
+    },
+    {
+      "slug": "havit",
+      "name": "Havit Kenya",
+      "products": 24,
+      "kind": "brand"
+    },
+    {
+      "slug": "itel",
+      "name": "Itel Kenya",
+      "products": 24,
+      "kind": "brand"
+    },
+    {
+      "slug": "infinix",
+      "name": "Infinix Kenya",
+      "products": 24,
+      "kind": "brand"
+    },
+    {
+      "slug": "powerbanks",
+      "name": "POWERBANKS",
+      "products": 24,
+      "kind": "type"
+    },
+    {
+      "slug": "others",
+      "name": "OTHERS",
+      "products": 24,
+      "kind": "generic"
+    },
+    {
+      "slug": "headphones",
+      "name": "HEADPHONES",
+      "products": 24,
+      "kind": "type"
+    },
+    {
+      "slug": "bluetooth-speakers",
+      "name": "BLUETOOTH SPEAKERS",
+      "products": 24,
+      "kind": "type"
+    },
+    {
+      "slug": "home-appliances",
+      "name": "HOME APPLIANCES",
+      "products": 22,
+      "kind": "type"
+    },
+    {
+      "slug": "computer-accessories",
+      "name": "COMPUTER ACCESSORIES",
+      "products": 17,
+      "kind": "type"
+    },
+    {
+      "slug": "oraimo-home",
+      "name": "Oraimo Home Kenya",
+      "products": 16,
+      "kind": "brand"
+    },
+    {
+      "slug": "mi",
+      "name": "Redmi Kenya",
+      "products": 15,
+      "kind": "brand"
+    },
+    {
+      "slug": "storage",
+      "name": "STORAGE",
+      "products": 14,
+      "kind": "type"
+    },
+    {
+      "slug": "sandisk",
+      "name": "SanDisk Kenya",
+      "products": 14,
+      "kind": "brand"
+    },
+    {
+      "slug": "budi",
+      "name": "Budi Kenya",
+      "products": 14,
+      "kind": "brand"
+    },
+    {
+      "slug": "trimmers-and-clippers",
+      "name": "TRIMMERS AND CLIPPERS",
+      "products": 14,
+      "kind": "type"
+    },
+    {
+      "slug": "utarudi",
+      "name": "Utarudi Kenya",
+      "products": 8,
+      "kind": "brand"
+    },
+    {
+      "slug": "powerstations-and-powerstation-accessories",
+      "name": "POWERSTATIONS AND POWERSTATION ACCESSORIES",
+      "products": 7,
+      "kind": "type"
+    },
+    {
+      "slug": "ugreen",
+      "name": "Ugreen Kenya",
+      "products": 7,
+      "kind": "brand"
+    },
+    {
+      "slug": "ecoflow",
+      "name": "Ecoflow Kenya",
+      "products": 6,
+      "kind": "brand"
+    },
+    {
+      "slug": "neckbands",
+      "name": "NECKBANDS",
+      "products": 5,
+      "kind": "type"
+    },
+    {
+      "slug": "microphones",
+      "name": "MICROPHONES",
+      "products": 4,
+      "kind": "type"
+    },
+    {
+      "slug": "smart-packages",
+      "name": "SMART PACKAGES",
+      "products": 4,
+      "kind": "type"
+    },
+    {
+      "slug": "earphones",
+      "name": "EARPHONES",
+      "products": 3,
+      "kind": "type"
+    },
+    {
+      "slug": "gaming",
+      "name": "GAMING",
+      "products": 3,
+      "kind": "type"
+    },
+    {
+      "slug": "mifi",
+      "name": "MIFI",
+      "products": 3,
+      "kind": "type"
+    },
+    {
+      "slug": "harman-kardon",
+      "name": "Harman/Kardon Kenya",
+      "products": 2,
+      "kind": "brand"
+    },
+    {
+      "slug": "cmf-by-nothing",
+      "name": "CMF by NOTHING Kenya",
+      "products": 2,
+      "kind": "brand"
+    },
+    {
+      "slug": "moxom",
+      "name": "Moxom Kenya",
+      "products": 2,
+      "kind": "brand"
+    },
+    {
+      "slug": "richripple",
+      "name": "Rich Ripple Kenya",
+      "products": 2,
+      "kind": "brand"
+    },
+    {
+      "slug": "tecno",
+      "name": "Tecno Kenya",
+      "products": 2,
+      "kind": "brand"
+    },
+    {
+      "slug": "samsung",
+      "name": "Samsung Kenya",
+      "products": 1,
+      "kind": "brand"
+    },
+    {
+      "slug": "hollyland",
+      "name": "Hollyland KenyaHollyland",
+      "products": 1,
+      "kind": "brand"
+    },
+    {
+      "slug": "awei",
+      "name": "Awei Kenya",
+      "products": 1,
+      "kind": "brand"
+    },
+    {
+      "slug": "dji",
+      "name": "DJI KenyaDJI",
+      "products": 1,
+      "kind": "brand"
+    },
+    {
+      "slug": "phone-holder",
+      "name": "PHONE HOLDER",
+      "products": 0,
+      "kind": "type"
+    }
+  ]
+}

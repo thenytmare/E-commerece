@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { formatDateTime } from '@/lib/format';
 
 export interface ActivityItem {
   id: string;
@@ -42,7 +43,7 @@ export function ActivityTimeline({ items, isLoading }: ActivityTimelineProps) {
 
   return (
     <div className="relative border-l border-border ml-4 py-2 space-y-6">
-      {items.map((item, idx) => {
+      {items.map((item) => {
         const Icon = item.icon;
         return (
           <div key={item.id} className="relative flex items-start gap-4 group">
@@ -55,7 +56,7 @@ export function ActivityTimeline({ items, isLoading }: ActivityTimelineProps) {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
                 <h4 className="text-sm font-medium text-foreground">{item.title}</h4>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {item.timestamp.toLocaleDateString()} {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {formatDateTime(item.timestamp)}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">{item.description}</p>

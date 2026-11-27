@@ -1,9 +1,9 @@
-import { CatalogFilters } from '@/components/catalog/catalog-filters';
-import { CategoryNav } from '@/components/catalog/category-nav';
+import { CatalogBrowser } from '@/components/catalog/catalog-browser';
 import { Pagination } from '@/components/catalog/pagination';
 import { ProductGrid } from '@/components/catalog/product-grid';
-import { getCatalogRepos, resolveCatalogFilters, type CatalogSearchParams } from '@/lib/catalog';
-import { Container, Heading, Section, Text } from '@repo/ui';
+import { SearchTracker } from '@/components/analytics/SearchTracker';
+import { loadCatalogPage, SORT_OPTIONS, type CatalogSearchParams } from '@/lib/catalog';
+import { Container, Heading, Section } from '@repo/ui';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -17,55 +17,49 @@ interface ProductsPageProps {
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
-  const repos = getCatalogRepos();
-  const filters = await resolveCatalogFilters(params);
+  const { filters, catalog, categories, brands, activeBrandSlugs } = await loadCatalogPage(params);
 
-  const [categories, brands, catalog] = await Promise.all([
-    repos.category.findRootCategories(),
-    repos.brand.findAllActive(),
-    repos.product.findMany({
-      categoryId: filters.categoryId,
-      brandId: filters.brandId,
-      search: filters.search,
-      isFeatured: filters.isFeatured,
-      page: filters.page,
-    }),
-  ]);
-
-  const urlParams = {
-    q: params.q,
-    brand: params.brand,
-    featured: params.featured,
-  };
+  const state = { q: filters.search, brands: activeBrandSlugs, sort: filters.sort };
 
   return (
     <main>
-      <Section spacing="md" className="border-b border-border bg-card">
+      <SearchTracker query={filters.search} />
+      <Section spacing="sm" className="border-b border-border bg-card py-5 sm:py-12">
         <Container>
-          <Heading as="h1" size="lg" className="mb-2">
+          <Heading as="h1" size="lg">
             All Products
           </Heading>
-          <Text variant="muted">
-            {catalog.total} product{catalog.total === 1 ? '' : 's'} available
-          </Text>
         </Container>
       </Section>
 
-      <Section>
-        <Container className="space-y-8">
-          <CategoryNav categories={categories} activeSlug={filters.category?.slug} />
-          <CatalogFilters
-            search={filters.search}
-            brands={brands}
-            activeBrandSlug={filters.brand?.slug}
-          />
-          <ProductGrid products={catalog.items} />
-          <Pagination
-            page={catalog.page}
-            totalPages={catalog.totalPages}
+      <Section spacing="sm">
+        <Container>
+          <CatalogBrowser
             basePath="/products"
-            searchParams={urlParams}
-          />
+            categories={categories}
+            brands={brands}
+            state={state}
+            sortOptions={SORT_OPTIONS}
+            total={catalog.total}
+          >
+            <div className="space-y-8">
+              <ProductGrid
+                products={catalog.items}
+                emptyMessage="No products match these filters. Try removing one, or clear them all."
+              />
+              <Pagination
+                page={catalog.page}
+                totalPages={catalog.totalPages}
+                basePath="/products"
+                searchParams={{
+                  q: filters.search,
+                  brand: activeBrandSlugs.join(',') || undefined,
+                  sort: filters.sort === 'newest' ? undefined : filters.sort,
+                  featured: params.featured,
+                }}
+              />
+            </div>
+          </CatalogBrowser>
         </Container>
       </Section>
     </main>

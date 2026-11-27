@@ -2,6 +2,7 @@
 
 import { registerAction, type AuthFormState } from '@/lib/actions/auth';
 import { Button, Input } from '@repo/ui';
+import { PasswordInput } from './password-input';
 import Link from 'next/link';
 import { useActionState } from 'react';
 
@@ -30,9 +31,8 @@ export function RegisterForm() {
         disabled={pending}
         error={state?.fieldErrors?.email}
       />
-      <Input
+      <PasswordInput
         name="password"
-        type="password"
         label="Password"
         autoComplete="new-password"
         required
@@ -40,9 +40,8 @@ export function RegisterForm() {
         hint="At least 8 characters"
         error={state?.fieldErrors?.password}
       />
-      <Input
+      <PasswordInput
         name="confirmPassword"
-        type="password"
         label="Confirm password"
         autoComplete="new-password"
         required

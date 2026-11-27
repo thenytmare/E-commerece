@@ -8,13 +8,16 @@ interface FormActionsProps {
   cancelText?: string;
   submitText?: string;
   isSubmitting?: boolean;
+  /** Disables only the submit button (e.g. a read-only viewer) — Cancel stays clickable. */
+  submitDisabled?: boolean;
 }
 
-export function FormActions({ 
-  onCancel, 
-  cancelText = 'Cancel', 
-  submitText = 'Save', 
-  isSubmitting 
+export function FormActions({
+  onCancel,
+  cancelText = 'Cancel',
+  submitText = 'Save',
+  isSubmitting,
+  submitDisabled,
 }: FormActionsProps) {
   return (
     <div className="flex items-center justify-end gap-3 pt-6 border-t border-border mt-6">
@@ -30,7 +33,7 @@ export function FormActions({
       )}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || submitDisabled}
         className="flex items-center justify-center min-w-[100px] px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
       >
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : submitText}

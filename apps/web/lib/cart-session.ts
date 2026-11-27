@@ -20,7 +20,7 @@ export async function ensureCartSessionId(): Promise<string> {
   const sessionId = crypto.randomUUID();
   cookieStore.set(CART_SESSION_COOKIE, sessionId, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production' && process.env.AUTH_INSECURE_COOKIES !== 'true',
     sameSite: 'lax',
     maxAge: CART_SESSION_MAX_AGE,
     path: '/',

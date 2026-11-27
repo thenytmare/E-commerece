@@ -5,10 +5,22 @@ import { createRepositories, prisma } from '@repo/database';
 import bcrypt from 'bcryptjs';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { authConfig } from './auth.config';
 import { loginSchema } from './lib/validations/auth';
+import { rateLimit } from './lib/rate-limit';
+import { mergeGuestCartForUser } from './lib/cart';
 
 const repos = createRepositories();
+
+/**
+ * "Sign in with Google" only appears, and only runs, once both are set.
+ * Leaving either unset keeps the site exactly as it was — email/password
+ * only — so this is safe to ship ahead of the Google Cloud side being ready.
+ */
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleEnabled = Boolean(googleClientId && googleClientSecret);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -20,9 +32,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) {
+          return null;
+        }
+
+        // Limit at the verification boundary, so the direct Auth.js callback
+        // URL gets the same protection as the login form. One bucket per
+        // account and one per address, so guessing many passwords for one
+        // account, or many accounts from one address, are both slowed down.
+        // The reply is the same as a wrong password, so it reveals nothing.
+        const forwarded = request?.headers?.get('x-forwarded-for')?.split(',')[0]?.trim();
+        const address = forwarded || request?.headers?.get('x-real-ip') || 'unknown';
+        const byAccount = await rateLimit(`auth-account:${parsed.data.email.toLowerCase()}`, 10, 5 * 60_000);
+        const byAddress = await rateLimit(`auth-ip:${address}`, 30, 5 * 60_000);
+        if (!byAccount.allowed || !byAddress.allowed) {
           return null;
         }
 
@@ -31,10 +56,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Deactivated and soft-deleted accounts must not be able to sign in.
+        // Without this, the admin "deactivate"/"archive customer" actions have
+        // no effect on authentication and a banned user can simply log back in.
+        if (!user.isActive || user.deletedAt) {
+          return null;
+        }
+
         const passwordValid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!passwordValid) {
           return null;
         }
+
+        // Shown on the admin Staff page. A failure here must never block sign-in.
+        await repos.user.updateLastLogin(user.id).catch((error) => {
+          console.error('Could not record last sign-in time:', error);
+        });
 
         return {
           id: user.id,
@@ -44,7 +81,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    // `allowDangerousEmailAccountLinking` sounds alarming, but it's the right
+    // setting here: Google only hands back an email in the first place once
+    // it has verified it, so a customer who registered with a password and
+    // later taps "Continue with Google" using the same address is let
+    // straight into their existing account, rather than hitting an
+    // "OAuthAccountNotLinked" error and wondering if they have two accounts.
+    ...(googleEnabled
+      ? [
+          Google({
+            clientId: googleClientId!,
+            clientSecret: googleClientSecret!,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
   ],
+  events: {
+    // Runs after every successful sign-in, credentials or Google alike. The
+    // credentials flow (lib/actions/auth.ts) already merges the guest cart
+    // itself before calling signIn(), so this is a safe no-op for it the
+    // second time — the guest-cart cookie is already cleared by then. For
+    // Google, Auth.js handles the whole redirect round trip itself, so this
+    // event is the only place left to do the merge.
+    async signIn({ user }) {
+      if (!user.id) return;
+      try {
+        await mergeGuestCartForUser(user.id);
+      } catch (error) {
+        console.error('Guest cart merge failed on sign-in:', error);
+      }
+    },
+  },
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
@@ -53,15 +121,59 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token;
       }
 
-      const dbUser = await repos.user.findById(userId);
+      let dbUser;
+      try {
+        dbUser = await repos.user.findById(userId);
+      } catch (error) {
+        // This callback runs on nearly every page load (it's where sessions
+        // are read), so a transient DB error here must not cascade into a
+        // sitewide 500. Treat it as "can't verify right now" rather than
+        // "revoke access": log it and hand back the token unchanged, keeping
+        // whatever roles it already had cached instead of throwing or
+        // silently granting/escalating access.
+        console.error('jwt callback: failed to look up user for session refresh', error);
+        return token;
+      }
       token.sub = userId;
-      token.roles = dbUser?.roles.map((entry) => entry.role.name) ?? [];
+
+      // This callback runs on every session read, not just at sign-in, so it
+      // is also where an already-issued session gets revoked: clearing roles
+      // and flagging the token drops admin access the moment the account is
+      // deactivated, rather than whenever the JWT happens to expire.
+      if (!dbUser || !dbUser.isActive || dbUser.deletedAt) {
+        token.roles = [];
+        token.disabled = true;
+        return token;
+      }
+
+      // Signing in records which session version this sign-in belongs to. A
+      // password change or reset raises the version, so any sign-in made
+      // before it ends here: returning null makes Auth.js delete the cookie.
+      // Sign-ins from before this check existed have no version and count as 0.
+      if (user) {
+        token.sessionVersion = dbUser.sessionVersion;
+      } else if ((token.sessionVersion ?? 0) !== dbUser.sessionVersion) {
+        return null;
+      }
+
+      token.roles = dbUser.roles.map((entry) => entry.role.name);
+      // Kept in step with the database, so a name or email changed on the
+      // admin Profile page shows straight away without signing out.
+      token.email = dbUser.email;
+      token.name = dbUser.name;
+      token.disabled = false;
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub ?? '';
-        session.user.roles = (token.roles as RoleName[] | undefined) ?? [];
+        session.user.disabled = token.disabled === true;
+        // A deactivated account keeps no usable identity. Every action that
+        // checks `session.user.id` (wishlist, reviews, checkout, order access)
+        // then treats it as signed out, without each one needing its own check.
+        session.user.id = session.user.disabled ? '' : (token.sub ?? '');
+        session.user.roles = session.user.disabled
+          ? []
+          : ((token.roles as RoleName[] | undefined) ?? []);
       }
       return session;
     },
