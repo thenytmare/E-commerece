@@ -3,6 +3,7 @@
 import { createRepositories } from '@repo/database';
 import { requirePermission } from './auth';
 import { getClientIp } from '@/lib/request-context';
+import { reportPurchase } from '@/lib/meta-conversions-api';
 import { revalidatePath } from 'next/cache';
 
 const repos = createRepositories();
@@ -30,6 +31,10 @@ export async function confirmManualPaymentAction(
 
   try {
     await repos.payment.completePayment(paymentId);
+    // Manual Paybill has no provider callback, so report the purchase once an
+    // authorized staff member has verified the receipt and completed payment.
+    // reportPurchase uses the order id as its event id, making retries safe.
+    void reportPurchase(payment.orderId);
     await repos.auditLog.create({
       actorId: session.user.id,
       ipAddress: (await getClientIp()) ?? undefined,
